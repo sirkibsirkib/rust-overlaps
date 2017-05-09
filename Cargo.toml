@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["sirkibsirkib <christopher.esterhuyse@gmail.com>"]
 
 [dependencies]
+bio = "0.12.0"
+rand = "0.3"
+clap = "2.24.1"
