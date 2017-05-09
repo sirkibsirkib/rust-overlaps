@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/args.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Cargo.lock" afterPath="$PROJECT_DIR$/Cargo.lock" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Cargo.toml" afterPath="$PROJECT_DIR$/Cargo.toml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
@@ -25,8 +22,8 @@
       <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="803">
-              <caret line="57" column="9" lean-forward="false" selection-start-line="57" selection-start-column="9" selection-end-line="57" selection-end-column="9" />
+            <state relative-caret-position="484">
+              <caret line="68" column="5" lean-forward="false" selection-start-line="68" selection-start-column="5" selection-end-line="68" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -150,7 +147,13 @@
     <configuration default="false" name="Run rust_overlaps" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true" show_console_on_std_err="false" show_console_on_std_out="false">
       <parameters>
         <option name="additionalArguments">
-          <list />
+          <list>
+            <option value="--" />
+            <option value="data/basic.fasta" />
+            <option value="data/out.txt" />
+            <option value="-i" />
+            <option value="-r" />
+          </list>
         </option>
         <option name="backtraceMode" value="2" />
         <option name="command" value="run" />
@@ -416,7 +419,7 @@
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24039517" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Properties" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -540,8 +543,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="803">
-          <caret line="57" column="9" lean-forward="false" selection-start-line="57" selection-start-column="9" selection-end-line="57" selection-end-column="9" />
+        <state relative-caret-position="484">
+          <caret line="68" column="5" lean-forward="false" selection-start-line="68" selection-start-column="5" selection-end-line="68" selection-end-column="5" />
           <folding />
         </state>
       </provider>

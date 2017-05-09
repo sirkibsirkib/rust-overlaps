@@ -8,9 +8,9 @@ use bio::io::fasta;
 use std::collections::HashMap;
 use std::fs::File;
 
-use clap::{App, Arg, SubCommand};
-//mod args;
+//use clap::{App, Arg, SubCommand};
 
+#[derive(Debug)]
 struct Config{
     input : String,
     output : String,
@@ -52,15 +52,18 @@ fn main(){
     ).get_matches();
 
     let config = Config{
-        input  : matches.value_of("IN_PATH").unwrap(),
-        output : matches.value_of("OUT_PATH").unwrap(),
+        input  : matches.value_of("IN_PATH").unwrap().to_owned(),
+        output : matches.value_of("OUT_PATH").unwrap().to_owned(),
         reversals : if matches.occurrences_of("reversals") >= 1 {true} else {false},
-        inclusions : if matches.occurrences_of("reversals") >= 1 {true} else {false},
-        edit_distance : if matches.occurrences_of("reversals") >= 1 {true} else {false},
+        inclusions : if matches.occurrences_of("inclusions") >= 1 {true} else {false},
+        edit_distance : if matches.occurrences_of("edit_distance") >= 1 {true} else {false},
     };
 
+    println!("{:?}", &config);
+
     let filename = "data/basic.fasta";
-    match read_file(&filename){
+    let r = read_file(&filename);
+    match r {
         Ok(_) => println!("YAY"),
         Err(_) => println!("BOO"),
     }
