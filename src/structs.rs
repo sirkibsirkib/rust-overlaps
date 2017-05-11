@@ -4,17 +4,16 @@ pub mod solutions{
         Inverted,
     }
 
-    //should already be correctly oriented
+    //NOT oriented
     #[derive(Hash)]
     pub struct Candidate{
         id_b : i32,
-        orientation : Orientation,
         overlap_a : i32,
         overlap_b : i32,
-        overhang_left_a : i32,
         overhang_right_b : i32,
     }
 
+    //oriented
     #[derive(Hash)]
     pub struct Solution{
         id_b : i32,

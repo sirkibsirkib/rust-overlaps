@@ -43,7 +43,6 @@ fn verify(id_a : i32, c : &Candidate, config : &Config, maps : &Maps) -> Option(
     let a_len = maps.id2str_in_s.get(id_a).len();
     let b_len = maps.id2str_in_s.get(c.id_b).len();
 
-
     let a_start = max(0, c.overhang_left_a);
     let a_end = a_start + c.overlap_a;
     let a_end2 = min(a_len, a_len-c.overhang_right_b);
@@ -64,7 +63,11 @@ fn verify(id_a : i32, c : &Candidate, config : &Config, maps : &Maps) -> Option(
     };
     let k_limit : f32 = config.err_rate*(max(c.overlap_a, c.overlap_b) as f32);
     if k <= k_limit{
-        Some(Solution{candidate:c, errors:k, cigar:""})
+        Some(Solution{
+            candidate:c,
+            errors:k,
+            cigar:""
+        })
     }else{
         None()
     }
