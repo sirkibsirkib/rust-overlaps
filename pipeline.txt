@@ -19,17 +19,18 @@ pipeline
 
 {indices_fwd, indices_bwd, bidir_index_id}
 	==raw_cands==>
------------------------ un-oriented cand tups ----------------
-		{cand_tups}
+----------------------- un-oriented cands ----------------
+		{raw cands}
 
-{cand_tups}
+{raw_cands}
 	==write==>
 		{temp files 0,1,2....}
+
 ///////////////// Step1/Step2 file read/write and threadpools divide here ///////////////
 
 {files}
 	==read==>
-		{cand_tups}
+		{raw_cands}
 
 
 {cand_tups, config}
