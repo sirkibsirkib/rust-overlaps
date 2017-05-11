@@ -1,0 +1,38 @@
+
+// RUST BIO TEST
+//fn doz(config : &Config){
+//    let text = b"ACAGCTATCGGTA";
+//    let filename = "data/basic.fasta";
+//
+//    // instantiate an alphabet
+//    let alphabet = alphabets::dna::iupac_alphabet();
+//    // calculate a suffix array
+//    let pos = suffix_array(text);
+//    // calculate BWT
+//    let bwt = bwt(text, &pos);
+//    // calculate less and Occ
+//    let less = less(&bwt, &alphabet);
+//    let occ = Occ::new(&bwt, 3, &alphabet);
+//    // setup FMIndex
+//    let fmindex = FMIndex::new(&bwt, &less, &occ);
+//
+//    // Iterate over a FASTQ file, use the alphabet to validate read
+//    // sequences and search for exact matches in the FM-Index.
+//
+//    // obtain reader or fail with error (via the unwrap method)
+//    let f = File::open(&filename)
+//        .expect(&format!("Failed to open input file at {:?}\n", &filename));
+//    let reader = fasta::Reader::new(f);
+//    for result in reader.records() {
+//        // obtain record or fail with error
+//        let record = result.unwrap();
+//        // obtain sequence
+//        let seq = record.seq();
+//        if alphabet.is_word(seq) {
+//            let interval = fmindex.backward_search(seq.iter());
+//            let positions = interval.occ(&pos);
+//        }
+//    }
+//}
+
+

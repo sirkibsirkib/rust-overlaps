@@ -1,1 +1,3 @@
 Linear hash in hashmap for mappings
+how to return things that live longer than the function
+check when to use strings and when to use [u8] etc

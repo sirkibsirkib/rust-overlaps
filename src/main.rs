@@ -6,10 +6,12 @@ extern crate clap;
 use std::io;
 use bio::io::fasta;
 use std::collections::HashMap;
-use std::fs::File;
-
+use std::path::Path;
 use std::time::Duration;
 use std::thread;
+use std::fs::File;
+use std::io::Write;
+
 
 use bio::alphabets;
 use bio::data_structures::suffix_array::suffix_array;
@@ -23,9 +25,11 @@ use algorithm_modes::kucherov as mode;
 
 mod sol;
 use sol::solutions;
-use sol::solutions::{Candidate, Solution};
+use sol::solutions::{RawCandidate, Candidate, Solution};
 
 use bidir_map::BidirMap;
+
+const TEMP_DIR : fs::Path = Path::new("/tmp/");
 
 
 #[derive(Debug)]
@@ -42,10 +46,14 @@ impl Maps{
 
 #[derive(Debug)]
 struct Config{
+    //required
     input : String,
     output : String,
     err_rate : f32,
     thresh : i32,
+    worker_threads: i32,
+
+    //optional
     reversals : bool,
     inclusions : bool,
     edit_distance : bool,
@@ -71,6 +79,7 @@ fn read_file(maps : &mut Maps, filename : &str) -> Result<(), io::Error> {
             next_id += 1;
         }
     }
+    maps.id2name.shrink_to_fit();
     maps.id2str_in_s.shrink_to_fit();
     Ok(())
 }
@@ -83,8 +92,9 @@ fn parse_run_args() -> Config{
         (about: "Finds approximate suffix prefix overlaps")
         (@arg IN_PATH: +required +takes_value "Path to the input fasta file")
         (@arg OUT_PATH: +required +takes_value "Path of desired output file")
-        (@arg ERR_RATE: +required +takes_value "Path of desired output file")
-        (@arg THRESH: +required +takes_value "Path of desired output file")
+        (@arg ERR_RATE: +required +takes_value "The max rate of errors in an overlap")
+        (@arg THRESH: +required +takes_value "Shortest allowed length of an overlap")
+        (@arg WORKER_THREADS: +required +takes_value "Number of worker threads used")
         (@arg reversals: -r "Enables reversals of S strings")
         (@arg inclusions: -i "Enables finding of inclusion solutions")
         (@arg edit_distance: -e "Uses edit distance instead of Hamming")
@@ -96,6 +106,7 @@ fn parse_run_args() -> Config{
         output : matches.value_of("OUT_PATH").unwrap().to_owned(),
         err_rate : matches.value_of("ERR_RATE").unwrap().parse().unwrap(),
         thresh : matches.value_of("THRESH").unwrap().parse().unwrap(),
+        worker_threads: matches.value_of("WORKER_THREADS").unwrap().parse().unwrap(),
         reversals :     if matches.occurrences_of("reversals")     >= 1 {true} else {false},
         inclusions :    if matches.occurrences_of("inclusions")    >= 1 {true} else {false},
         edit_distance : if matches.occurrences_of("edit_distance") >= 1 {true} else {false},
@@ -113,58 +124,80 @@ fn main(){
     if config.verbose {println!("OK interpreted config args.\n Config : {:#?}", &config)};
     read_file(&mut maps, &config.input).expect("Failed to populate string dict from file");
     if config.verbose {println!("OK read and mapped fasta input")};
-    println!("Strings {:?}", maps.num_strings());
 
-    let (lens, filters) = mode::block_lengths_and_filters(30, 0.2, 10);
-    println!("{:?}", &lens);
-    for f in filters{
-        for val in f{
-            print!("{:?} ", val);
-        }
-        println!();
+    let text : String = make_text(config.reversals, maps.id2str_in_s.values(), &mut bdmap_index_id);
+
+    if !Path::new(TEMP_DIR).exists(){
+        fs::create_dir(TEMP_DIR)?;
     }
-
-    let text = String::new();
+    step1(text, config, maps);
+    step2(text, config, maps);
 }
 
-fn doz(config : &Config){
-    let text = b"ACAGCTATCGGTA";
-    let filename = "data/basic.fasta";
+fn make_text(reverse : bool, strings : &HashMap<i32, &str>, bdmap_index_id : &mut HashMap<i32, i32>)
+            -> String{
+    //TODO need to consider reversals
+    let mut result = String::new();
+    for id in 0..strings.len(){
+        let index = result.len();
+        bdmap_index_id.insert(index, id);
+        let s = strings.get(id);
+        result.push_str(s);
+        result.push('$');
+    }
+    result
+}
 
-    // instantiate an alphabet
-    let alphabet = alphabets::dna::iupac_alphabet();
-    // calculate a suffix array
-    let pos = suffix_array(text);
-    // calculate BWT
-    let bwt = bwt(text, &pos);
-    // calculate less and Occ
-    let less = less(&bwt, &alphabet);
-    let occ = Occ::new(&bwt, 3, &alphabet);
-    // setup FMIndex
-    let fmindex = FMIndex::new(&bwt, &less, &occ);
+fn step2(text : &str, config : &Config, maps : &Maps){
+    //todo thread_pool_2
+}
 
-    // Iterate over a FASTQ file, use the alphabet to validate read
-    // sequences and search for exact matches in the FM-Index.
-
-    // obtain reader or fail with error (via the unwrap method)
-    let f = File::open(&filename)
-        .expect(&format!("Failed to open input file at {:?}\n", &filename));
-    let reader = fasta::Reader::new(f);
-    for result in reader.records() {
-        // obtain record or fail with error
-        let record = result.unwrap();
-        // obtain sequence
-        let seq = record.seq();
-        if alphabet.is_word(seq) {
-            let interval = fmindex.backward_search(seq.iter());
-            let positions = interval.occ(&pos);
+fn step1(text : &str, config : &Config, maps : &Maps){
+    //todo thread_pool_1
+    for p_id in maps.id2str_in_s.keys(){
+        let s = maps.id2str_in_s.get(p_id);
+        let (block_lengths, filters) =
+            mode::block_lengths_and_filters(s.len(), config.err_rate, config.thresh);
+        let mut p_i_start = 0;
+        for block_length in block_lengths{
+            let pattern : &str = s[p_i_start..];
+            //TODO put in the rust bio shet
+            let (fwd_indices, bwd_indices) = search(p_id, pattern, config); //returns cand tups
+            let raw_candidates = interpret_raw_candidates(fwd_indices, bwd_indices);
+            write_raw_candidates(p_id, raw_candidates);
+            p_i_start += block_length;
         }
     }
 }
 
+fn interpret_raw_candidates(fwd_indices : [i32], bwd_indices : [i32]) -> HashSet<RawCandidate>{
+    //TODO interpret the output of rustbio. return rawcandidate
+}
 
+fn write_raw_candidates(p_id : i32, raw_candidates : &HashSet<RawCandidate>){
+    let filepath = TEMP_DIR.to_path_buf().push(p_id.to_string());
+    let mut wtr = csv::Writer::from_file(Path::new(filepath));
+    for rc in raw_candidates.into_iter() {
+        let tup = (
+            p_id,
+            rc.id_b,
+            rc.overlap_a,
+            rc.overlap_b,
+            rc.overhang_right_b,
+        );
+        let result = wtr.encode(tup);
+        assert!(result.is_ok());
+    }
+    //flush writer? idk
+}
 
-
+fn verify_all(candidates : &HashSet<Candidate>) -> HashSet<Solution>{
+    let solution_set : HashSet<Solution> = HashSet:new();
+    for c in candidates{
+        //TODO
+        match verify()
+    }
+}
 
 // incoming cands are already oriented
 fn verify(id_a : i32, c : &Candidate, config : &Config, maps : &Maps) -> Option(Solution){
