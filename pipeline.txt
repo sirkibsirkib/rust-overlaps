@@ -1,0 +1,39 @@
+pipeline
+
+{prog args}
+	==clap==>
+		{config}
+
+{config}
+	==read_fasta&map==>
+--------------------------ids now used-------------------------
+		{S, id2names}
+
+{S}
+	==textify==>
+		{bidir_index_id, text}
+
+{text, query}
+	==bio::fm_index==>
+		{indices_fwd, indices_bwd}
+
+{indices_fwd, indices_bwd, bidir_index_id}
+	==raw_cands==>
+		{cand_tups}
+
+{cand_tups, config}
+	==clean_cands==>
+--------------cands correctly oriented----------------------
+		{Candidates}
+
+{config, candidates, S}
+	==verification==>
+		{solutions}
+
+{config, solutions, i2names}
+	==output==>
+--------------'names' only used again after this point----------------------
+		END
+
+
+

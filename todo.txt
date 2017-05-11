@@ -1,0 +1,1 @@
+Linear hash in hashmap for mappings

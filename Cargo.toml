@@ -7,3 +7,4 @@ authors = ["sirkibsirkib <christopher.esterhuyse@gmail.com>"]
 bio = "0.12.0"
 rand = "0.3"
 clap = "2.24.1"
+bidir-map = "0.3.2"
