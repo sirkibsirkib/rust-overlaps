@@ -73,7 +73,9 @@ fn main(){
     println!("{:?}", String::from_utf8_lossy(&text));
 
 //    p1::step1(text, config, maps);
-//    p2::step2(text, config, maps);
+//    let all_solutions =
+//        p2::step2(text, config, maps);
+//    write_solutions(&all_solutions);
 }
 
 
@@ -124,4 +126,23 @@ fn make_text(reverse : bool, strings : &HashMap<usize, Vec<u8>>)
     }
     text.shrink_to_fit();
     (text, bdmap_index_id)
+}
+
+fn write_solutions(solutions : Vec<HashSet<Solution>>, config : &Config){
+    let f = File::create(config.output).expect("Unable to create output file");
+    let mut wrt_buf = BufWriter::new(f);
+    write!(&mut wrt_buf, "idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\tCIGAR\n");
+    for solution in solutions{
+        write!(&mut wrt_buf, "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+               id_a,
+               id_b,
+               orientation,
+               overhang_left_a,
+               overhang_right_b,
+               overlap_a,
+               overlap_b,
+               errors,
+               cigar,
+        );
+    }
 }

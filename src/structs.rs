@@ -9,13 +9,13 @@ pub mod solutions{
     #[derive(Hash)]
     pub enum Orientation{
         Normal,
-        Inverted,
+        Reversed,
     }
 
     //NOT oriented
     #[derive(Hash)]
     pub struct Candidate{
-        id_b : i32,
+        id_b : usize,
         overlap_a : i32,
         overlap_b : i32,
         overhang_right_b : i32,
@@ -23,7 +23,8 @@ pub mod solutions{
 
     //oriented
     pub struct Solution{
-        id_b : i32,
+        id_a : usize,
+        id_b : usize,
         orientation : bool,
         overlap_a : i32,
         overlap_b : i32,

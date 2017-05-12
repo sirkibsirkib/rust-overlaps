@@ -7,38 +7,16 @@ pub mod kucherov{
 
     const S_PARAM : i32 = 3;
 
-    struct Filter{
-        blocks : i32,
+    // the starting block of a suff is the 0th block.
+    // if a suff is 4 blocks long
+    pub fn filter_func(ith_block : i32, suff_blocks_len : i32){
+        cmp::min(
+            suff_blocks_len-S_PARAM,
+            ith_block,
+        )
     }
 
-    impl IntoIterator for Filter {
-        type Item = i32;
-        type IntoIter = FilterIterator;
-
-        fn into_iter(self) -> Self::IntoIter {
-            FilterIterator { blocks: self.blocks, next_index: 0 }
-        }
-    }
-
-    pub struct FilterIterator{
-        blocks : i32,
-        next_index : i32,
-    }
-
-    impl Iterator for FilterIterator {
-        type Item = i32;
-        fn next(&mut self) -> Option<i32> {
-            if self.next_index == self.blocks{
-                None
-            } else{
-                self.next_index += 1;
-                Some(if self.next_index == self.blocks {self.next_index-2} else {self.next_index-1})
-            }
-        }
-    }
-
-    pub fn block_lengths_and_filters(patt_len : i32, err_rate : f32, thresh : i32)
-                                    -> (Vec<i32>, Vec<FilterIterator>){
+    pub fn get_block_lengths(patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i32>{
         let mut ls : Vec<i32> = Vec::new();
         for l in thresh..patt_len+1{
             let f_len = l as f32;
@@ -66,15 +44,7 @@ pub mod kucherov{
         for i in 0..ls.len()-1 {
             block_lengths.push(ls[i+1] - ls[i]);
         }
-
-        println!("{:?} blocks!", block_lengths.len());
-
-        let mut filters : Vec<FilterIterator> = Vec::new();
-        for i in (S_PARAM-1..(block_lengths.len()) as i32).rev() {
-            filters.push(FilterIterator{blocks:(i+1) as i32, next_index:0});
-        }
-
-        (block_lengths, filters)
+        block_lengths
     }
 
     pub fn candidate_condition(

@@ -36,3 +36,37 @@
 //}
 
 
+
+
+
+
+
+//    pub struct Filter{
+//        blocks : i32,
+//    }
+//
+//    impl IntoIterator for Filter {
+//        type Item = i32;
+//        type IntoIter = FilterIterator;
+//
+//        fn into_iter(self) -> Self::IntoIter {
+//            FilterIterator { blocks: self.blocks, next_index: 0 }
+//        }
+//    }
+//
+//    pub struct FilterIterator{
+//        blocks : i32,
+//        next_index : i32,
+//    }
+//
+//    impl Iterator for FilterIterator {
+//        type Item = i32;
+//        fn next(&mut self) -> Option<i32> {
+//            if self.next_index == self.blocks{
+//                None
+//            } else{
+//                self.next_index += 1;
+//                Some(if self.next_index == self.blocks {self.next_index-2} else {self.next_index-1})
+//            }
+//        }
+//    }
