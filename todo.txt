@@ -1,5 +1,5 @@
 Override hash function when keys are known beforehand
-how to return things that live longer than the function (boxing?)
+returning a struct cost vs. returning a box ref
 check when to use strings and when to use [u8] etc
 struct vs tuple cost
 module hierarchy

@@ -1,4 +1,12 @@
+
+pub static TEMP_DIR : &'static str = "/tmp/";
+
 pub mod solutions{
+
+    use std::hash::{Hash, SipHasher, Hasher};
+    use std::collections::HashMap;
+
+    #[derive(Hash)]
     pub enum Orientation{
         Normal,
         Inverted,
@@ -14,10 +22,9 @@ pub mod solutions{
     }
 
     //oriented
-    #[derive(Hash)]
     pub struct Solution{
         id_b : i32,
-        orientation : Orientation,
+        orientation : bool,
         overlap_a : i32,
         overlap_b : i32,
         overhang_left_a : i32,
@@ -26,21 +33,31 @@ pub mod solutions{
         cigar : String,
     }
 
-    impl Hash for Struct {
+    impl Hash for Solution {
         fn hash<H: Hasher>(&self, state: &mut H) {
+            self.id_b.hash(state);
+            self.orientation.hash(state);
+            self.overlap_a.hash(state);
+            self.overlap_b.hash(state);
+            self.overhang_left_a.hash(state);
+            self.overhang_right_b.hash(state);
             self.errors.hash(state);
-            self.candidate.hash(state);
             // cigar string not involved in the hash
         }
     }
 }
 
 pub mod run_config{
+    extern crate bidir_map;
+
+    use std::collections::HashMap;
+    use bidir_map::BidirMap;
+
     #[derive(Debug)]
     pub struct Maps{
-        id2name : HashMap<i32, String>,
-        id2str_in_s : HashMap<i32, Vec<u8>>,
-        bdmap_index_id : BidirMap<i32, i32>,
+        pub id2name : HashMap<usize, String>,
+        pub id2str_in_s : HashMap<usize, Vec<u8>>,
+        pub bdmap_index_id : BidirMap<usize, usize>,
     }
     impl Maps{
         pub fn num_strings(&self) -> usize{
@@ -51,16 +68,16 @@ pub mod run_config{
     #[derive(Debug)]
     pub struct Config{
         //required
-        input : String,
-        output : String,
-        err_rate : f32,
-        thresh : i32,
-        worker_threads: i32,
+        pub input : String,
+        pub output : String,
+        pub err_rate : f32,
+        pub thresh : i32,
+        pub worker_threads: i32,
 
         //optional
-        reversals : bool,
-        inclusions : bool,
-        edit_distance : bool,
-        verbose : bool,
+        pub reversals : bool,
+        pub inclusions : bool,
+        pub edit_distance : bool,
+        pub verbose : bool,
     }
 }

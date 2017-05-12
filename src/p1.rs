@@ -3,6 +3,14 @@ extern crate bio;
 use structs::solutions::*;
 use structs::run_config::*;
 
+
+use bio::alphabets;
+use bio::data_structures::suffix_array::suffix_array;
+use bio::data_structures::bwt::{bwt, less, Occ};
+use bio::data_structures::fmindex::{FMIndex, FMIndexable};
+use bio::io::fastq;
+use bio::alignment::distance::*;
+
 fn step1(text : &str, config : &Config, maps : &Maps){
     //TODO thread_pool_1
     //TODO iterate over correct IDs that respect reversals

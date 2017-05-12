@@ -2,21 +2,20 @@
 extern crate clap;
 
 use std::io;
-use bio::io::fasta;
 use std::collections::HashMap;
 use std::path::Path;
-use std::time::Duration;
-use std::thread;
+//use std::time::Duration;
+//use std::thread;
 use std::fs::File;
-use std::io::Write;
-use std::sync::Mutex;
-use bio::alphabets;
-use bio::data_structures::suffix_array::suffix_array;
-use bio::data_structures::bwt::{bwt, less, Occ};
-use bio::data_structures::fmindex::{FMIndex, FMIndexable};
-use bio::io::fastq;
-use bio::alignment::distance::*;
+//use std::io::Write;
+//use std::sync::Mutex;
+use std::fs;
 
+extern crate bio;
+use bio::io::fasta;
+
+
+extern crate bidir_map;
 use bidir_map::BidirMap;
 
 /////////////////////////////////////
@@ -28,33 +27,8 @@ mod structs;
 use structs::solutions::*;
 use structs::run_config::*;
 
-mod p1;
-mod p2;
-
-const TEMP_DIR : fs::Path = Path::new("/tmp/");
-
-fn read_file(maps : &mut Maps, filename : &str) -> Result<(), io::Error> {
-    let mut next_id = 0;
-
-    let f = File::open(filename)
-        .expect(&format!("Failed to open input file at {:?}\n", filename));
-    let reader = fasta::Reader::new(f);
-    for record in reader.records() {
-        let record = record?;
-        if let Some(name) = record.id(){
-//            print!("ID:{:?}, seq {:?}", name, String::from_utf8_lossy(record.seq()));
-//            println!();
-            maps.id2name
-                .insert(next_id, name.to_owned());
-            maps.id2str_in_s
-                .insert(next_id, record.seq().to_vec());
-            next_id += 1;
-        }
-    }
-    maps.id2name.shrink_to_fit();
-    maps.id2str_in_s.shrink_to_fit();
-    Ok(())
-}
+//mod p1;
+//mod p2;
 
 
 fn parse_run_args() -> Config{
@@ -87,38 +61,67 @@ fn parse_run_args() -> Config{
 }
 
 fn main(){
-    let mut maps = Maps{
-        id2name : HashMap::new(),
-        id2str_in_s : HashMap::new(),
-        bdmap_index_id : BidirMap::new(),
-    };
     let config = parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n Config : {:#?}", &config)};
-    read_file(&mut maps, &config.input).expect("Failed to populate string dict from file");
+    let (maps, text) = read_and_prepare(&config.input, &config).expect("Couldn't interpret data");
     if config.verbose {println!("OK read and mapped fasta input")};
-
-    let text : String = make_text(config.reversals, maps.id2str_in_s.values(), &mut bdmap_index_id);
-
-    if !Path::new(TEMP_DIR).exists(){
-        fs::create_dir(TEMP_DIR)?;
+    if !Path::new(structs::TEMP_DIR).exists(){
+        let r = fs::create_dir(structs::TEMP_DIR);
+        assert!(r.is_ok());
     }
 
-    p1::step1(text, config, maps);
-    p2::step2(text, config, maps);
+    println!("{:?}", String::from_utf8_lossy(&text));
+
+//    p1::step1(text, config, maps);
+//    p2::step2(text, config, maps);
 }
 
 
-fn make_text(reverse : bool, strings : &HashMap<i32, &str>, bdmap_index_id : &mut HashMap<i32, i32>)
-            -> String{
-    //TODO need to consider reversals
-    let mut result = String::new();
-    for id in 0..strings.len(){
-        let index = result.len();
-        bdmap_index_id.insert(index, id);
-        let s = strings.get(id);
-        //TODO reverse string + flip symbols sometimes
-        result.push_str(s);
-        result.push('$');
+fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>), io::Error> {
+    let mut next_id = 0;
+    let mut id2name : HashMap<usize, String> = HashMap::new();
+    let mut id2str_in_s : HashMap<usize, Vec<u8>> = HashMap::new();
+    let f = File::open(filename)
+        .expect(&format!("Failed to open input file at {:?}\n", filename));
+    let reader = fasta::Reader::new(f);
+    for record in reader.records() {
+        let record = record?;
+        if let Some(name) = record.id(){
+            print!("ID:{:?}, seq {:?}", name, String::from_utf8_lossy(record.seq()));
+            println!();
+            id2name.insert(next_id, name.to_owned());
+            id2str_in_s.insert(next_id, record.seq().to_vec());
+            next_id += 1;
+        }
     }
-    result
+
+    let (text, bdmap_index_id) = make_text(config.reversals, &id2str_in_s);
+
+    id2name.shrink_to_fit();
+    id2str_in_s.shrink_to_fit();
+
+    let mut maps = Maps{
+        id2name : id2name,
+        id2str_in_s : id2str_in_s,
+        bdmap_index_id : bdmap_index_id,
+    };
+
+    Ok((maps, text))
+}
+
+fn make_text(reverse : bool, strings : &HashMap<usize, Vec<u8>>)
+            -> (Vec<u8>, BidirMap<usize, usize>){
+    //TODO need to consider reversals
+    let mut bdmap_index_id : BidirMap<usize, usize> = BidirMap::new();
+    let mut text : Vec<u8> = Vec::new();
+    for id in 0..strings.len(){
+        let index = text.len();
+        bdmap_index_id.insert(index, id);
+        let s = strings.get(&id).expect("Can't find string with that ID!");
+        //TODO reverse string + flip symbols sometimes
+        text.extend(s);
+        text.push('$' as u8);
+    }
+    text.shrink_to_fit();
+    (text, bdmap_index_id)
 }
