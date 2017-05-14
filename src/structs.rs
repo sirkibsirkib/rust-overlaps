@@ -1,5 +1,5 @@
 
-pub static TEMP_DIR : &'static str = "/tmp/";
+pub static TEMP_DIR : &'static str = "tmp/";
 
 pub mod solutions{
 

@@ -40,6 +40,7 @@ fn parse_run_args() -> Config{
         (author: "Christopher Esterhuyse <christopher.esterhuyse@gmail.com>")
         (about: "Finds approximate suffix prefix overlaps")
         (@arg IN_PATH: +required +takes_value "Path to the input fasta file")
+//        (@arg TMP_PATH: +required +takes_value "Path for the program to make temp files")
         (@arg OUT_PATH: +required +takes_value "Path of desired output file")
         (@arg ERR_RATE: +required +takes_value "The max rate of errors in an overlap")
         (@arg THRESH: +required +takes_value "Shortest allowed length of an overlap")
@@ -71,6 +72,10 @@ fn main(){
     if !Path::new(structs::TEMP_DIR).exists(){
         let r = fs::create_dir(structs::TEMP_DIR);
         assert!(r.is_ok());
+        println!("Created /tmp/.");
+    } else{
+        println!("/tmp/ already here");
+
     }
 
     println!("{:?}", String::from_utf8_lossy(&text));
