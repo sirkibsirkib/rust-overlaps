@@ -23,27 +23,42 @@ pub mod solutions{
 
     //oriented
     pub struct Solution{
-        id_a : usize,
-        id_b : usize,
-        orientation : bool,
-        overlap_a : i32,
-        overlap_b : i32,
-        overhang_left_a : i32,
-        overhang_right_b : i32,
-        errors : u8,
-        cigar : String,
+        pub id_a : usize,
+        pub id_b : usize,
+        pub orientation : bool,
+        pub overlap_a : i32,
+        pub overlap_b : i32,
+        pub overhang_left_a : i32,
+        pub overhang_right_b : i32,
+        pub errors : u8,
+        pub cigar : String,
     }
+
+    impl PartialEq for Solution {
+        fn eq(&self, other: &Solution) -> bool {
+            self.id_a == other.id_a
+            && self.id_b == other.id_b
+            && self.orientation == other.orientation
+            && self.overlap_a == other.overlap_a
+            && self.overlap_b == other.overlap_b
+            && self.overhang_left_a == other.overhang_left_a
+            && self.overhang_right_b == other.overhang_right_b
+        }
+    }
+
+    // TODO why does it need to be hashable AND eq?
+    impl Eq for Solution {}
 
     impl Hash for Solution {
         fn hash<H: Hasher>(&self, state: &mut H) {
+            self.id_a.hash(state);
             self.id_b.hash(state);
             self.orientation.hash(state);
             self.overlap_a.hash(state);
             self.overlap_b.hash(state);
             self.overhang_left_a.hash(state);
             self.overhang_right_b.hash(state);
-            self.errors.hash(state);
-            // cigar string not involved in the hash
+            // ERRORS and CIGAR not need not be the same
         }
     }
 }

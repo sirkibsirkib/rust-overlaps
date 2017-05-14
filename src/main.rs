@@ -1,15 +1,16 @@
+#[allow(unused_imports)]
+
+
 #[macro_use]
 extern crate clap;
 
 use std::io;
 use std::collections::HashMap;
 use std::path::Path;
-//use std::time::Duration;
-//use std::thread;
-use std::fs::File;
-//use std::io::Write;
-//use std::sync::Mutex;
 use std::fs;
+use std::collections::HashSet;
+use std::fs::File;
+use std::io::{Write, BufWriter};
 
 extern crate bio;
 use bio::io::fasta;
@@ -29,6 +30,8 @@ use structs::run_config::*;
 
 //mod p1;
 //mod p2;
+
+#[allow(dead_code)]
 
 
 fn parse_run_args() -> Config{
@@ -102,7 +105,7 @@ fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>)
     id2name.shrink_to_fit();
     id2str_in_s.shrink_to_fit();
 
-    let mut maps = Maps{
+    let maps = Maps{
         id2name : id2name,
         id2str_in_s : id2str_in_s,
         bdmap_index_id : bdmap_index_id,
@@ -128,21 +131,27 @@ fn make_text(reverse : bool, strings : &HashMap<usize, Vec<u8>>)
     (text, bdmap_index_id)
 }
 
-fn write_solutions(solutions : Vec<HashSet<Solution>>, config : &Config){
-    let f = File::create(config.output).expect("Unable to create output file");
+fn write_solutions(solution_sets : &Vec<HashSet<Solution>>, config : &Config){
+    let f = File::create(&config.output).expect("Unable to create output file");
     let mut wrt_buf = BufWriter::new(f);
-    write!(&mut wrt_buf, "idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\tCIGAR\n");
-    for solution in solutions{
-        write!(&mut wrt_buf, "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-               id_a,
-               id_b,
-               orientation,
-               overhang_left_a,
-               overhang_right_b,
-               overlap_a,
-               overlap_b,
-               errors,
-               cigar,
-        );
+    wrt_buf.write_all("idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\tCIGAR\n".as_bytes())
+        .expect("Couldn't write first output line");
+    for solution_set in solution_sets.iter() {
+        for sol in solution_set.iter() {
+            let s = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                            sol.id_a,
+                            sol.id_b,
+                            sol.orientation,
+                            sol.overhang_left_a,
+                            sol.overhang_right_b,
+                            sol.overlap_a,
+                            sol.overlap_b,
+                            sol.errors,
+                            sol.cigar,
+            );
+            //TODO write! not working?
+            wrt_buf.write(s.as_bytes())
+                .expect("Failed to write solution");
+        }
     }
 }

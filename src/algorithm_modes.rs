@@ -1,16 +1,17 @@
 
 
-
+#[allow(dead_code)]
+#[allow(unused_variables)]
 pub mod kucherov{
 
-    use std::cmp::max;
+    use std::cmp::{min, max};
 
     const S_PARAM : i32 = 3;
 
     // the starting block of a suff is the 0th block.
     // if a suff is 4 blocks long
-    pub fn filter_func(ith_block : i32, suff_blocks_len : i32){
-        cmp::min(
+    pub fn filter_func(ith_block : i32, suff_blocks_len : i32) -> i32{
+        min(
             suff_blocks_len-S_PARAM,
             ith_block,
         )
