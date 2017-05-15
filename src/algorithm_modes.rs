@@ -6,7 +6,7 @@ pub mod kucherov{
 
     use std::cmp::{min, max};
 
-    const S_PARAM : i32 = 3;
+    const S_PARAM : i32 = 2;
 
     // the starting block of a suff is the 0th block.
     // if a suff is 4 blocks long
@@ -49,16 +49,15 @@ pub mod kucherov{
     }
 
     pub fn candidate_condition(
-                p_i_start : i32,
-                p_i_next  : i32,
-                thresh    : i32,
-                block_id  : i32,
-                errors    : i32
+                generous_match_len : usize,
+                abs_block_id : i32,
+                thresh : i32,
+                errors : i32
                 ) -> bool{
-        let c1 = p_i_next >= thresh;
-        let c2 = block_id > 0;
-        let c3 = block_id >= S_PARAM-1
-            && errors <= (block_id - S_PARAM + 1);
+        let c1 = generous_match_len >= thresh as usize;
+        let c2 = abs_block_id > 0;
+        let c3 = abs_block_id >= S_PARAM - 1
+            && errors <= (abs_block_id - S_PARAM + 1);
         c1 && c2 && c3
     }
 }

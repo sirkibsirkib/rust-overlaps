@@ -6,19 +6,19 @@ pub mod solutions{
     use std::hash::{Hash, SipHasher, Hasher};
     use std::collections::HashMap;
 
-    #[derive(Hash)]
+    #[derive(Hash,PartialEq, Eq)]
     pub enum Orientation{
         Normal,
         Reversed,
     }
 
     //NOT oriented
-    #[derive(Hash)]
+    #[derive(Hash,PartialEq, Eq)]
     pub struct Candidate{
-        id_b : usize,
-        overlap_a : i32,
-        overlap_b : i32,
-        overhang_right_b : i32,
+        pub id_b : usize,
+        pub overlap_a : i32,
+        pub overlap_b : i32,
+        pub overhang_right_b : i32,
     }
 
     //oriented
