@@ -102,7 +102,7 @@ fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>)
         }
     }
 
-    let (text, bdmap_index_id) = make_text(config.reversals, &id2str_in_s);
+    let (text, bdmap_index_id, end_dollar2id) = make_text(config.reversals, &id2str_in_s);
 
     id2name.shrink_to_fit();
     id2str_in_s.shrink_to_fit();
@@ -111,27 +111,29 @@ fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>)
         id2name : id2name,
         id2str_in_s : id2str_in_s,
         bdmap_index_id : bdmap_index_id,
+        end_dollar2id : end_dollar2id,
     };
 
     Ok((maps, text))
 }
 
 fn make_text(reverse : bool, strings : &HashMap<i32, Vec<u8>>)
-            -> (Vec<u8>, BidirMap<i32, i32>){
+            -> (Vec<u8>, BidirMap<i32, i32>, HashMap<i32, i32>){
     //TODO need to consider reversals
     let mut bdmap_index_id : BidirMap<i32, i32> = BidirMap::new();
+    let mut end_dollar2id : HashMap<i32, i32> = HashMap::new();
     let mut text : Vec<u8> = Vec::new();
-    text.push('&' as u8);
     for id in 0..(strings.len() as i32){
         let index = text.len() as i32;
         bdmap_index_id.insert(index, id);
         let s = strings.get(&id).expect("Can't find string with that ID!");
         //TODO reverse string + flip symbols sometimes
         text.extend(s);
+        end_dollar2id.insert(text.len() as i32, id);
         text.push('$' as u8);
     }
     text.shrink_to_fit();
-    (text, bdmap_index_id)
+    (text, bdmap_index_id, end_dollar2id)
 }
 
 fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
@@ -173,7 +175,7 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
 
     pipeline(
         "pipelinexyz",   // name of the pipeline for logging
-         4,              // number of worker threads
+         1,              // number of worker threads
          maps.id2str_in_s.keys(),   // iterator with work items
          |n| work(*n, maps.id2str_in_s.get(n).expect("WTF"), config, &fm, maps, &sa), // computation to apply in parallel to work items
          |r| {           // aggregation to apply to work results
@@ -188,8 +190,11 @@ use bio::data_structures::fmindex::{FMIndexable, FMIndex};
 fn work<DBWT: DerefBWT + Clone,
     DLess: DerefLess + Clone,
     DOcc: DerefOcc + Clone>(p_id : i32, pattern : &[u8], config : &Config, fm : &FMIndex<DBWT, DLess, DOcc>, maps : &Maps, sa : &RawSuffixArray) -> HashSet<Candidate>{
+
+    println!("New work with p_id {}, pattern {}", p_id, String::from_utf8_lossy(pattern));
     let patt_len = pattern.len() as i32;
     let block_lengths = alg_mode::get_block_lengths(patt_len, config.err_rate, config.thresh);
+    println!("block lengtsh {:?} patt len {}", &block_lengths, patt_len);
     fm.generate_candidates(
         pattern,
         config,
@@ -198,8 +203,6 @@ fn work<DBWT: DerefBWT + Clone,
         &block_lengths,
         sa,
     )
-
-//    format!("{} - {:?}\n", p_id, block_id_lookup)
 }
 
 
@@ -228,29 +231,34 @@ trait GeneratesCandidates : FMIndexable {
             if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as i32};
         let max_errs = (max_b_len as f32 * config.err_rate).floor() as i32;
         let block_id_lookup = get_block_id_lookup(max_b_len, config, block_lengths);
+        println!("block_id_lookup {:?}", &block_id_lookup);
+
+
         let full_interval = Interval {
             lower: 0,
-            upper: self.bwt().len(),
+            upper: self.bwt().len() -1,
         };
 
         let mut patt_len : i32 = 0;
 
         // FOR EACH FILTER, from smallest prefix to total prefix
         // PREFIX FILTERS
-        for (s_id, block_len) in block_lengths.iter().enumerate() {
+        println!("Generate candidates!");
+        let patt_blocks : i32 = block_lengths.len() as i32;
+        for (block_id, block_len) in block_lengths.iter().enumerate() {
             patt_len += (*block_len) as i32;
-            let p_i = patt_len;
             let search_constants = SearchConstants{
+                pattern: pattern,
                 config : config,
                 maps : maps,
-                pattern: pattern,
-                id_a : id_a,
-                s_id : s_id as i32,
-                suff_len : s_id as i32 + 1,
                 block_id_lookup : &block_id_lookup,
                 sa : sa,
+                id_a : id_a,
+                first_block_id : block_id as i32,
+                patt_blocks : patt_blocks,
             };
-            self.recurse_candidates(&mut candidate_set, &search_constants, 0, p_i, 0, 0, 0, full_interval);
+            println!(">> id_a {} first_block_id {}", search_constants.id_a, search_constants.first_block_id);
+            self.recurse_candidates(&mut candidate_set, &search_constants, 0, p_i, 0, 0, 0, &full_interval, &String::new());
         }
         candidate_set
     }
@@ -263,29 +271,38 @@ trait GeneratesCandidates : FMIndexable {
                           indel_balance : i32,
                           a_match_len : i32,
                           b_match_len : i32,
-                          matches : Interval){
+                          matches : &Interval,
+                          debug : &str){
+        println!("'{}'   recurse p_i=={}    interval:[{}-->{}]", debug, p_i, matches.lower, matches.upper);
 
         if matches.lower >= matches.upper{
             return
         }
 
-        let abs_block_id : i32        = cns.block_id_lookup[p_i as usize];
-        let permitted_error : i32 = alg_mode::filter_func(abs_block_id-cns.s_id, cns.suff_len);
-        let has_spare_error : bool    = errors < permitted_error;
+        let completed_blocks : i32 = cns.block_id_lookup[p_i as usize] - cns.first_block_id;
+        let permitted_error : i32 =
+            alg_mode::filter_func(completed_blocks, cns.patt_blocks);
+
+//        let has_spare_error : bool = errors < permitted_error;
 
         // ADD SUFFIX CANDIDATES
         let generous_match_len = std::cmp::max(a_match_len, b_match_len);
-        let cand_condition_satisfied = alg_mode::candidate_condition(generous_match_len, abs_block_id, cns.config.thresh, errors);
+
+        let cand_condition_satisfied =
+            alg_mode::candidate_condition(generous_match_len, completed_blocks, cns.config.thresh, errors);
+
         if cand_condition_satisfied {
             let a = '$' as u8;
             let less = self.less(a);
-            let l_dollar = less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 };
-            let r_dollar = less + self.occ(matches.upper, a) - 1;
-            let dollar_interval = Interval { lower: l_dollar, upper: r_dollar };
+            let dollar_interval = Interval {
+                lower : less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 },
+                upper : less + self.occ(matches.upper, a) - 1,
+            };
             let positions = dollar_interval.occ(cns.sa);
             for p in positions {
-                let id_b = *cns.maps.bdmap_index_id.get_by_second(&(p as i32 + 1)).expect("BIDIR MAP BAD");
+                let id_b = *cns.maps.end_dollar2id.get(&(p as i32 + 1)).expect("DOLLAR MAP BAD");
                 if id_b == cns.id_a{
+                    //skip obvious self-matches
                     continue
                 }
                 let c = Candidate {
@@ -294,11 +311,12 @@ trait GeneratesCandidates : FMIndexable {
                     overlap_b: b_match_len,
                     overhang_right_b: 0,
                 };
+                println!("  adding cand {:?}", &c);
                 cand_set.insert(c);
             }
         }
 
-        if p_i == 0{
+        if p_i >= cns.pattern.len(){
             //END OF PATTERN
             //INCLUSIONS GO HERE
             return
@@ -307,14 +325,15 @@ trait GeneratesCandidates : FMIndexable {
         // walking + substitution match
         for &a in ALPH.iter(){
             let less = self.less(a);
-            let l = less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 };
-            let r = less + self.occ(matches.upper, a) - 1;
-            let next_matches = Interval { lower: l, upper: r };
-            let next_errors =  if cns.pattern[p_i as usize] == a && a != READ_ERR {errors} else {errors + 1};
-            let next_generous_match_len = generous_match_len + 1;
-            let next_block_id : i32        = cns.block_id_lookup[(p_i-1) as usize];
-            let next_permitted_error : i32 = alg_mode::filter_func(next_block_id-cns.s_id, cns.suff_len);
-            if next_errors <= next_permitted_error{
+            let next_interval = Interval{
+                lower : less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 },
+                upper : less + self.occ(matches.upper, a) - 1,
+            };
+            let incduced_error = a == () or cns.pattern[p_i]
+            if errors <= permitted_error{
+                println!("explore deeper!");
+                let mut next_debug = debug.to_owned();
+                next_debug.push(a as char);
                 self.recurse_candidates(cand_set,
                                         cns,
                                         next_errors,
@@ -322,21 +341,25 @@ trait GeneratesCandidates : FMIndexable {
                                         0,
                                         a_match_len+1,
                                         b_match_len+1,
-                                        next_matches);
+                                        &next_matches,
+                                        &next_debug);
             }
         }
     }
 }
 
+#[derive(Debug)]
 struct SearchConstants<'a>{
     config : &'a Config,
     maps : &'a Maps,
-    pattern: &'a [u8],
-    id_a : i32,
-    s_id : i32,
-    suff_len : i32,
+
     block_id_lookup : &'a Vec<i32>,
     sa : &'a RawSuffixArray,
+    pattern: &'a [u8],
+    id_a : i32,
+
+    first_block_id : i32,
+    patt_blocks : i32,
 }
 
 fn get_block_id_lookup(max_b_len : i32, config : &Config, block_lengths : &[i32]) -> Vec<i32>{
@@ -350,7 +373,6 @@ fn get_block_id_lookup(max_b_len : i32, config : &Config, block_lengths : &[i32]
     while (lookup.len() as i32) < max_b_len{
         lookup.push(last_index);
     }
-    lookup.reverse();
     lookup.shrink_to_fit();
     lookup
 }
