@@ -2,16 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/pseudocode.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Cargo.lock" afterPath="$PROJECT_DIR$/Cargo.lock" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Cargo.toml" afterPath="$PROJECT_DIR$/Cargo.toml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/out.txt" afterPath="$PROJECT_DIR$/data/out.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/algorithm_modes.rs" afterPath="$PROJECT_DIR$/src/algorithm_modes.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/p1.rs" afterPath="$PROJECT_DIR$/src/p1.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/structs.rs" afterPath="$PROJECT_DIR$/src/structs.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -81,8 +73,8 @@
       <file leaf-file-name="algorithm_modes.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/algorithm_modes.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="650">
-              <caret line="56" column="54" lean-forward="false" selection-start-line="56" selection-start-column="54" selection-end-line="56" selection-end-column="54" />
+            <state relative-caret-position="950">
+              <caret line="56" column="45" lean-forward="false" selection-start-line="56" selection-start-column="45" selection-end-line="56" selection-end-column="45" />
               <folding />
             </state>
           </provider>
@@ -91,8 +83,8 @@
       <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="282" column="80" lean-forward="false" selection-start-line="282" selection-start-column="80" selection-end-line="282" selection-end-column="80" />
+            <state relative-caret-position="2474">
+              <caret line="274" column="0" lean-forward="true" selection-start-line="274" selection-start-column="0" selection-end-line="274" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -133,6 +125,7 @@
       <find>RawSuffixArray</find>
       <find>DerefBWT</find>
       <find>cond</find>
+      <find>filter</find>
     </findStrings>
     <replaceStrings>
       <replace>b_match_len</replace>
@@ -165,8 +158,8 @@
         <option value="$PROJECT_DIR$/pseudocode.py" />
         <option value="$PROJECT_DIR$/src/p1.rs" />
         <option value="$PROJECT_DIR$/Cargo.toml" />
-        <option value="$PROJECT_DIR$/src/algorithm_modes.rs" />
         <option value="$PROJECT_DIR$/src/structs.rs" />
+        <option value="$PROJECT_DIR$/src/algorithm_modes.rs" />
         <option value="$PROJECT_DIR$/src/main.rs" />
       </list>
     </option>
@@ -917,16 +910,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/algorithm_modes.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="650">
-          <caret line="56" column="54" lean-forward="false" selection-start-line="56" selection-start-column="54" selection-end-line="56" selection-end-column="54" />
+        <state relative-caret-position="950">
+          <caret line="56" column="45" lean-forward="false" selection-start-line="56" selection-start-column="45" selection-end-line="56" selection-end-column="45" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="282" column="80" lean-forward="false" selection-start-line="282" selection-start-column="80" selection-end-line="282" selection-end-column="80" />
+        <state relative-caret-position="2474">
+          <caret line="274" column="0" lean-forward="true" selection-start-line="274" selection-start-column="0" selection-end-line="274" selection-end-column="0" />
           <folding />
         </state>
       </provider>

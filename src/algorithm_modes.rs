@@ -49,12 +49,12 @@ pub mod kucherov{
     }
 
     pub fn candidate_condition(
-                generous_match_len : usize,
+                generous_match_len : i32,
                 abs_block_id : i32,
                 thresh : i32,
                 errors : i32
                 ) -> bool{
-        let c1 = generous_match_len >= thresh as usize;
+        let c1 = generous_match_len >= thresh;
         let c2 = abs_block_id > 0;
         let c3 = abs_block_id >= S_PARAM - 1
             && errors <= (abs_block_id - S_PARAM + 1);

@@ -24,10 +24,6 @@ use std::fs::File;
 use std::io::{Write, BufWriter};
 
 
-
-
-use algorithm_modes::kucherov as alg_mode;
-
 /////////////////////////////////////
 
 mod algorithm_modes;
@@ -194,16 +190,12 @@ fn work<DBWT: DerefBWT + Clone,
     DOcc: DerefOcc + Clone>(p_id : usize, pattern : &[u8], config : &Config, fm : &FMIndex<DBWT, DLess, DOcc>, maps : &Maps, sa : &SuffixArray) -> HashSet<Candidate>{
     let patt_len = pattern.len() as i32;
     let block_lengths = alg_mode::get_block_lengths(patt_len, config.err_rate, config.thresh);
-    let filter_func = alg_mode::filter_func;
-    let candidate_cond_func = alg_mode::candidate_condition;
     fm.generate_candidates(
         pattern,
         config,
         maps,
         p_id,
         &block_lengths,
-        &candidate_cond_func,
-        &filter_func,
         sa,
     )
 
@@ -217,6 +209,7 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
 
 }
 
+use algorithm_modes::kucherov as alg_mode;
 pub trait GeneratesCandidates : FMIndexable {
 
     fn generate_candidates(&self,
@@ -225,8 +218,6 @@ pub trait GeneratesCandidates : FMIndexable {
             maps : &Maps,
             id_a : usize,
             block_lengths : &Vec<i32>,
-            candidate_cond_func : &Fn(usize,i32,i32,i32)->bool,
-            filter_func : &Fn(i32,i32)->i32,
             sa : &SuffixArray
             )
             -> HashSet<Candidate> {
@@ -257,8 +248,6 @@ pub trait GeneratesCandidates : FMIndexable {
                 id_a : id_a,
                 s_id : s_id,
                 suff_len : s_id + 1,
-                filter_func : filter_func,
-                candidate_cond_func : candidate_cond_func,
                 block_id_lookup : &block_id_lookup,
                 sa : sa,
             };
@@ -275,18 +264,19 @@ pub trait GeneratesCandidates : FMIndexable {
                                                                               a_match_len : usize,
                                                                               b_match_len : usize,
                                                                               matches : Interval){
+
         if matches.lower >= matches.upper{
             return
         }
 
-        let block_id : i32        = (cns.block_id_lookup).get(p_i);
-        let permitted_error : i32 = (cns.filter_func)(block_id-cns.s_id as usize, cns.suff_len);
+        let block_id : i32        = cns.block_id_lookup[p_i];
+        let permitted_error : i32 = alg_mode::filter_func(block_id-cns.s_id as usize, cns.suff_len);
         let has_spare_error : bool    = errors < permitted_error;
 
         // ADD SUFFIX CANDIDATES
         let generous_match_len = std::cmp::max(a_match_len, b_match_len);
         let abs_block_id = cns.block_id_lookup.get(p_i);
-        let cand_condition_satisfied = (cns.candidate_cond_func)(generous_match_len, abs_block_id, cns.config.thresh, errors);
+        let cand_condition_satisfied = alg_mode::candidate_condition(generous_match_len, abs_block_id, cns.config.thresh, errors);
         if cand_condition_satisfied {
             let a = &('$' as u8);
             let less = self.less(a);
@@ -323,8 +313,8 @@ pub trait GeneratesCandidates : FMIndexable {
             let next_matches = Interval { lower: l, upper: r };
             let next_errors =  if cns.pattern[p_i] == a && a != READ_ERR {errors} else {errors + 1};
             let next_generous_match_len = generous_match_len + 1;
-            let next_block_id : i32        = (cns.block_id_lookup).get(p_i-1);
-            let next_permitted_error : i32 = (cns.filter_func)(next_block_id-cns.s_id, cns.suff_len);
+            let next_block_id : i32        = cns.block_id_lookup[p_i-1];
+            let next_permitted_error : i32 = alg_mode::filter_func(next_block_id-cns.s_id, cns.suff_len);
             if next_errors <= next_permitted_error{
                 self.recurse_candidates(&self,
                                         cns,
@@ -347,8 +337,6 @@ struct SearchConstants<'a>{
     id_a : usize,
     s_id : usize,
     suff_len : usize,
-    filter_func : &'a Fn(i32, i32) -> i32,
-    candidate_cond_func : &'a Fn()-> bool,
     block_id_lookup : &'a Vec<usize>,
     sa : &'a SuffixArray,
 }
