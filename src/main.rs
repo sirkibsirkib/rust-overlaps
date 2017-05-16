@@ -38,6 +38,7 @@ use structs::run_config::*;
 
 
 pub static ALPH : &'static [u8] = b"ACGNT";
+pub static INDEX_ALPH : &'static [u8] = b"ACGNT$";
 pub static READ_ERR : u8 = b'N';
 
 
@@ -102,7 +103,7 @@ fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>)
         }
     }
 
-    let (text, bdmap_index_id, end_dollar2id) = make_text(config.reversals, &id2str_in_s);
+    let (text, bdmap_index_id) = make_text(config.reversals, &id2str_in_s);
 
     id2name.shrink_to_fit();
     id2str_in_s.shrink_to_fit();
@@ -111,14 +112,13 @@ fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>)
         id2name : id2name,
         id2str_in_s : id2str_in_s,
         bdmap_index_id : bdmap_index_id,
-        end_dollar2id : end_dollar2id,
     };
 
     Ok((maps, text))
 }
 
 fn make_text(reverse : bool, strings : &HashMap<i32, Vec<u8>>)
-            -> (Vec<u8>, BidirMap<i32, i32>, HashMap<i32, i32>){
+            -> (Vec<u8>, BidirMap<i32, i32>){
     //TODO need to consider reversals
     let mut bdmap_index_id : BidirMap<i32, i32> = BidirMap::new();
     let mut end_dollar2id : HashMap<i32, i32> = HashMap::new();
@@ -128,12 +128,12 @@ fn make_text(reverse : bool, strings : &HashMap<i32, Vec<u8>>)
         bdmap_index_id.insert(index, id);
         let s = strings.get(&id).expect("Can't find string with that ID!");
         //TODO reverse string + flip symbols sometimes
-        text.extend(s);
-        end_dollar2id.insert(text.len() as i32, id);
         text.push('$' as u8);
+        text.extend(s);
     }
+    text.push('$' as u8);
     text.shrink_to_fit();
-    (text, bdmap_index_id, end_dollar2id)
+    (text, bdmap_index_id)
 }
 
 fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
@@ -150,7 +150,7 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
     let occ = Occ::new(&bwt, 3, &alphabet);
     let fm = FMIndex::new(&bwt, &less, &occ);
 
-    let pattern = b"TT";
+    let pattern = b"CAT";
     println!("pattern : {}", String::from_utf8_lossy(pattern));
 
     let sai = fm.backward_search(pattern.iter());
@@ -189,7 +189,14 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
 use bio::data_structures::fmindex::{FMIndexable, FMIndex};
 fn work<DBWT: DerefBWT + Clone,
     DLess: DerefLess + Clone,
-    DOcc: DerefOcc + Clone>(p_id : i32, pattern : &[u8], config : &Config, fm : &FMIndex<DBWT, DLess, DOcc>, maps : &Maps, sa : &RawSuffixArray) -> HashSet<Candidate>{
+    DOcc: DerefOcc + Clone>(
+        p_id : i32, pattern : &[u8],
+        config : &Config,
+        fm : &FMIndex<DBWT, DLess, DOcc>,
+        maps : &Maps,
+        sa : &RawSuffixArray,
+        )
+        -> HashSet<Candidate>{
 
     println!("New work with p_id {}, pattern {}", p_id, String::from_utf8_lossy(pattern));
     let patt_len = pattern.len() as i32;
@@ -221,7 +228,7 @@ trait GeneratesCandidates : FMIndexable {
             maps : &Maps,
             id_a : i32,
             block_lengths : &Vec<i32>,
-            sa : &RawSuffixArray
+            sa : &RawSuffixArray,
             )
             -> HashSet<Candidate> {
 
@@ -239,14 +246,14 @@ trait GeneratesCandidates : FMIndexable {
             upper: self.bwt().len() -1,
         };
 
-        let mut patt_len : i32 = 0;
+        let mut p_i : i32 = 0;
 
         // FOR EACH FILTER, from smallest prefix to total prefix
         // PREFIX FILTERS
-        println!("Generate candidates!");
+        println!("\n\nGenerate candidates!");
         let patt_blocks : i32 = block_lengths.len() as i32;
         for (block_id, block_len) in block_lengths.iter().enumerate() {
-            patt_len += (*block_len) as i32;
+            println!("\n\n\nnew suff of len {} for {}", block_id+1, String::from_utf8_lossy(&pattern));
             let search_constants = SearchConstants{
                 pattern: pattern,
                 config : config,
@@ -259,6 +266,7 @@ trait GeneratesCandidates : FMIndexable {
             };
             println!(">> id_a {} first_block_id {}", search_constants.id_a, search_constants.first_block_id);
             self.recurse_candidates(&mut candidate_set, &search_constants, 0, p_i, 0, 0, 0, &full_interval, &String::new());
+            p_i += (*block_len) as i32;
         }
         candidate_set
     }
@@ -273,13 +281,15 @@ trait GeneratesCandidates : FMIndexable {
                           b_match_len : i32,
                           matches : &Interval,
                           debug : &str){
-        println!("'{}'   recurse p_i=={}    interval:[{}-->{}]", debug, p_i, matches.lower, matches.upper);
+        println!("'{}'   recurse p_i=={}    {:?}", debug, p_i, &matches);
 
-        if matches.lower >= matches.upper{
+        if matches.lower > matches.upper{
+            // range is (lower, upper)  ie. both inclusive
             return
         }
 
-        let completed_blocks : i32 = cns.block_id_lookup[p_i as usize] - cns.first_block_id;
+        //block_id_lookup has 1 char of padding on the end so we can avoid checking bounds
+        let completed_blocks : i32 = cns.block_id_lookup[p_i as usize]- cns.first_block_id;
         let permitted_error : i32 =
             alg_mode::filter_func(completed_blocks, cns.patt_blocks);
 
@@ -292,35 +302,39 @@ trait GeneratesCandidates : FMIndexable {
             alg_mode::candidate_condition(generous_match_len, completed_blocks, cns.config.thresh, errors);
 
         if cand_condition_satisfied {
+            println!("  !!!!!! CAND COND SATISFIED! :D {}", debug);
             let a = '$' as u8;
             let less = self.less(a);
             let dollar_interval = Interval {
                 lower : less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 },
                 upper : less + self.occ(matches.upper, a) - 1,
             };
+            println!("interval {:?}    ==$==> {:?}", &matches, &dollar_interval);
             let positions = dollar_interval.occ(cns.sa);
+            println!("positions {:?}", &positions);
             for p in positions {
-                let id_b = *cns.maps.end_dollar2id.get(&(p as i32 + 1)).expect("DOLLAR MAP BAD");
+                let id_b = *cns.maps.bdmap_index_id.get_by_first(&(p as i32 + 1)).expect("DOLLAR MAP BAD");
                 if id_b == cns.id_a{
                     //skip obvious self-matches
                     continue
                 }
-                let c = Candidate {
-                    id_b: id_b,
-                    overlap_a: a_match_len,
-                    overlap_b: b_match_len,
-                    overhang_right_b: 0,
-                };
-                println!("  adding cand {:?}", &c);
-                cand_set.insert(c);
+//                let c = Candidate {
+//                    id_b: id_b,
+//                    overlap_a: a_match_len,
+//                    overlap_b: b_match_len,
+//                    overhang_right_b: 0,
+//                };
+                println!("  !!!!!! ~~~  adding FOUND CANDIDATE AT {} with {}", p, debug);
+//                cand_set.insert(c);
             }
         }
 
-        if p_i >= cns.pattern.len(){
+        if p_i >= cns.pattern.len() as i32{
             //END OF PATTERN
             //INCLUSIONS GO HERE
             return
         }
+
 
         // walking + substitution match
         for &a in ALPH.iter(){
@@ -329,19 +343,19 @@ trait GeneratesCandidates : FMIndexable {
                 lower : less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 },
                 upper : less + self.occ(matches.upper, a) - 1,
             };
-            let incduced_error = a == () or cns.pattern[p_i]
-            if errors <= permitted_error{
-                println!("explore deeper!");
-                let mut next_debug = debug.to_owned();
-                next_debug.push(a as char);
+            let p_char_real_index = (cns.pattern.len() - (p_i) as usize -1);
+            let p_char = cns.pattern[p_char_real_index];
+            let recurse_error =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
+            if recurse_error <= permitted_error{
+                let mut next_debug = format!("{}{}", a as char, debug);
                 self.recurse_candidates(cand_set,
                                         cns,
-                                        next_errors,
-                                        p_i-1,
+                                        recurse_error,
+                                        p_i+1,
                                         0,
                                         a_match_len+1,
                                         b_match_len+1,
-                                        &next_matches,
+                                        &next_interval,
                                         &next_debug);
             }
         }
@@ -370,7 +384,7 @@ fn get_block_id_lookup(max_b_len : i32, config : &Config, block_lengths : &[i32]
         }
     }
     let last_index = block_lengths.len() as i32 - 1;
-    while (lookup.len() as i32) < max_b_len{
+    while (lookup.len() as i32) < max_b_len + 1{
         lookup.push(last_index);
     }
     lookup.shrink_to_fit();

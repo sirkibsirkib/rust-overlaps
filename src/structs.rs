@@ -74,7 +74,6 @@ pub mod run_config{
         pub id2name : HashMap<i32, String>,
         pub id2str_in_s : HashMap<i32, Vec<u8>>,
         pub bdmap_index_id : BidirMap<i32, i32>,
-        pub end_dollar2id : HashMap<i32, i32>,
     }
     impl Maps{
         pub fn num_strings(&self) -> i32{
