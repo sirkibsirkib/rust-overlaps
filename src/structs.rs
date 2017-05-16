@@ -15,7 +15,7 @@ pub mod solutions{
     //NOT oriented
     #[derive(Hash,PartialEq, Eq)]
     pub struct Candidate{
-        pub id_b : usize,
+        pub id_b : i32,
         pub overlap_a : i32,
         pub overlap_b : i32,
         pub overhang_right_b : i32,
@@ -23,8 +23,8 @@ pub mod solutions{
 
     //oriented
     pub struct Solution{
-        pub id_a : usize,
-        pub id_b : usize,
+        pub id_a : i32,
+        pub id_b : i32,
         pub orientation : bool,
         pub overlap_a : i32,
         pub overlap_b : i32,
@@ -71,13 +71,13 @@ pub mod run_config{
 
     #[derive(Debug)]
     pub struct Maps{
-        pub id2name : HashMap<usize, String>,
-        pub id2str_in_s : HashMap<usize, Vec<u8>>,
-        pub bdmap_index_id : BidirMap<usize, usize>,
+        pub id2name : HashMap<i32, String>,
+        pub id2str_in_s : HashMap<i32, Vec<u8>>,
+        pub bdmap_index_id : BidirMap<i32, i32>,
     }
     impl Maps{
-        pub fn num_strings(&self) -> usize{
-            self.id2str_in_s.len()
+        pub fn num_strings(&self) -> i32{
+            self.id2str_in_s.len() as i32
         }
     }
 

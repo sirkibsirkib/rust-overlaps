@@ -8,7 +8,7 @@ extern crate bio;
 use bio::io::fasta;
 use bio::data_structures::fmindex::*;
 use bio::alphabets::dna;
-use bio::data_structures::suffix_array::SuffixArray;
+use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::data_structures::bwt::{BWT, DerefBWT, DerefOcc, DerefLess};
 
 #[macro_use]
@@ -86,8 +86,8 @@ fn main(){
 
 fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>), io::Error> {
     let mut next_id = 0;
-    let mut id2name : HashMap<usize, String> = HashMap::new();
-    let mut id2str_in_s : HashMap<usize, Vec<u8>> = HashMap::new();
+    let mut id2name : HashMap<i32, String> = HashMap::new();
+    let mut id2str_in_s : HashMap<i32, Vec<u8>> = HashMap::new();
     let f = File::open(filename)
         .expect(&format!("Failed to open input file at {:?}\n", filename));
     let reader = fasta::Reader::new(f);
@@ -116,14 +116,14 @@ fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps, Vec<u8>)
     Ok((maps, text))
 }
 
-fn make_text(reverse : bool, strings : &HashMap<usize, Vec<u8>>)
-            -> (Vec<u8>, BidirMap<usize, usize>){
+fn make_text(reverse : bool, strings : &HashMap<i32, Vec<u8>>)
+            -> (Vec<u8>, BidirMap<i32, i32>){
     //TODO need to consider reversals
-    let mut bdmap_index_id : BidirMap<usize, usize> = BidirMap::new();
+    let mut bdmap_index_id : BidirMap<i32, i32> = BidirMap::new();
     let mut text : Vec<u8> = Vec::new();
     text.push('&' as u8);
-    for id in 0..strings.len(){
-        let index = text.len();
+    for id in 0..(strings.len() as i32){
+        let index = text.len() as i32;
         bdmap_index_id.insert(index, id);
         let s = strings.get(&id).expect("Can't find string with that ID!");
         //TODO reverse string + flip symbols sometimes
@@ -187,7 +187,7 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
 use bio::data_structures::fmindex::{FMIndexable, FMIndex};
 fn work<DBWT: DerefBWT + Clone,
     DLess: DerefLess + Clone,
-    DOcc: DerefOcc + Clone>(p_id : usize, pattern : &[u8], config : &Config, fm : &FMIndex<DBWT, DLess, DOcc>, maps : &Maps, sa : &SuffixArray) -> HashSet<Candidate>{
+    DOcc: DerefOcc + Clone>(p_id : i32, pattern : &[u8], config : &Config, fm : &FMIndex<DBWT, DLess, DOcc>, maps : &Maps, sa : &RawSuffixArray) -> HashSet<Candidate>{
     let patt_len = pattern.len() as i32;
     let block_lengths = alg_mode::get_block_lengths(patt_len, config.err_rate, config.thresh);
     fm.generate_candidates(
@@ -210,22 +210,22 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
 }
 
 use algorithm_modes::kucherov as alg_mode;
-pub trait GeneratesCandidates : FMIndexable {
+trait GeneratesCandidates : FMIndexable {
 
     fn generate_candidates(&self,
             pattern : &[u8],
             config : &Config,
             maps : &Maps,
-            id_a : usize,
+            id_a : i32,
             block_lengths : &Vec<i32>,
-            sa : &SuffixArray
+            sa : &RawSuffixArray
             )
             -> HashSet<Candidate> {
 
-        let patt_len = pattern.len();
+        let patt_len = pattern.len() as i32;
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
         let max_b_len =
-            if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as usize};
+            if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as i32};
         let max_errs = (max_b_len as f32 * config.err_rate).floor() as i32;
         let block_id_lookup = get_block_id_lookup(max_b_len, config, block_lengths);
         let full_interval = Interval {
@@ -233,59 +233,58 @@ pub trait GeneratesCandidates : FMIndexable {
             upper: self.bwt().len(),
         };
 
-        let mut patt_len = 0;
+        let mut patt_len : i32 = 0;
 
         // FOR EACH FILTER, from smallest prefix to total prefix
         // PREFIX FILTERS
-        for (s_id, block_len) in *block_lengths.iter().enumerate() {
-            patt_len += block_len;
+        for (s_id, block_len) in block_lengths.iter().enumerate() {
+            patt_len += (*block_len) as i32;
             let p_i = patt_len;
             let search_constants = SearchConstants{
                 config : config,
                 maps : maps,
-                candidate_set : &candidate_set,
                 pattern: pattern,
                 id_a : id_a,
-                s_id : s_id,
-                suff_len : s_id + 1,
+                s_id : s_id as i32,
+                suff_len : s_id as i32 + 1,
                 block_id_lookup : &block_id_lookup,
                 sa : sa,
             };
-            self.recurse_candidates(search_constants, 0, p_i, 0, 0, 0, full_interval);
+            self.recurse_candidates(&mut candidate_set, &search_constants, 0, p_i, 0, 0, 0, full_interval);
         }
         candidate_set
     }
 
     fn recurse_candidates(&self,
-                                                                              cns : SearchConstants,
-                                                                              errors : i32,
-                                                                              p_i : usize,
-                                                                              indel_balance : i32,
-                                                                              a_match_len : usize,
-                                                                              b_match_len : usize,
-                                                                              matches : Interval){
+                          cand_set : &mut HashSet<Candidate>,
+                          cns : &SearchConstants,
+                          errors : i32,
+                          p_i : i32,
+                          indel_balance : i32,
+                          a_match_len : i32,
+                          b_match_len : i32,
+                          matches : Interval){
 
         if matches.lower >= matches.upper{
             return
         }
 
-        let block_id : i32        = cns.block_id_lookup[p_i];
-        let permitted_error : i32 = alg_mode::filter_func(block_id-cns.s_id as usize, cns.suff_len);
+        let abs_block_id : i32        = cns.block_id_lookup[p_i as usize];
+        let permitted_error : i32 = alg_mode::filter_func(abs_block_id-cns.s_id, cns.suff_len);
         let has_spare_error : bool    = errors < permitted_error;
 
         // ADD SUFFIX CANDIDATES
         let generous_match_len = std::cmp::max(a_match_len, b_match_len);
-        let abs_block_id = cns.block_id_lookup.get(p_i);
         let cand_condition_satisfied = alg_mode::candidate_condition(generous_match_len, abs_block_id, cns.config.thresh, errors);
         if cand_condition_satisfied {
-            let a = &('$' as u8);
+            let a = '$' as u8;
             let less = self.less(a);
             let l_dollar = less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 };
             let r_dollar = less + self.occ(matches.upper, a) - 1;
             let dollar_interval = Interval { lower: l_dollar, upper: r_dollar };
-            let positions = cns.sa.occ(&dollar_interval);
+            let positions = dollar_interval.occ(cns.sa);
             for p in positions {
-                let id_b = cns.maps.bdmap_index_id.get_by_second(p + 1);
+                let id_b = *cns.maps.bdmap_index_id.get_by_second(&(p as i32 + 1)).expect("BIDIR MAP BAD");
                 if id_b == cns.id_a{
                     continue
                 }
@@ -295,7 +294,7 @@ pub trait GeneratesCandidates : FMIndexable {
                     overlap_b: b_match_len,
                     overhang_right_b: 0,
                 };
-                cns.candidate_set.insert(c);
+                cand_set.insert(c);
             }
         }
 
@@ -311,12 +310,12 @@ pub trait GeneratesCandidates : FMIndexable {
             let l = less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 };
             let r = less + self.occ(matches.upper, a) - 1;
             let next_matches = Interval { lower: l, upper: r };
-            let next_errors =  if cns.pattern[p_i] == a && a != READ_ERR {errors} else {errors + 1};
+            let next_errors =  if cns.pattern[p_i as usize] == a && a != READ_ERR {errors} else {errors + 1};
             let next_generous_match_len = generous_match_len + 1;
-            let next_block_id : i32        = cns.block_id_lookup[p_i-1];
+            let next_block_id : i32        = cns.block_id_lookup[(p_i-1) as usize];
             let next_permitted_error : i32 = alg_mode::filter_func(next_block_id-cns.s_id, cns.suff_len);
             if next_errors <= next_permitted_error{
-                self.recurse_candidates(&self,
+                self.recurse_candidates(cand_set,
                                         cns,
                                         next_errors,
                                         p_i-1,
@@ -332,23 +331,22 @@ pub trait GeneratesCandidates : FMIndexable {
 struct SearchConstants<'a>{
     config : &'a Config,
     maps : &'a Maps,
-    candidate_set : &'a HashSet<Candidate>,
     pattern: &'a [u8],
-    id_a : usize,
-    s_id : usize,
-    suff_len : usize,
-    block_id_lookup : &'a Vec<usize>,
-    sa : &'a SuffixArray,
+    id_a : i32,
+    s_id : i32,
+    suff_len : i32,
+    block_id_lookup : &'a Vec<i32>,
+    sa : &'a RawSuffixArray,
 }
 
-fn get_block_id_lookup(max_b_len : i32, config : &Config, block_lengths : &[i32]) -> Vec<usize>{
-    let mut lookup : Vec<usize> = Vec::new();
+fn get_block_id_lookup(max_b_len : i32, config : &Config, block_lengths : &[i32]) -> Vec<i32>{
+    let mut lookup : Vec<i32> = Vec::new();
     for (id, block_length) in block_lengths.iter().enumerate() {
         for _ in 0..*block_length{
-            lookup.push(id);
+            lookup.push(id as i32);
         }
     }
-    let last_index = block_lengths.len() - 1;
+    let last_index = block_lengths.len() as i32 - 1;
     while (lookup.len() as i32) < max_b_len{
         lookup.push(last_index);
     }
