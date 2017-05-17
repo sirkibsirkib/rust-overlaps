@@ -1,45 +1,18 @@
-Override hash function when keys are known beforehand
-returning a struct cost vs. returning a box ref
-check when to use strings and when to use [u8] etc
-struct vs tuple cost
-module hierarchy
-
-TODO with Johannes:
-	1. Figure out how to use the bio FM(d) index & its output
-	2. Explain design decision conundrum
-	3. Some rust-specific questions, seen above ^
+Text is FORWARDS
+Filters are FORWARDS (Pattern has Suffix filters)
+Search iterates over characters FORWARDS
+---------the mapping from p_i --> pattern[?] is BACKWARDS (REVERSAL)-------
+Text is FORWARDS
+indexes for $ are at the FRONT of the string
 
 
 
+TODO:
+	Convention: when to use usize etc.
+	change the numeric types to avoid some casting.
+	trim the fat with imports.
 
 
+TODO rustbio feedback:
+	hamming returns u64, levenstein returns u32
 
-Design decision options:
-
-DB:
-un-reverse candidates immediately.
-write the cands to a DB
-step 2 tasks query DB
-				--- relies on DB speed
-				+ progress saving
-				++ minimal verification
-
-
-home/visitor files:
-each S string has 2 cand files: {home, visitor}
-for each cand:
-	if they were reversed, append them to a contested 'visitor' file when a MUTEX allows
-	if they were forward, write them to an uncontested 'home' file
-each step2 task reads from its home and its visitor file uncontested, deduplicates them into a local set first before verification
-
-				-- mutex and file appending overhead
-				- No progress saving
-				++ minimal verification
-
-lazy dedup:
-put both orientations in a file for the query pattern
-perform step 2 with these mixed files
-deduplicate after step 2
-
-				-- Redundant verifications
-				+ progress saving

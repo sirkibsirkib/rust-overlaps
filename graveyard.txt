@@ -70,3 +70,62 @@
 //            }
 //        }
 //    }
+
+
+
+
+//    fn iterative_candidates(&self,
+//                            cand_set : &mut HashSet<Candidate>,
+//                            cns : &SearchConstants,
+//                            errors : i32,
+//                            p_i : i32,
+//                            indel_balance : i32,
+//                            a_match_len : i32,
+//                            b_match_len : i32,
+//                            matches : &Interval,
+//                            debug : &str){
+//
+//
+//        let (mut l, mut r) = (0, self.bwt().len() - 1);
+//        let mut s = String::new();
+//        for &a in cns.pattern.iter().rev() {
+//            let less = self.less(a);
+//            l = less + if l > 0 { self.occ(l - 1, a) } else { 0 };
+//            r = less + self.occ(r, a) - 1;
+//            s.push(a as char);
+//            println!("   [{},\t{})\t({} element)::\t{}", l, r, r-l, &s);
+//        }
+//
+//        let a = b'$';
+//        s.push(a as char);
+//        let less = self.less(a);
+//        l = less + if l > 0 { self.occ(l - 1, a) } else { 0 };
+//        r = less + self.occ(r, a);
+//        println!("   [{},\t{})\t({} element)::\t{}", l, r, r-l, &s);
+//
+//        let x = Interval {
+//            lower: l,
+//            upper: r,
+//        };
+//        let positions = x.occ(cns.sa);
+//        println!("positions {:?}", &positions);
+//        for p in positions {
+//            let fetch_index = &(p as i32 + 1);
+//            println!("FETCH INDEX {}", fetch_index);
+//            let id_b = *cns.maps.bdmap_index_id.get_by_first(fetch_index).expect("DOLLAR MAP BAD");
+//            if id_b == cns.id_a{
+//                //skip obvious self-matches
+//                println!("  !!!!!! SELF CAND {:?}, {:?}", p, debug);
+//                continue
+//            }
+//            let c = Candidate {
+//                id_b: id_b,
+//                overlap_a: a_match_len,
+//                overlap_b: b_match_len,
+//                overhang_right_b: 0,
+//            };
+//            println!("  !!!!!! ~~~  adding FOUND CANDIDATE AT {} with {}", p, debug);
+//            cand_set.insert(c);
+//            println!("cand set size is now {}", cand_set.len());
+//        }
+//    }

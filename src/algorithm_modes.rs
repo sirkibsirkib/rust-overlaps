@@ -1,4 +1,4 @@
-
+pub fn dank() {println!("LOL");}
 
 #[allow(dead_code)]
 #[allow(unused_variables)]
@@ -16,7 +16,7 @@ pub mod kucherov{
             completed_blocks,
             patt_blocks - S_PARAM,
         );
-        println!("({}, {}) ===> ({})", completed_blocks, patt_blocks, x);
+//        println!("({}, {}) ===> ({})", completed_blocks, patt_blocks, x);
         x
     }
 

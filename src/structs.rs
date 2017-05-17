@@ -25,12 +25,12 @@ pub mod solutions{
     pub struct Solution{
         pub id_a : i32,
         pub id_b : i32,
-        pub orientation : bool,
+        pub orientation : Orientation,
         pub overlap_a : i32,
         pub overlap_b : i32,
         pub overhang_left_a : i32,
         pub overhang_right_b : i32,
-        pub errors : u8,
+        pub errors : u32,
         pub cigar : String,
     }
 
