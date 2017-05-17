@@ -91,20 +91,21 @@ fn solve(config : &Config, maps : &Maps){
          |n| (fm.generate_candidates(maps.get_string(n), config, maps, n, &sa), n), // computation to apply in parallel to work items
          |(r, n)| {           // aggregation to apply to work results
              println!("writing all {:?} candidates.", r.len());
-             for c in verification::verify_all(n, r, config, maps) {
+             let solutions = verification::verify_all(n, r, config, maps);
+             for sol in solutions {
                  println!("WRITING CAND");
-                 let s = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-                                 c.id_a,
-                                 c.id_b,
-                                 if c.orientation==Orientation::Normal{"N"}else{"I"},
-                                 c.overlap_a,
-                                 c.overlap_b,
-                                 c.overhang_left_a,
-                                 c.overhang_right_b,
-                                 c.errors,
-                                 c.cigar,
+                 let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                                 sol.id_a,
+                                 sol.id_b,
+                                 if sol.orientation==Orientation::Normal{"N"}else{"I"},
+                                 sol.overlap_a,
+                                 sol.overlap_b,
+                                 sol.overhang_left_a,
+                                 sol.overhang_right_b,
+                                 sol.errors,
+                                 sol.cigar,
                  );
-                 wrt_buf.write(s.as_bytes());
+                 wrt_buf.write(formatted.as_bytes());
              }
          }
     );

@@ -17,6 +17,7 @@ pub mod solutions{
         pub overlap_a : usize,
         pub overlap_b : usize,
         pub overhang_right_b : i32,
+        pub debug_str : String,
     }
 
     //oriented

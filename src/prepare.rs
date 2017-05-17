@@ -25,6 +25,7 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
             let id = id2name_vec.len();
             let name = name.to_owned();
             let mut str_vec = record.seq().to_vec();
+            str_vec.reverse();
             text.push('$' as u8);
             let index = text.len();
             id2index_bdmap.insert(id, index);
@@ -65,6 +66,8 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
         }
         println!("{}", String::from_utf8_lossy(maps.get_string(i)));
     }
+
+    println!("{:?}", maps.id2index_bdmap);
 
 //    println!("MAPS : {:#?}", &maps);
     Ok(maps)

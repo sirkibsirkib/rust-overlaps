@@ -5,6 +5,7 @@ use bio::data_structures::fmindex::FMIndexable;
 
 use std::collections::HashSet;
 use std;
+use std::cmp::max;
 
 
 use structs::run_config::*;
@@ -42,7 +43,7 @@ pub trait GeneratesCandidates : FMIndexable {
             upper: self.bwt().len() - 1,
         };
 
-        let mut p_i : i32 = 0;
+        let mut p_i : i32 = (patt_len-1) as i32;
 
         // FOR EACH FILTER, from smallest prefix to total prefix
         // PREFIX FILTERS
@@ -50,7 +51,7 @@ pub trait GeneratesCandidates : FMIndexable {
         let patt_blocks : i32 = block_lengths.len() as i32;
         for (block_id, block_len) in block_lengths.iter().enumerate() {
             println!("\n\n\nnew suff of len {} for {}", block_id+1, String::from_utf8_lossy(&pattern));
-            let search_constants = SearchConstants{
+            let cns = SearchConstants{
                 pattern: pattern,
                 config : config,
                 maps : maps,
@@ -59,11 +60,14 @@ pub trait GeneratesCandidates : FMIndexable {
                 id_a : id_a,
                 first_block_id : block_id as i32,
                 patt_blocks : patt_blocks,
+                blind_chars : patt_len - p_i as usize - 1,
             };
-            println!(">> id_a {} first_block_id {}", search_constants.id_a, search_constants.first_block_id);
-            self.recurse_candidates(&mut candidate_set, &search_constants, 0, p_i, 0, 0, 0, &full_interval, &String::new());
-            p_i += (*block_len) as i32;
+            println!(">> id_a {} first_block_id {} blind chars {}",
+                     cns.id_a, cns.first_block_id, cns.blind_chars);
+            self.recurse_candidates(&mut candidate_set, &cns, 0, p_i, 0, 0, 0, &full_interval, &String::new());
+            p_i -= *block_len;
         }
+        println!("DONE FOR id_a == {}", id_a);
         candidate_set
     }
 
@@ -84,9 +88,7 @@ pub trait GeneratesCandidates : FMIndexable {
             return
         }
 
-
-        //block_id_lookup has 1 char of padding on the end so we can avoid checking bounds
-        let completed_blocks : i32 = cns.block_id_lookup.get(p_i as usize).expect("COMPLETED BLOCKS") - cns.first_block_id;
+        let completed_blocks : i32 = cns.block_id_lookup.get(max(0, p_i) as usize).expect("COMPLETED BLOCKS") - cns.first_block_id;
         let permitted_error : i32 =
             filter_func(completed_blocks, cns.patt_blocks);
         //        let has_spare_error : bool = errors < permitted_error;
@@ -96,7 +98,7 @@ pub trait GeneratesCandidates : FMIndexable {
         let cand_condition_satisfied =
             candidate_condition(generous_match_len as i32, completed_blocks, cns.config.thresh, errors);
         if cand_condition_satisfied {
-            //            println!("  !!!!!! CAND COND SATISFIED! :D {}", debug);
+            println!("  !!!!!! CAND COND SATISFIED! :D {}", debug);
             let a = b'$';
             let less = self.less(a);
             let dollar_interval = Interval {
@@ -105,32 +107,33 @@ pub trait GeneratesCandidates : FMIndexable {
             };
             //            println!("interval {:?}    ==$==> {:?}", &matches, &dollar_interval);
             let positions = dollar_interval.occ(cns.sa);
-            println!("positions {:?}", &positions);
-
             for p in positions {
-                let fetch_index = (p as usize) + 1;
+                let fetch_index = (p + 1) as usize;
+                println!("FETCHING ID FOR INDEX {}", fetch_index);
 
-                let id_b = *cns.maps.id2index_bdmap.get_by_first(&fetch_index).expect("DOLLAR MAP BAD");
+                let id_b = *cns.maps.id2index_bdmap.get_by_second(&fetch_index).expect("DOLLAR MAP BAD");
                 let c = Candidate {
                     id_b: id_b,
-                    overlap_a: a_match_len,
-                    overlap_b: b_match_len,
+                    overlap_a: a_match_len + cns.blind_chars,
+                    overlap_b: b_match_len + cns.blind_chars,
                     overhang_right_b: 0,
+                    debug_str : debug.to_owned(),
                 };
                 if id_b == cns.id_a{
                     //skip obvious self-matches
                     println!("  !!!!!! SELF CAND {:?}, {:?}", p, debug);
                     cand_set.insert(c);
-                    continue
+                    continue;
                 }
 
                 println!("  !!!!!! ~~~  adding FOUND CANDIDATE AT {} with {}", p, debug);
                 cand_set.insert(c);
             }
         }
-        if p_i >= cns.pattern.len() as i32{
+        if p_i == -1{
             //END OF PATTERN
             //INCLUSIONS GO HERE
+            println!("KILL");
             return
         }
 
@@ -143,15 +146,14 @@ pub trait GeneratesCandidates : FMIndexable {
                 lower : less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 },
                 upper : less + self.occ(matches.upper, a) - 1,
             };
-            let p_char_real_index = cns.pattern.len() - (p_i) as usize -1;
-            let p_char = *cns.pattern.get(p_char_real_index).expect("THE P CHAR");
+            let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
             let recurse_error =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
             if recurse_error <= permitted_error{
                 let mut next_debug = format!("{}{}", a as char, debug);
                 self.recurse_candidates(cand_set,
                                         cns,
                                         recurse_error,
-                                        p_i+1,
+                                        p_i-1,
                                         0,
                                         a_match_len+1,
                                         b_match_len+1,
@@ -162,6 +164,7 @@ pub trait GeneratesCandidates : FMIndexable {
     }
 }
 
+
 #[derive(Debug)]
 struct SearchConstants<'a>{
     config : &'a Config,
@@ -171,6 +174,7 @@ struct SearchConstants<'a>{
     sa : &'a RawSuffixArray,
     pattern: &'a [u8],
     id_a : usize,
+    blind_chars : usize,
 
     first_block_id : i32,
     patt_blocks : i32,
@@ -183,32 +187,7 @@ fn get_block_id_lookup(max_b_len : usize, config : &Config, block_lengths : &[i3
             lookup.push(id as i32);
         }
     }
-    let last_index = block_lengths.len() as i32 - 1;
-    while lookup.len() < max_b_len + 1 {
-        lookup.push(last_index);
-    }
+    lookup.reverse();
     lookup.shrink_to_fit();
     lookup
 }
-
-
-//    fn garbage<'b, P: Iterator<Item = &'b u8> + DoubleEndedIterator>(&self,
-//                                                                             pattern: P)
-//                                                                             -> Interval {
-//        let (mut l, mut r) = (0, self.bwt().len() - 1);
-//        for &a in pattern.rev() {
-//            let less = self.less(a);
-//            l = less + if l > 0 { self.occ(l - 1, a) } else { 0 };
-//            r = less + self.occ(r, a) - 1;
-//        }
-//
-//        Interval {
-//            lower: l,
-//            upper: r + 1,
-//        }
-//    }
-//}
-
-
-
-

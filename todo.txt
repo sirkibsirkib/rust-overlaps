@@ -12,7 +12,24 @@ TODO:
 	change the numeric types to avoid some casting.
 	trim the fat with imports.
 
+	remove self-cands in search step
+	debug the direction of things
+
 
 TODO rustbio feedback:
 	hamming returns u64, levenstein returns u32
 
+
+
+
+[pattern]
+[f0     ]
+[f1  ]
+[f2]
+
+  $[match??????]
+
+cands:
+
+[pattern]
+    [   ]
