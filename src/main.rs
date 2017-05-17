@@ -61,10 +61,25 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
     let occ = Occ::new(&bwt, 3, &alphabet);
     let fm = FMIndex::new(&bwt, &less, &occ);
 
-    let pattern = b"CATTTGTA";
-    println!("pattern : {}", String::from_utf8_lossy(pattern));
 
-    let sai = fm.backward_search(pattern.iter());
+    let test_patt = b"ABCD";
+
+    use structs::string_walk::*;
+    let mut walker : ForwardWalker = Walkable::new(test_patt);
+    while walker.can_read(){
+        print!("{}", walker.read() as char);
+        let mut z = walker.clone();
+        while z.can_read() {
+            print!("{}", z.read() as char);
+            z.advance();
+        }
+        walker.advance();
+    }
+
+
+    println!("pattern : {}", String::from_utf8_lossy(test_patt));
+
+    let sai = fm.backward_search(test_patt.iter());
     let positions = sai.occ(&sa);
     let mut positions = positions.to_owned();
     positions.sort();
@@ -76,7 +91,7 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
         for _ in 0..p{
             res.push(' ');
         }
-        res.push_str(&String::from_utf8_lossy(pattern));
+        res.push_str(&String::from_utf8_lossy(test_patt));
         println!("{}", res);
     }
     let f = File::create(&config.output).expect("Unable to create output file");
@@ -88,12 +103,23 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
          1,              // number of worker threads
          maps.id2str_in_s.keys(),   // iterator with work items
 
-         |n| fm.generate_candidates(pattern, config, maps, *n, &sa), // computation to apply in parallel to work items
-         |r| {           // aggregation to apply to work results
+         |n| (fm.generate_candidates(maps.id2str_in_s.get(n).expect("DAWG"), config, maps, *n, &sa), n), // computation to apply in parallel to work items
+         |(r, n)| {           // aggregation to apply to work results
              println!("writing all {:?} candidates.", r.len());
-             for c in r.iter() {
+             for c in verification::verify_all(*n, r, config, maps) {
                  println!("WRITING CAND");
-                 wrt_buf.write((format!("{}\t{}\t{}\t{}\n", c.id_b, c.overlap_a, c.overlap_b, c.overhang_right_b)).as_bytes());
+                 let s = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                                 c.id_a,
+                                 c.id_b,
+                                 if c.orientation==Orientation::Normal{"N"}else{"I"},
+                                 c.overlap_a,
+                                 c.overlap_b,
+                                 c.overhang_left_a,
+                                 c.overhang_right_b,
+                                 c.errors,
+                                 c.cigar,
+                 );
+                 wrt_buf.write(s.as_bytes());
              }
          }
     );

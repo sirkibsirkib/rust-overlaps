@@ -1,6 +1,6 @@
 
-pub mod solutions{
 
+pub mod solutions{
     use std::hash::{Hash, SipHasher, Hasher};
     use std::collections::HashMap;
 
@@ -93,5 +93,57 @@ pub mod run_config{
         pub inclusions : bool,
         pub edit_distance : bool,
         pub verbose : bool,
+    }
+}
+
+pub mod string_walk{
+    pub trait Walkable<'a>{
+        fn read(&self) -> u8;
+        fn can_read(&self) -> bool;
+        fn advance(&mut self);
+        fn new(&'a [u8]) -> Self;
+    }
+
+    #[derive (Clone)]
+    pub struct ForwardWalker<'a>{
+        src : &'a [u8],
+        next_position : usize,
+    }
+
+    #[derive (Clone)]
+    pub struct BackwardWalker<'a>{
+        src : &'a [u8],
+        next_position : usize,
+    }
+
+    impl<'a> Walkable<'a> for ForwardWalker<'a>{
+        fn new(src : &'a [u8]) -> ForwardWalker<'a>{
+            ForwardWalker{src:src, next_position:0}
+        }
+
+        fn read(&self) -> u8{
+            self.src[self.next_position]
+        }
+        fn can_read(&self) -> bool{
+            self.next_position < self.src.len()
+        }
+        fn advance(&mut self){
+            self.next_position += 1;
+        }
+    }
+
+    impl<'a> Walkable<'a> for BackwardWalker<'a>{
+        fn new(src : &'a [u8]) -> BackwardWalker<'a>{
+            BackwardWalker{src:src, next_position:src.len()-1}
+        }
+        fn read(&self) -> u8{
+            self.src[self.next_position]
+        }
+        fn can_read(&self) -> bool{
+            self.next_position < self.src.len() && self.next_position > 0
+        }
+        fn advance(&mut self){
+            self.next_position -= 1;
+        }
     }
 }

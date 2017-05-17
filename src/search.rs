@@ -25,12 +25,11 @@ pub trait GeneratesCandidates : FMIndexable {
                            config : &Config,
                            maps : &Maps,
                            id_a : i32,
-//                           block_lengths : &Vec<i32>,
                            sa : &RawSuffixArray,
-    )
-                           -> HashSet<Candidate> {
+                ) -> HashSet<Candidate> {
 
-
+        println!("WORKING FOR id_a == {}", id_a);
+        println!("\tPATTERN {}", String::from_utf8_lossy(pattern));
         let patt_len = pattern.len() as i32;
         let block_lengths = get_block_lengths(patt_len, config.err_rate, config.thresh);
 

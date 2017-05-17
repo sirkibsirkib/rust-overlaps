@@ -2,12 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/out.txt" afterPath="$PROJECT_DIR$/data/out.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prepare.rs" afterPath="$PROJECT_DIR$/src/prepare.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/search.rs" afterPath="$PROJECT_DIR$/src/search.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/structs.rs" afterPath="$PROJECT_DIR$/src/structs.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/verification.rs" afterPath="$PROJECT_DIR$/src/verification.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -34,21 +32,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="structs.rs" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/structs.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="14" column="0" lean-forward="true" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
+            <state relative-caret-position="223">
+              <caret line="64" column="26" lean-forward="false" selection-start-line="64" selection-start-column="26" selection-end-line="64" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -57,7 +45,7 @@
       <file leaf-file-name="verification.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/verification.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
+            <state relative-caret-position="-1477">
               <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
@@ -77,8 +65,8 @@
       <file leaf-file-name="search.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/search.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="39" column="109" lean-forward="false" selection-start-line="39" selection-start-column="109" selection-end-line="39" selection-end-column="109" />
+            <state relative-caret-position="175">
+              <caret line="22" column="26" lean-forward="false" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -90,6 +78,31 @@
             <state relative-caret-position="73">
               <caret line="98" column="21" lean-forward="false" selection-start-line="98" selection-start-column="21" selection-end-line="98" selection-end-column="21" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="structs.rs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/structs.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="303">
+              <caret line="134" column="24" lean-forward="false" selection-start-line="134" selection-start-column="24" selection-end-line="134" selection-end-column="24" />
+              <folding>
+                <element signature="e#3014#3015#0" expanded="true" />
+                <element signature="e#3076#3077#0" expanded="true" />
+                <element signature="e#3107#3108#0" expanded="true" />
+                <element signature="e#3158#3159#0" expanded="true" />
+                <element signature="e#3194#3195#0" expanded="true" />
+                <element signature="e#3252#3253#0" expanded="true" />
+                <element signature="e#3283#3284#0" expanded="true" />
+                <element signature="e#3330#3331#0" expanded="true" />
+                <element signature="e#3544#3545#0" expanded="true" />
+                <element signature="e#3595#3596#0" expanded="true" />
+                <element signature="e#3631#3632#0" expanded="true" />
+                <element signature="e#3715#3716#0" expanded="true" />
+                <element signature="e#3746#3747#0" expanded="true" />
+                <element signature="e#3793#3794#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -160,6 +173,7 @@
       <find>overhang_b</find>
       <find>swap`</find>
       <find>b_id</find>
+      <find>pub id_a : i32,                              pub id_b : i32,                              pub orientation : Orientation,                              pub overlap_a : i32,                              pub overlap_b : i32,                              pub overhang_left_a : i32,                              pub overhang_right_b : i32,                              pub errors : u32,                              pub cigar : String,</find>
     </findStrings>
     <replaceStrings>
       <replace>b_match_len</replace>
@@ -197,14 +211,14 @@
         <option value="$PROJECT_DIR$/src/my_io.rs" />
         <option value="$PROJECT_DIR$/src/algorithm_modes.rs" />
         <option value="$PROJECT_DIR$/src/modes.rs" />
-        <option value="$PROJECT_DIR$/data/out.txt" />
         <option value="$PROJECT_DIR$/graveyard.txt" />
         <option value="$PROJECT_DIR$/todo.txt" />
-        <option value="$PROJECT_DIR$/src/main.rs" />
         <option value="$PROJECT_DIR$/src/prepare.rs" />
-        <option value="$PROJECT_DIR$/src/search.rs" />
         <option value="$PROJECT_DIR$/src/verification.rs" />
+        <option value="$PROJECT_DIR$/src/search.rs" />
+        <option value="$PROJECT_DIR$/data/out.txt" />
         <option value="$PROJECT_DIR$/src/structs.rs" />
+        <option value="$PROJECT_DIR$/src/main.rs" />
       </list>
     </option>
   </component>
@@ -652,7 +666,22 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="17" lean-forward="false" selection-start-line="0" selection-start-column="8" selection-end-line="0" selection-end-column="17" />
-          <folding />
+          <folding>
+            <element signature="e#3014#3015#0" expanded="true" />
+            <element signature="e#3076#3077#0" expanded="true" />
+            <element signature="e#3107#3108#0" expanded="true" />
+            <element signature="e#3158#3159#0" expanded="true" />
+            <element signature="e#3194#3195#0" expanded="true" />
+            <element signature="e#3252#3253#0" expanded="true" />
+            <element signature="e#3283#3284#0" expanded="true" />
+            <element signature="e#3330#3331#0" expanded="true" />
+            <element signature="e#3544#3545#0" expanded="true" />
+            <element signature="e#3595#3596#0" expanded="true" />
+            <element signature="e#3631#3632#0" expanded="true" />
+            <element signature="e#3715#3716#0" expanded="true" />
+            <element signature="e#3746#3747#0" expanded="true" />
+            <element signature="e#3793#3794#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -885,14 +914,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data/out.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/p2.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="500">
@@ -933,14 +954,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="350">
-          <caret line="14" column="0" lean-forward="true" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/prepare.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="25">
@@ -949,27 +962,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/search.rs">
+    <entry file="file://$PROJECT_DIR$/src/verification.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="39" column="109" lean-forward="false" selection-start-line="39" selection-start-column="109" selection-end-line="39" selection-end-column="109" />
+        <state relative-caret-position="-1477">
+          <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/verification.rs">
+    <entry file="file://$PROJECT_DIR$/data/out.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="150">
+          <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/search.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="22" column="26" lean-forward="false" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="223">
+          <caret line="64" column="26" lean-forward="false" selection-start-line="64" selection-start-column="26" selection-end-line="64" selection-end-column="26" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/structs.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="303">
+          <caret line="134" column="24" lean-forward="false" selection-start-line="134" selection-start-column="24" selection-end-line="134" selection-end-column="24" />
+          <folding>
+            <element signature="e#3014#3015#0" expanded="true" />
+            <element signature="e#3076#3077#0" expanded="true" />
+            <element signature="e#3107#3108#0" expanded="true" />
+            <element signature="e#3158#3159#0" expanded="true" />
+            <element signature="e#3194#3195#0" expanded="true" />
+            <element signature="e#3252#3253#0" expanded="true" />
+            <element signature="e#3283#3284#0" expanded="true" />
+            <element signature="e#3330#3331#0" expanded="true" />
+            <element signature="e#3544#3545#0" expanded="true" />
+            <element signature="e#3595#3596#0" expanded="true" />
+            <element signature="e#3631#3632#0" expanded="true" />
+            <element signature="e#3715#3716#0" expanded="true" />
+            <element signature="e#3746#3747#0" expanded="true" />
+            <element signature="e#3793#3794#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
