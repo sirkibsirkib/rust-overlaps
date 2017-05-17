@@ -22,7 +22,7 @@ use std::io::{Write, BufWriter};
 //mod algorithm_modes;
 //use algorithm_modes::kucherov as filter_mode;
 
-mod my_io;
+mod setup;
 mod prepare;
 mod search;
 mod verification;
@@ -42,40 +42,25 @@ pub static ALPH : &'static [u8] = b"ACGNT";
 pub static READ_ERR : u8 = b'N';
 
 fn main(){
-    let config = my_io::parse_run_args();
+    let config = setup::parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n Config : {:#?}", &config)};
-    let (maps, text) = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+    let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
     if config.verbose {println!("OK read and mapped fasta input.")};
 
-    solve(&text, &config, &maps);
+    solve(&config, &maps);
     if config.verbose {println!("OK done.")};
 }
 
-fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
-
-
+fn solve(config : &Config, maps : &Maps){
     let alphabet = Alphabet::new(b"$ACGTN");
-    let sa = suffix_array(&text);
-    let bwt = bwt(&text, &sa);
+    let sa = suffix_array(&maps.text);
+    let bwt = bwt(&maps.text, &sa);
     let less = less(&bwt, &alphabet);
     let occ = Occ::new(&bwt, 3, &alphabet);
     let fm = FMIndex::new(&bwt, &less, &occ);
 
 
     let test_patt = b"ABCD";
-
-    use structs::string_walk::*;
-    let mut walker : ForwardWalker = Walkable::new(test_patt);
-    while walker.can_read(){
-        print!("{}", walker.read() as char);
-        let mut z = walker.clone();
-        while z.can_read() {
-            print!("{}", z.read() as char);
-            z.advance();
-        }
-        walker.advance();
-    }
-
 
     println!("pattern : {}", String::from_utf8_lossy(test_patt));
 
@@ -85,7 +70,7 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
     positions.sort();
     println!("interval {:?}", &sai);
     println!("positions {:?}", &positions);
-    println!("text:\n{}", String::from_utf8_lossy(&text));
+    println!("text:\n{}", String::from_utf8_lossy(&maps.text));
     for p in positions{
         let mut res = String::new();
         for _ in 0..p{
@@ -101,12 +86,12 @@ fn solve(text : &Vec<u8>, config : &Config, maps : &Maps){
     pipeline(
         "pipelinexyz",   // name of the pipeline for logging
          1,              // number of worker threads
-         maps.id2str_in_s.keys(),   // iterator with work items
+         0..maps.num_ids,   // iterator with work items
 
-         |n| (fm.generate_candidates(maps.id2str_in_s.get(n).expect("DAWG"), config, maps, *n, &sa), n), // computation to apply in parallel to work items
+         |n| (fm.generate_candidates(maps.get_string(n), config, maps, n, &sa), n), // computation to apply in parallel to work items
          |(r, n)| {           // aggregation to apply to work results
              println!("writing all {:?} candidates.", r.len());
-             for c in verification::verify_all(*n, r, config, maps) {
+             for c in verification::verify_all(n, r, config, maps) {
                  println!("WRITING CAND");
                  let s = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                                  c.id_a,

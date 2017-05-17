@@ -24,19 +24,17 @@ pub trait GeneratesCandidates : FMIndexable {
                            pattern : &[u8],
                            config : &Config,
                            maps : &Maps,
-                           id_a : i32,
+                           id_a : usize,
                            sa : &RawSuffixArray,
                 ) -> HashSet<Candidate> {
 
         println!("WORKING FOR id_a == {}", id_a);
         println!("\tPATTERN {}", String::from_utf8_lossy(pattern));
-        let patt_len = pattern.len() as i32;
-        let block_lengths = get_block_lengths(patt_len, config.err_rate, config.thresh);
-
-        let patt_len = pattern.len() as i32;
+        let patt_len = pattern.len();
+        let block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
         let max_b_len =
-            if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as i32};
+            if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as usize};
         let block_id_lookup = get_block_id_lookup(max_b_len, config, &block_lengths);
         println!("block_id_lookup {:?}", &block_id_lookup);
         let full_interval = Interval {
@@ -76,8 +74,8 @@ pub trait GeneratesCandidates : FMIndexable {
                           errors : i32,
                           p_i : i32,
                           indel_balance : i32,
-                          a_match_len : i32,
-                          b_match_len : i32,
+                          a_match_len : usize,
+                          b_match_len : usize,
                           matches : &Interval,
                           debug : &str){
         println!("'{}'   recurse p_i=={}    {:?}", debug, p_i, &matches);
@@ -96,7 +94,7 @@ pub trait GeneratesCandidates : FMIndexable {
         // ADD SUFFIX CANDIDATES
         let generous_match_len = std::cmp::max(a_match_len, b_match_len);
         let cand_condition_satisfied =
-            candidate_condition(generous_match_len, completed_blocks, cns.config.thresh, errors);
+            candidate_condition(generous_match_len as i32, completed_blocks, cns.config.thresh, errors);
         if cand_condition_satisfied {
             //            println!("  !!!!!! CAND COND SATISFIED! :D {}", debug);
             let a = b'$';
@@ -110,8 +108,9 @@ pub trait GeneratesCandidates : FMIndexable {
             println!("positions {:?}", &positions);
 
             for p in positions {
-                let fetch_index = (p as i32) + 1;
-                let id_b = *cns.maps.bdmap_index_id.get_by_first(&fetch_index).expect("DOLLAR MAP BAD");
+                let fetch_index = (p as usize) + 1;
+
+                let id_b = *cns.maps.id2index_bdmap.get_by_first(&fetch_index).expect("DOLLAR MAP BAD");
                 let c = Candidate {
                     id_b: id_b,
                     overlap_a: a_match_len,
@@ -171,13 +170,13 @@ struct SearchConstants<'a>{
     block_id_lookup : &'a Vec<i32>,
     sa : &'a RawSuffixArray,
     pattern: &'a [u8],
-    id_a : i32,
+    id_a : usize,
 
     first_block_id : i32,
     patt_blocks : i32,
 }
 
-fn get_block_id_lookup(max_b_len : i32, config : &Config, block_lengths : &[i32]) -> Vec<i32>{
+fn get_block_id_lookup(max_b_len : usize, config : &Config, block_lengths : &[i32]) -> Vec<i32>{
     let mut lookup : Vec<i32> = Vec::new();
     for (id, block_length) in block_lengths.iter().enumerate() {
         for _ in 0..*block_length{
@@ -185,7 +184,7 @@ fn get_block_id_lookup(max_b_len : i32, config : &Config, block_lengths : &[i32]
         }
     }
     let last_index = block_lengths.len() as i32 - 1;
-    while (lookup.len() as i32) < max_b_len + 1{
+    while lookup.len() < max_b_len + 1 {
         lookup.push(last_index);
     }
     lookup.shrink_to_fit();

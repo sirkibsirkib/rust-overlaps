@@ -13,19 +13,19 @@ pub mod solutions{
     //NOT oriented
     #[derive(Hash,PartialEq, Eq, Debug)]
     pub struct Candidate{
-        pub id_b : i32,
-        pub overlap_a : i32,
-        pub overlap_b : i32,
+        pub id_b : usize,
+        pub overlap_a : usize,
+        pub overlap_b : usize,
         pub overhang_right_b : i32,
     }
 
     //oriented
     pub struct Solution{
-        pub id_a : i32,
-        pub id_b : i32,
+        pub id_a : usize,
+        pub id_b : usize,
         pub orientation : Orientation,
-        pub overlap_a : i32,
-        pub overlap_b : i32,
+        pub overlap_a : usize,
+        pub overlap_b : usize,
         pub overhang_left_a : i32,
         pub overhang_right_b : i32,
         pub errors : u32,
@@ -69,13 +69,31 @@ pub mod run_config{
 
     #[derive(Debug)]
     pub struct Maps{
-        pub id2name : HashMap<i32, String>,
-        pub id2str_in_s : HashMap<i32, Vec<u8>>,
-        pub bdmap_index_id : BidirMap<i32, i32>,
+        pub text : Vec<u8>,
+//        pub id2string_vec : Vec<&'a [u8]>,
+        pub id2name_vec : Vec<String>,
+        pub id2index_bdmap : BidirMap<usize, usize>,
+        pub num_ids : usize,
     }
+
     impl Maps{
-        pub fn num_strings(&self) -> i32{
-            self.id2str_in_s.len() as i32
+        pub fn get_string(&self, id : usize) -> &[u8]{
+            assert!(id < self.num_ids);
+            &self.text[*self.id2index_bdmap.get_by_first(&id).expect("GAH")..self.get_end_index(id)]
+        }
+
+        pub fn get_length(&self, id : usize) -> usize{
+            assert!(id < self.num_ids);
+            self.get_end_index(id) - self.id2index_bdmap.get_by_first(&id).expect("WOO") - 1
+        }
+
+        fn get_end_index(&self, id : usize) -> usize{
+            assert!(id < self.num_ids);
+            if id == self.num_ids-1{
+                self.text.len() - 1 //$s in front. one # at the end
+            }else{
+                self.id2index_bdmap.get_by_first(&(id + 1)).expect("WAHEY") - 1
+            }
         }
     }
 
@@ -96,54 +114,3 @@ pub mod run_config{
     }
 }
 
-pub mod string_walk{
-    pub trait Walkable<'a>{
-        fn read(&self) -> u8;
-        fn can_read(&self) -> bool;
-        fn advance(&mut self);
-        fn new(&'a [u8]) -> Self;
-    }
-
-    #[derive (Clone)]
-    pub struct ForwardWalker<'a>{
-        src : &'a [u8],
-        next_position : usize,
-    }
-
-    #[derive (Clone)]
-    pub struct BackwardWalker<'a>{
-        src : &'a [u8],
-        next_position : usize,
-    }
-
-    impl<'a> Walkable<'a> for ForwardWalker<'a>{
-        fn new(src : &'a [u8]) -> ForwardWalker<'a>{
-            ForwardWalker{src:src, next_position:0}
-        }
-
-        fn read(&self) -> u8{
-            self.src[self.next_position]
-        }
-        fn can_read(&self) -> bool{
-            self.next_position < self.src.len()
-        }
-        fn advance(&mut self){
-            self.next_position += 1;
-        }
-    }
-
-    impl<'a> Walkable<'a> for BackwardWalker<'a>{
-        fn new(src : &'a [u8]) -> BackwardWalker<'a>{
-            BackwardWalker{src:src, next_position:src.len()-1}
-        }
-        fn read(&self) -> u8{
-            self.src[self.next_position]
-        }
-        fn can_read(&self) -> bool{
-            self.next_position < self.src.len() && self.next_position > 0
-        }
-        fn advance(&mut self){
-            self.next_position -= 1;
-        }
-    }
-}

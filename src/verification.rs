@@ -11,11 +11,11 @@ use std::mem::swap;
 use bio::alignment::distance::*;
 
 
-fn companion_id(id : i32) -> i32{
+fn companion_id(id : usize) -> usize{
     if id%2==0 {id+1} else {id-1}
 }
 
-pub fn verify_all(id_a : i32, candidates : HashSet<Candidate>, config : &Config, maps : &Maps) -> HashSet<Solution>{
+pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Config, maps : &Maps) -> HashSet<Solution>{
     let mut solution_set : HashSet<Solution> = HashSet::new();
     for c in candidates{
         if let Some(x) = verify(id_a, c, config, maps){
@@ -26,26 +26,27 @@ pub fn verify_all(id_a : i32, candidates : HashSet<Candidate>, config : &Config,
 }
 
 // incoming cands are already oriented
-fn verify(id_a : i32, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
-    let overhang_left_a = 0;
+fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
+    let overhang_left_a : i32 = 0;
 
-    let a_len = maps.id2str_in_s.get(&id_a).expect("WTF").len() as i32;
-    let b_len = maps.id2str_in_s.get(&c.id_b).expect("WTF").len() as i32;
+    let a_len = maps.get_length(id_a);
+    let b_len = maps.get_length(c.id_b);
 
-    let a_start = max(0, overhang_left_a);
-    let a_end = a_start + c.overlap_a;
-    let a_end2 = min(a_len, a_len-c.overhang_right_b);
+    let a_start : usize = max(0, overhang_left_a) as usize;
+    let a_end : usize = a_start + c.overlap_a;
+    let a_end2 : usize  = min(a_len, a_len-(c.overhang_right_b as usize));
     //TODO return None here if you detect you're out of bounds of one of the strings
     assert_eq!(a_end, a_end2);          //DEBUG! can remove a_end2 if this checks out
 
-    let b_start = max(0, -overhang_left_a);
-    let b_end = b_start + c.overlap_b;
-    let b_end2 = min(b_len, b_len+c.overhang_right_b);
+    let b_start : usize  = max(0, -overhang_left_a) as usize;
+    let b_end : usize  = b_start + c.overlap_b as usize;
+    let b_end2 : usize  = min(b_len, b_len+c.overhang_right_b as usize);
     //TODO return None here if you detect you're out of bounds of one of the strings
     assert_eq!(b_end, b_end2);          //DEBUG! can remove b_end2 if this checks out
 
-    let a_part : &[u8] = &maps.id2str_in_s.get(&id_a).expect("OMG")  [a_start as usize..a_end as usize];
-    let b_part : &[u8] = &maps.id2str_in_s.get(&c.id_b).expect("OMG")[b_start as usize..b_end as usize];
+
+    let a_part : &[u8] = &maps.get_string(id_a)  [a_start..a_end];
+    let b_part : &[u8] = &maps.get_string(c.id_b)[b_start..b_end];
 
     let errors : u32 = if config.edit_distance{
         assert!(a_part.len() == b_part.len());
@@ -63,13 +64,13 @@ fn verify(id_a : i32, c : Candidate, config : &Config, maps : &Maps) -> Option<S
     }
 }
 
-fn solution_from_candidate(c : Candidate, mut id_a : i32, mut cigar : String, errors : u32, maps : &Maps, config : &Config) -> Solution {
-    let mut a_len = maps.id2str_in_s.get(&id_a).expect("WTF").len() as i32;
-    let mut b_len = maps.id2str_in_s.get(&c.id_b).expect("WTF").len() as i32;
+fn solution_from_candidate(c : Candidate, mut id_a : usize, mut cigar : String, errors : u32, maps : &Maps, config : &Config) -> Solution {
+    let mut a_len = maps.get_length(id_a);
+    let mut b_len = maps.get_length(c.id_b);
     let mut id_b = c.id_b;
 
-    let mut overlap_a = c.overlap_a as i32;
-    let mut overlap_b = c.overlap_b as i32;
+    let mut overlap_a = c.overlap_a;
+    let mut overlap_b = c.overlap_b;
 //    let (overhang_left_a, overhang_right_b) = if c.overhang_right_b == 0 {
 //        (
 //            -(b_len - overlap_b),
@@ -83,12 +84,12 @@ fn solution_from_candidate(c : Candidate, mut id_a : i32, mut cigar : String, er
 //    };
     let (mut overhang_left_a, mut overhang_right_b) = if c.overhang_right_b == 0 {
         (
-            -(b_len - overlap_b),
-            -(a_len - overlap_a),
+            -((b_len - overlap_b) as i32),
+            -((a_len - overlap_a) as i32),
         )
     } else {
         (
-            -(b_len - c.overhang_right_b - overlap_b),
+            -(b_len as i32 - c.overhang_right_b - overlap_b as i32),
             c.overhang_right_b,
         )
     };
@@ -122,8 +123,8 @@ fn solution_from_candidate(c : Candidate, mut id_a : i32, mut cigar : String, er
     }else{
         Orientation::Reversed
     };
-    let a_name = maps.id2name.get(&id_a);
-    let b_name = maps.id2name.get(&id_b);
+    let a_name = maps.id2name_vec.get(id_a);
+    let b_name = maps.id2name_vec.get(id_b);
     Solution{
         id_a : id_a,
         id_b : id_b,
