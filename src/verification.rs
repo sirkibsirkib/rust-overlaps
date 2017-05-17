@@ -1,10 +1,5 @@
 
-use std::io;
-use std::collections::{HashMap, HashSet};
-use std::path::Path;
-use std::fs;
-use std::fs::File;
-use std::io::{Write, BufWriter};
+use std::collections::HashSet;
 
 use structs::solutions::Orientation;
 use structs::solutions::*;

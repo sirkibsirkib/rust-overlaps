@@ -1,12 +1,7 @@
 extern crate bidir_map;
-use bidir_map::BidirMap;
 
 extern crate bio;
-use bio::io::fasta;
-use bio::data_structures::fmindex::*;
-use bio::alphabets::dna;
-use bio::data_structures::suffix_array::RawSuffixArray;
-use bio::data_structures::bwt::{BWT, DerefBWT, DerefOcc, DerefLess};
+use bio::data_structures::bwt::{DerefBWT, DerefOcc, DerefLess};
 use bio::data_structures::bwt::{bwt, less, Occ};
 use bio::data_structures::fmindex::{FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::suffix_array;
@@ -18,10 +13,6 @@ extern crate clap;
 extern crate cue;
 use cue::pipeline;
 
-use std::io;
-use std::collections::{HashMap, HashSet};
-use std::path::Path;
-use std::fs;
 use std::fs::File;
 use std::io::{Write, BufWriter};
 

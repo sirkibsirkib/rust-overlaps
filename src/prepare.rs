@@ -1,10 +1,6 @@
 use std::io;
 use std::collections::HashMap;
-use std::path::Path;
-use std::fs;
-use std::collections::HashSet;
 use std::fs::File;
-use std::io::{Write, BufWriter};
 
 
 use bio::io::fasta;

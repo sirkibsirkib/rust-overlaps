@@ -1,6 +1,4 @@
 
-pub static TEMP_DIR : &'static str = "tmp/";
-
 pub mod solutions{
 
     use std::hash::{Hash, SipHasher, Hasher};

@@ -1,14 +1,8 @@
 
 use bio::data_structures::fmindex::*;
-use bio::alphabets::dna;
 use bio::data_structures::suffix_array::RawSuffixArray;
-use bio::data_structures::bwt::{BWT, DerefBWT, DerefOcc, DerefLess};
-use bio::data_structures::bwt::{bwt, less, Occ};
-use bio::data_structures::fmindex::{FMIndex, FMIndexable};
-use bio::data_structures::suffix_array::suffix_array;
-use bio::alphabets::Alphabet;
+use bio::data_structures::fmindex::FMIndexable;
 
-use std::collections::HashMap;
 use std::collections::HashSet;
 use std;
 
@@ -44,7 +38,6 @@ pub trait GeneratesCandidates : FMIndexable {
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
         let max_b_len =
             if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as i32};
-        let max_errs = (max_b_len as f32 * config.err_rate).floor() as i32;
         let block_id_lookup = get_block_id_lookup(max_b_len, config, &block_lengths);
         println!("block_id_lookup {:?}", &block_id_lookup);
         let full_interval = Interval {
