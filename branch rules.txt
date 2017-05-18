@@ -1,0 +1,13 @@
+four possible states for previous operation = {initial, substitution, insertion, deletion}
+
+1.
+every recursive call sets the "previous operation" value of that call
+
+2.
+can only delete if SUBSTITUTION or DELETION
+
+3.
+can only insert if SUBSTITUTION or INSERTION
+
+4.
+only substitution allowed for 1st and last char of pattern

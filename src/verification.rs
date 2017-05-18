@@ -6,6 +6,10 @@ use std::cmp::max;
 use std::mem::swap;
 use std::collections::HashSet;
 
+use std::thread;
+use std::io::Write;
+use std::io::stdout;
+
 use bio::alignment::distance::*;
 
 pub fn companion_id(id : usize) -> usize{
@@ -13,33 +17,45 @@ pub fn companion_id(id : usize) -> usize{
 }
 
 pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Config, maps : &Maps) -> HashSet<Solution>{
+    let num_cands = candidates.len();
     let mut solution_set : HashSet<Solution> = HashSet::new();
+    if num_cands == 0{
+        if config.verbose {println!("OK no candidates to verify for {}.", maps.get_name_for(id_a))};
+        return solution_set;
+    }
     for c in candidates {
         if let Some(solution) = verify(id_a, c, config, maps){
             solution_set.insert(solution);
         }
     }
-    if config.verbose {println!("OK finished solutions for  '{}'.", maps.get_name_for(id_a))};
+    if config.verbose {println!("OK finished solutions for  '{}'. Verified {}/{} ({:.2}%.)",
+                                maps.get_name_for(id_a), solution_set.len(), num_cands,
+                                (solution_set.len() as i32) / (num_cands as i32) * 100)};
     solution_set
 }
 
 fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
+    println!("\n\n");
 
     let a_len = maps.get_length(id_a);
     let b_len = maps.get_length(c.id_b);
 
     // the search guarantees this; Thus omitted from the candidate struct.
-    let overhang_left_a : i32 = a_len as i32 - c.overlap_a as i32 ;
+    let overhang_left_a = c.overhang_left_a;
     let overlap_a_start : usize = max(0, overhang_left_a) as usize;
     let overlap_a_end : usize = overlap_a_start + c.overlap_a;
 
-    if b_len < c.overlap_b{
-        // the blind spot goes over the end of B string. (bad match!)
-        return None;
-    }
+    println!("id_a : {}", id_a);
+    println!("{}{}", maps.spaces(overhang_left_a), maps.formatted(id_a));
+    println!("{}{}", maps.spaces(-overhang_left_a), maps.formatted(c.id_b));
+    println!("{:#?}", &c);
+    stdout().flush();
     let overlap_b_start : usize  = max(0, -overhang_left_a) as usize;
     let overlap_b_end : usize  = overlap_b_start + c.overlap_b as usize;
 
+
+    assert!(overlap_a_end <= a_len);
+    assert!(overlap_b_end <= b_len);
     let a_part : &[u8] = &maps.get_string(id_a)  [overlap_a_start..overlap_a_end];
     let b_part : &[u8] = &maps.get_string(c.id_b)[overlap_b_start..overlap_b_end];
 
@@ -53,24 +69,22 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     cigar.push_str(&format!("ids: {}->{}", id_a, c.id_b));
     let k_limit = (config.err_rate*(max(c.overlap_a, c.overlap_b) as f32)) as u32;
     if errors <= k_limit{
-        Some(solution_from_candidate(c, id_a, cigar, errors, maps, config, overhang_left_a))
+        Some(solution_from_candidate(c, id_a, cigar, errors, maps, config))
     }else{
         None
     }
 }
 
 fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, errors : u32,
-                           maps : &Maps, config : &Config, mut overhang_left_a : i32) -> Solution {
+                           maps : &Maps, config : &Config) -> Solution {
     let mut a_len = maps.get_length(id_a);
     let mut b_len = maps.get_length(c.id_b);
     let mut id_b = c.id_b;
 
     let mut overlap_a = c.overlap_a;
     let mut overlap_b = c.overlap_b;
-    let mut overhang_right_b = c.overhang_right_b;
-
-    assert!(overhang_right_b != 8 && overhang_right_b != -8);
-    assert!(overhang_left_a != 8 && overhang_left_a != -8);
+    let mut overhang_left_a = c.overhang_left_a;
+    let mut overhang_right_b = (b_len as i32) - (a_len as i32) - overhang_left_a;
 
     // GUARANTEE 1/2: id_a <= id_b
     // REMEDY: vertical flip. a becomes b, b becomes a.

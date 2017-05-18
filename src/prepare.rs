@@ -22,6 +22,11 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
             let id = id2name_vec.len();
             let name = name.to_owned();
             let mut str_vec = record.seq().to_vec();
+            print!("{} -> ", String::from_utf8_lossy(&str_vec));
+            if !config.n_alphabet{
+                str_vec.retain(|c|*c != ('N' as u8));
+            }
+            println!("{}", String::from_utf8_lossy(&str_vec));
             str_vec.reverse();
             text.push('$' as u8);
             let index = text.len();
@@ -40,6 +45,7 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
             }
         }
     }
+
     text.push('#' as u8);
     text.shrink_to_fit();
     id2name_vec.shrink_to_fit();
@@ -51,5 +57,6 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
         id2index_bdmap : id2index_bdmap,
         num_ids : num_ids,
     };
+    maps.print_text_debug();
     Ok(maps)
 }

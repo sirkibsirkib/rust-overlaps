@@ -15,7 +15,7 @@ pub mod solutions{
         pub id_b : usize,
         pub overlap_a : usize,
         pub overlap_b : usize,
-        pub overhang_right_b : i32,
+        pub overhang_left_a : i32,
         pub debug_str : String,
     }
 
@@ -101,23 +101,44 @@ pub mod run_config{
             }
         }
 
-        pub fn find_id_for_index_within(&self, index : usize) -> usize{
-            let mut best_id = 1;
+        //returns (id, index)
+        pub fn find_occurrence_containing(&self, index : usize) -> (usize, usize){
+            let mut best = (0, 1);
             for &(id, ind) in self.id2index_bdmap.iter(){
-                if index <= ind && ind > best_id{
-                    best_id = id;
+                if ind <= index && ind > best.1{
+                    best = (id, ind);
                 }
             }
-            best_id
+            best
         }
 
         pub fn get_name_for(&self, id : usize) -> &str {
             self.id2name_vec.get(id).expect("get name")
         }
 
-//        pub fn print_text_debug(&self){
-//            println!("{}", String::from_utf8_lossy(&self.text));
-//        }
+        pub fn print_text_debug(&self){
+            println!("{}", String::from_utf8_lossy(&self.text));
+        }
+
+        pub fn spaces(&self, num : i32) -> String{
+            let mut s = String::new();
+            for _ in 0..num{
+                s.push(' ');
+            }
+            s
+        }
+
+        pub fn formatted(&self, id : usize) -> String{
+            format!("{}",String::from_utf8_lossy(self.get_string(id)))
+        }
+
+        pub fn tildes(&self, num : i32) -> String{
+            let mut s = String::new();
+            for _ in 0..num{
+                s.push('~');
+            }
+            s
+        }
     }
 
     #[derive(Debug)]
@@ -139,5 +160,6 @@ pub mod run_config{
         pub verbose : bool,
         pub time: bool,
         pub print: bool,
+        pub n_alphabet: bool,
     }
 }

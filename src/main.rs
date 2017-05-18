@@ -32,7 +32,8 @@ use structs::run_config::*;
 use search::GeneratesCandidates;
 
 
-pub static ALPH : &'static [u8] = b"ACGNT";
+pub static N_ALPH : &'static [u8] = b"ACGNT";
+pub static ALPH : &'static [u8] = b"ACGT";
 pub static READ_ERR : u8 = b'N';
 
 fn main(){
@@ -41,12 +42,21 @@ fn main(){
     if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
     let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
     if config.verbose {println!("OK read and mapped fasta input.")};
+    if !config.n_alphabet{
+        if config.verbose {println!("OK cleaned 'N' from input strings.")};
+    }
     solve(&config, &maps);
     println!("OK done. Process finished in {:?}.", &Instant::elapsed(&start_time));
 }
 
 fn solve(config : &Config, maps : &Maps){
-    let alphabet = Alphabet::new(b"$ACGTN");
+    let alphabet = if config.n_alphabet{
+        Alphabet::new(N_ALPH)
+    }else{
+        Alphabet::new(ALPH)
+    };
+    println!("OK index alphabet set to '{}'",
+             String::from_utf8_lossy(if config.n_alphabet {N_ALPH} else {ALPH}));
     let sa = suffix_array(&maps.text);
     let bwt = bwt(&maps.text, &sa);
     let less = less(&bwt, &alphabet);
@@ -65,23 +75,32 @@ fn solve(config : &Config, maps : &Maps){
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
-    //multithreaded part
-    cue::pipeline(
-        "overlap_pipeline",          // name of the pipeline for logging
-         config.worker_threads,      // number of worker threads
-         id_iterator,                // iterator with work items
-         |id_a|                      // computation to apply in parallel to work items
-            solve_an_id(config, maps, id_a, &sa, &fm),
-         |solutions| {               // aggregation to apply to work results
-             if config.sorted {
-                 //workers ==> solutions --> sorted_solutions --> out
-                 for sol in solutions {complete_solution_list.push(sol);}
-             }else {
-                 //workers ==> out
-                 for sol in solutions {write_solution(&mut wrt_buf, &sol, maps, config);}
-             }
-         }
-    );
+
+    // hygiene block
+    {
+        let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm);
+        let mut aggregator = |solutions| {               // aggregation to apply to work results
+            if config.sorted {
+                //workers ==> solutions --> sorted_solutions --> out
+                for sol in solutions {&mut complete_solution_list.push(sol);}
+            }else {
+                //workers ==> out
+                for sol in solutions {write_solution(&mut wrt_buf, &sol, maps, config);}
+                wrt_buf.flush().is_ok();
+            }
+        };
+        for id_a in id_iterator{
+            aggregator(computation(id_a));
+        }
+        //multithreaded part
+        //    cue::pipeline(
+        //        "overlap_pipeline",          // name of the pipeline for logging
+        //         config.worker_threads,      // number of worker threads
+        //         id_iterator,                // iterator with work items
+        //         computation,
+        //         aggregator,
+        //    );
+    }
 
     //sequential part
     if config.sorted{
@@ -124,10 +143,10 @@ fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, confi
         let b_name = maps.get_name_for(s.id_b);
         if s.overhang_left_a > 0{
             let space = &std::iter::repeat(" ").take(s.overhang_left_a as usize).collect::<String>();
-            println!(" '{}':\t{}\n [{}]:\t{}{}\n", a_name, a, b_name, space, b);
+            println!(" '{}':\t{}\n '{}':\t{}{}\n", a_name, a, b_name, space, b);
         }else{
             let space = &std::iter::repeat(" ").take((-s.overhang_left_a) as usize).collect::<String>();
-            println!(" '{}':\t{}{}\n [{}]:\t{}\n", a_name, space, a, b_name, b);
+            println!(" '{}':\t{}{}\n '{}':\t{}\n", a_name, space, a, b_name, b);
         }
     }
 }

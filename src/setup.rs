@@ -5,20 +5,20 @@ pub fn parse_run_args() -> Config{
     let matches = clap_app!(ASPOPsolver =>
         (version: "1.0")
         (author: "Christopher Esterhuyse <christopher.esterhuyse@gmail.com>")
-        (about: "Finds approximate suffix prefix overlaps")
+        (about: "Finds approximate suffix prefix overlaps from a given fasta file")
         (@arg IN_PATH: +required +takes_value "Path to the input fasta file")
-//        (@arg TMP_PATH: +required +takes_value "Path for the program to make temp files")
         (@arg OUT_PATH: +required +takes_value "Path of desired output file")
         (@arg ERR_RATE: +required +takes_value "The max rate of errors in an overlap")
         (@arg THRESH: +required +takes_value "Shortest allowed length of an overlap")
         (@arg WORKER_THREADS: +required +takes_value "Number of worker threads used")
-        (@arg reversals: -r "Enables reversals of S strings")
-        (@arg inclusions: -i "Enables finding of inclusion solutions")
-        (@arg edit_distance: -e "Uses edit distance instead of Hamming")
-        (@arg verbose: -v "Prints completed steps of the run process")
-        (@arg sorted: -s "Prints output solution lines in sorted order at a time and space cost.")
-        (@arg time: -t "Records time taken to finish working.")
-        (@arg print: -p "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes).")
+        (@arg reversals: -r --reversals "Enables reversals of input strings")
+        (@arg inclusions: -i --inclusions "Enables finding of inclusion overlaps (one string within another)")
+        (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming /  distance")
+        (@arg verbose: -v --verbose "Prints completed steps of the run process")
+        (@arg sorted: -s --sorted "Prints output solution lines in sorted order at a time and space cost. (Not practical with long inputs)")
+        (@arg time: -t --time "Records time taken to finish working.")
+        (@arg print: -p --print "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes).")
+        (@arg no_n: -n --no_n "Omits 'N' from the alphabet and cleans it from input strings, increasing run speed. Will not consider N when searching.")
     ).get_matches();
 
     Config{
@@ -34,5 +34,6 @@ pub fn parse_run_args() -> Config{
         sorted :        if matches.occurrences_of("sorted")        >= 1 {true} else {false},
         time:           if matches.occurrences_of("time")          >= 1 {true} else {false},
         print:          if matches.occurrences_of("print")         >= 1 {true} else {false},
+        n_alphabet:     if matches.occurrences_of("no_n")          == 0 {true} else {false},
     }
 }
