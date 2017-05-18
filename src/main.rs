@@ -5,7 +5,7 @@ use bio::data_structures::bwt::{DerefBWT, DerefOcc, DerefLess};
 use bio::data_structures::bwt::{bwt, less, Occ};
 use bio::data_structures::fmindex::{FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::suffix_array;
-use bio::data_structures::suffix_array::SuffixArray;
+use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::alphabets::Alphabet;
 
 #[macro_use]
@@ -16,6 +16,9 @@ use cue::pipeline;
 
 use std::fs::File;
 use std::io::{Write, BufWriter};
+
+use std::time::{Duration, Instant};
+use std::thread::sleep;
 
 
 /////////////////////////////////////
@@ -44,13 +47,14 @@ pub static ALPH : &'static [u8] = b"ACGNT";
 pub static READ_ERR : u8 = b'N';
 
 fn main(){
+    let start_time = Instant::now();
     let config = setup::parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n Config : {:#?}", &config)};
     let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
     if config.verbose {println!("OK read and mapped fasta input.")};
 
     solve(&config, &maps);
-    println!("OK done.");
+    println!("OK done. Process finished in {:?} secs.", &Instant::elapsed(&start_time));
 }
 
 fn solve(config : &Config, maps : &Maps){
@@ -91,14 +95,6 @@ fn solve(config : &Config, maps : &Maps){
         next : 0,
         step : if config.reversals {2} else {1},
     };
-//    for id in id_iterator {
-//        let pattern = maps.get_string(id);
-//        let cands = fm.generate_candidates(pattern, config, maps, id, &sa);
-//        let solutions = verification::verify_all(id, cands, config, maps);
-//        for sol in solutions{
-//            write_solution(&mut wrt_buf, sol, maps);
-//        }
-//    }
     if config.sorted{
         panic!("Sorted output not implemented!");
     }
@@ -110,7 +106,7 @@ fn solve(config : &Config, maps : &Maps){
          |id_a| solve_an_id(config, maps, id_a, &sa, &fm), // computation to apply in parallel to work items
          |solutions| {                 // aggregation to apply to work results
              for sol in solutions {
-                 write_solution(&mut wrt_buf, sol, maps);
+                 write_solution(&mut wrt_buf, sol, maps, config);
              }
          }
     );
@@ -118,7 +114,7 @@ fn solve(config : &Config, maps : &Maps){
 
 #[inline]
 fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone>
-        (config : &Config, maps : &Maps, id_a : usize, sa : &SuffixArray, fm : &FMIndex<DBWT, DLess, DOcc>)
+        (config : &Config, maps : &Maps, id_a : usize, sa : &RawSuffixArray, fm : &FMIndex<DBWT, DLess, DOcc>)
                 -> HashSet<Solution>{
     let candidates = fm.generate_candidates(maps.get_string(id_a), config, maps, id_a, sa);
     verification::verify_all(id_a, candidates, config, maps)
@@ -127,7 +123,7 @@ fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc 
 
 
 #[inline]
-fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps){
+fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps, config : &Config){
     let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                             maps.id2name_vec.get(s.id_a).expect("IDA IN THERE"),
                             maps.id2name_vec.get(s.id_b).expect("IDB IN THERE"),
@@ -140,8 +136,21 @@ fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps){
                             s.cigar,
     );
     buf.write(formatted.as_bytes()).is_ok();
+    if config.print{
+        let a = String::from_utf8_lossy(maps.get_string(s.id_a));
+        let b = String::from_utf8_lossy(maps.get_string(s.id_b));
+        if s.overhang_left_a > 0{
+            let space = std::iter::repeat(" ").take(s.overhang_left_a as usize).collect::<String>();
+            println!("{}\n{}{}\n", a, &space, b);
+        }else{
+            let space = std::iter::repeat(" ").take((-s.overhang_left_a) as usize).collect::<String>();
+            println!("{}{}\n{}\n", &space, a, b);
+        }
+        println!("{:#?}", &s);
+    }
 }
 
+#[derive(Debug, Clone)]
 struct IDIterator{
     num_ids : usize,
     next : usize,

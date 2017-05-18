@@ -17,6 +17,8 @@ pub fn parse_run_args() -> Config{
         (@arg edit_distance: -e "Uses edit distance instead of Hamming")
         (@arg verbose: -v "Prints completed steps of the run process")
         (@arg sorted: -s "Prints output solution lines in sorted order at a time and space cost.")
+        (@arg time: -t "Records time taken to finish working.")
+        (@arg print: -p "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes).")
     ).get_matches();
 
     Config{
@@ -29,6 +31,8 @@ pub fn parse_run_args() -> Config{
         inclusions :    if matches.occurrences_of("inclusions")    >= 1 {true} else {false},
         edit_distance : if matches.occurrences_of("edit_distance") >= 1 {true} else {false},
         verbose :       if matches.occurrences_of("verbose")       >= 1 {true} else {false},
-        sorted :       if matches.occurrences_of("sorted")         >= 1 {true} else {false},
+        sorted :        if matches.occurrences_of("sorted")        >= 1 {true} else {false},
+        time:           if matches.occurrences_of("time")          >= 1 {true} else {false},
+        print:          if matches.occurrences_of("print")         >= 1 {true} else {false},
     }
 }

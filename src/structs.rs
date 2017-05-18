@@ -21,6 +21,8 @@ pub mod solutions{
     }
 
     //oriented
+
+    #[derive(Debug)]
     pub struct Solution{
         pub id_a : usize,
         pub id_b : usize,
@@ -97,18 +99,14 @@ pub mod run_config{
             }
         }
 
-        pub fn find_id_for_index_within(&self, index : usize) -> Option<usize>{
-            let mut best = -1;
-            for (id, ind) in self.id2index_bdmap{
-                if index <= ind && ind > best{
-                    best = ind;
+        pub fn find_id_for_index_within(&self, index : usize) -> usize{
+            let mut best_id = 1;
+            for &(id, ind) in self.id2index_bdmap.iter(){
+                if index <= ind && ind > best_id{
+                    best_id = id;
                 }
             }
-            if best == -1{
-                None
-            }else{
-                Some(best);
-            }
+            best_id
         }
 
         pub fn print_text_debug(&self){
@@ -133,6 +131,8 @@ pub mod run_config{
         pub inclusions : bool,
         pub edit_distance : bool,
         pub verbose : bool,
+        pub time: bool,
+        pub print: bool,
     }
 }
 

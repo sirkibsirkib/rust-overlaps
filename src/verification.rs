@@ -28,8 +28,8 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
     for c in candidates{
 //        println!("Cand coming in:\n{:#?}", &c);
         match verify(id_a, c, config, maps){
-            Some(x) => {solution_set.insert(x); println!("SOLUTION!");},
-            None => {println!("REJECT!");()},
+            Some(x) => {solution_set.insert(x);},
+            None => {;()},
         }
 //        if let Some(x) = verify(id_a, c, config, maps){
 //            println!("SUCCEEDED");
@@ -83,10 +83,10 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     let b_part : &[u8] = &maps.get_string(c.id_b)[overlap_b_start..overlap_b_end];
 
     let errors : u32 = if config.edit_distance{
+        levenshtein(a_part, b_part)
+    }else{
         assert!(a_part.len() == b_part.len());
         hamming(a_part, b_part) as u32
-    }else{
-        levenshtein(a_part, b_part)
     };
     let mut cigar = String::new();
     cigar.push_str(&format!("ids: {}->{}", id_a, c.id_b));

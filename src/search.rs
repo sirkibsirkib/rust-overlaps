@@ -85,7 +85,6 @@ pub trait GeneratesCandidates : FMIndexable {
                           b_match_len : usize,
                           match_interval : &Interval,
                           debug : &str){
-//        println!("'{}'   recurse p_i=={}    {:?}", debug, p_i, &matches);
         if match_interval.lower > match_interval.upper{
             // range is (lower, upper)  ie. both inclusive
             return
@@ -96,14 +95,18 @@ pub trait GeneratesCandidates : FMIndexable {
             None    => cns.patt_blocks - cns.first_block_id,
         };
 
-        let permitted_error : i32 =
+        let permitted_errors : i32 =
             filter_func(completed_blocks, cns.patt_blocks);
         //        let has_spare_error : bool = errors < permitted_error;
 
         // ADD SUFFIX CANDIDATES
-        let generous_match_len = std::cmp::max(a_match_len, b_match_len);
+        let generous_match_len = std::cmp::max(a_match_len, b_match_len) + 1;
         let cand_condition_satisfied =
             candidate_condition(generous_match_len as i32, completed_blocks, cns.config.thresh, errors);
+
+
+
+//        println!("'{}'{}   recurse p_i=={}    {:?}", debug, if cand_condition_satisfied {'*'} else {' '},p_i, &match_interval);
         if cand_condition_satisfied {
 //            println!("CAND? YES");
             let a = b'$';
@@ -115,26 +118,49 @@ pub trait GeneratesCandidates : FMIndexable {
             //            println!("interval {:?}    ==$==> {:?}", &matches, &dollar_interval);
             let positions = dollar_interval.occ(cns.sa);
             add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, false);
-        }else{
-
-//            println!("CAND? NO");
         }
+
+//        // insertion
+//        for &a in ALPH.iter(){
+//            let less = self.less(a);
+//            //            println!("less  {}", less);
+//            //            println!("match is {:?}", matches);
+//            let next_interval = Interval{
+//                lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
+//                upper : less + self.occ(match_interval.upper, a) - 1,
+//            };
+//            let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
+//            let recurse_error =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
+//            if recurse_error <= permitted_error{
+//                let mut next_debug = format!("{}{}", a as char, debug);
+//                self.recurse_candidates(cand_set,
+//                                        cns,
+//                                        recurse_error,
+//                                        p_i-1,  //step left
+//                                        0,      //indel balance reset
+//                                        a_match_len + 1,
+//                                        b_match_len + 1,
+//                                        &next_interval,
+//                                        &next_debug);
+//            }
+//        }
+
         if p_i == -1{
-            if cand_condition_satisfied{
+            if cns.config.inclusions && cand_condition_satisfied{
                 let inclusion_interval = Interval{
                     lower : match_interval.lower,
                     upper : match_interval.upper + 1,
                 }; // final interval must have exclusive end
                 let positions = inclusion_interval.occ(cns.sa);
+//                println!("{} cands?", positions.len());
                 add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, true);
             }
-            //END OF PATTERN
-            //INCLUSIONS GO HERE
-//            println!("KILL");
-            return
+            if cns.config.edit_distance{
+                //Nothing do do here if we are not doing edit distance
+                return;
+            }
         }
 
-        // walking + substitution match
         for &a in ALPH.iter(){
             let less = self.less(a);
             //            println!("less  {}", less);
@@ -144,17 +170,47 @@ pub trait GeneratesCandidates : FMIndexable {
                 upper : less + self.occ(match_interval.upper, a) - 1,
             };
             let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
-            let recurse_error =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
-            if recurse_error <= permitted_error{
-                let mut next_debug = format!("{}{}", a as char, debug);
+            let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
+            let mut next_debug = format!("{}{}", a as char, debug);
+
+            //substitutions and matches
+            if recurse_errors <= permitted_errors && p_i > -1{
                 self.recurse_candidates(cand_set,
                                         cns,
-                                        recurse_error,
-                                        p_i-1,
-                                        0,
-                                        a_match_len+1,
-                                        b_match_len+1,
+                                        recurse_errors,
+                                        p_i-1,  //step left
+                                        0,      //indel balance reset
+                                        a_match_len + 1,
+                                        b_match_len + 1,
                                         &next_interval,
+                                        &next_debug);
+            }
+            //insertions
+            if errors < permitted_errors && cns.config.edit_distance {
+                self.recurse_candidates(cand_set,
+                                        cns,
+                                        errors + 1, //always induces an error
+                                        p_i-1,      //step left
+                                        1,          //insertion balance
+                                        a_match_len,//the pattern string doesn't grow
+                                        b_match_len + 1,
+                                        &next_interval,
+                                        &next_debug);
+            }
+        }
+
+        // deletion
+        if cns.config.edit_distance && errors < permitted_errors{
+            if indel_balance <= 0 && p_i > 1{
+                let mut next_debug = format!("{}{}", '_', debug);
+                self.recurse_candidates(cand_set,
+                                        cns,
+                                        errors + 1,
+                                        p_i - 1,         //one step without matching
+                                        -1,              //balance
+                                        a_match_len + 1,
+                                        b_match_len,     //the matched string doesn't grow
+                                        &match_interval, //stays unchanged
                                         &next_debug);
             }
         }
@@ -169,46 +225,29 @@ fn add_candidate_here(positions : Vec<usize>,
                       cns : &SearchConstants, a_match_len : usize,
                       b_match_len : usize, debug : &str, inclusion : bool){
     for p in positions {
-        let fetch_index = (if inclusion {p} else {p+1}) as usize;
-            //account for the '$' when NOT dealing with inclusions
-//        println!("FETCHING ID FOR INDEX {}", fetch_index);
-        println!("\n\nFETCH INDEX IS {}", fetch_index);
-        cns.maps.print_text_debug();
-        for _ in 0..fetch_index{print!(" ");}
-        println!("{} b_match_len: {} inclus? : {}", debug, b_match_len, inclusion);
-        if inclusion{
-        }
-
-        stdout().flush();
-        if inclusion{
-            return;
-        }
-
-        let id_b = *cns.maps.id2index_bdmap.get_by_second(&fetch_index).expect(&format!("Cant map index {} to an ID", fetch_index));
-
-        if id_b == cns.id_a || cns.id_a == verification::companion_id(cns.id_a){
-//            println!("Killed in the crib. self-match");
-            //TODO continue
-            // continue;
+        let id_b = if inclusion {
+            cns.maps.find_id_for_index_within(p)
+        } else {
+            *cns.maps.id2index_bdmap.get_by_second(&(p+1)).expect("UH OH")
+        } as usize;
+        if id_b == cns.id_a ||
+            (cns.config.edit_distance && cns.id_a == verification::companion_id(cns.id_a)){
+            //self-match or partner match
+            continue;
         }
         let overlap_a = a_match_len + cns.blind_chars;
         let overlap_b = b_match_len + cns.blind_chars;
         let a_len = cns.pattern.len();
         let b_len = cns.maps.get_length(id_b);
         if overlap_a == a_len && overlap_b == b_len && cns.id_a > id_b {
-
-//            println!("Killed in the crib. perfect complete overlap. this one is deemed to be redundant");
+            //perfect complete overlap. this one is deemed to be redundant
             continue;
         }
-
         let overhang_right_b = b_len as i32 - (overlap_b as i32);
         if overhang_right_b < 0{
-//            println!("Killed in the crib. Out of right-side bounds");
+            //Out of right-side bounds
             continue;
         }
-
-
-        //TODO kill self matches in the crib
         let c = Candidate {
             id_b: id_b,
             overlap_a: overlap_a,
@@ -216,14 +255,6 @@ fn add_candidate_here(positions : Vec<usize>,
             overhang_right_b: overhang_right_b,
             debug_str : debug.to_owned(),
         };
-        if id_b == cns.id_a{
-            //skip obvious self-matches
-//            println!("  !!!!!! SELF CAND {:?}, {:?}, {:#?}", p, debug, &c);
-            cand_set.insert(c);
-            continue;
-        }
-
-//        println!("  !!!!!! ~~~  adding FOUND CANDIDATE AT {} with {}, {:#?}", p, debug, &c);
         cand_set.insert(c);
     }
 }
