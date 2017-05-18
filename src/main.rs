@@ -32,7 +32,6 @@ use structs::solutions::*;
 use structs::run_config::*;
 
 mod algorithm_modes;
-use algorithm_modes::kucherov::get_block_lengths;
 
 
 use search::GeneratesCandidates;
@@ -48,7 +47,7 @@ fn main(){
     if config.verbose {println!("OK read and mapped fasta input.")};
 
     solve(&config, &maps);
-    if config.verbose {println!("OK done.")};
+    println!("OK done.")
 }
 
 fn solve(config : &Config, maps : &Maps){
@@ -60,55 +59,96 @@ fn solve(config : &Config, maps : &Maps){
     let fm = FMIndex::new(&bwt, &less, &occ);
 
 
-    let test_patt = b"ABCD";
+//    let test_patt = b"ABCD";
 
-    println!("pattern : {}", String::from_utf8_lossy(test_patt));
+//    println!("pattern : {}", String::from_utf8_lossy(test_patt));
 
-    let sai = fm.backward_search(test_patt.iter());
-    let positions = sai.occ(&sa);
-    let mut positions = positions.to_owned();
-    positions.sort();
-    println!("interval {:?}", &sai);
-    println!("positions {:?}", &positions);
-    println!("text:\n{}", String::from_utf8_lossy(&maps.text));
-    for p in positions{
-        let mut res = String::new();
-        for _ in 0..p{
-            res.push(' ');
-        }
-        res.push_str(&String::from_utf8_lossy(test_patt));
-        println!("{}", res);
-    }
+//    let sai = fm.backward_search(test_patt.iter());
+//    let positions = sai.occ(&sa);
+//    let mut positions = positions.to_owned();
+//    positions.sort();
+//    println!("interval {:?}", &sai);
+//    println!("positions {:?}", &positions);
+//    println!("text:\n{}", String::from_utf8_lossy(&maps.text));
+//    for p in positions{
+//        let mut res = String::new();
+//        for _ in 0..p{
+//            res.push(' ');
+//        }
+//        res.push_str(&String::from_utf8_lossy(test_patt));
+//        println!("{}", res);
+//    }
     let f = File::create(&config.output).expect("Unable to create output file");
     let mut wrt_buf = BufWriter::new(f);
-    wrt_buf.write_all("idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\tCIGAR\n".as_bytes()).expect("ech");
+    wrt_buf.write_all("idA\tidB\tO\t-LA\tRB-\tOLA\tOLB\tK\tCIGAR\n".as_bytes()).expect("ech");
 
+    //don't need to search with reversed strings as patterns. would find redundant solutions
+    let id_iterator = IDIterator{
+        num_ids : maps.num_ids,
+        next : 0,
+        step : if config.reversals {2} else {1},
+    };
+//    for id in id_iterator {
+//        let pattern = maps.get_string(id);
+//        let cands = fm.generate_candidates(pattern, config, maps, id, &sa);
+//        let solutions = verification::verify_all(id, cands, config, maps);
+//        for sol in solutions{
+//            write_solution(&mut wrt_buf, sol, maps);
+//        }
+//    }
+    if config.sorted{
+        panic!("Sorted output not implemented!");
+    }
+    if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
     pipeline(
-        "pipelinexyz",   // name of the pipeline for logging
-         1,              // number of worker threads
-         0..maps.num_ids,   // iterator with work items
-
+        "pipelinexyz",              // name of the pipeline for logging
+         config.worker_threads,     // number of worker threads
+         id_iterator,                // iterator with work items
          |n| (fm.generate_candidates(maps.get_string(n), config, maps, n, &sa), n), // computation to apply in parallel to work items
-         |(r, n)| {           // aggregation to apply to work results
-             println!("writing all {:?} candidates.", r.len());
+         |(r, n)| {                 // aggregation to apply to work results
              let solutions = verification::verify_all(n, r, config, maps);
              for sol in solutions {
-                 println!("WRITING CAND");
-                 let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-                                 sol.id_a,
-                                 sol.id_b,
-                                 if sol.orientation==Orientation::Normal{"N"}else{"I"},
-                                 sol.overlap_a,
-                                 sol.overlap_b,
-                                 sol.overhang_left_a,
-                                 sol.overhang_right_b,
-                                 sol.errors,
-                                 sol.cigar,
-                 );
-                 wrt_buf.write(formatted.as_bytes());
+                 write_solution(&mut wrt_buf, sol, maps);
              }
          }
     );
+}
+
+#[inline]
+fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps){
+    let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                            maps.id2name_vec.get(s.id_a).expect("IDA IN THERE"),
+                            maps.id2name_vec.get(s.id_b).expect("IDB IN THERE"),
+                            if s.orientation==Orientation::Normal{"N"}else{"I"},
+                            s.overhang_left_a,
+                            s.overhang_right_b,
+                            s.overlap_a,
+                            s.overlap_b,
+                            s.errors,
+                            s.cigar,
+    );
+    buf.write(formatted.as_bytes());
+}
+
+struct IDIterator{
+    num_ids : usize,
+    next : usize,
+    step : usize,
+}
+
+impl Iterator for IDIterator {
+    type Item = usize;
+
+    //inline means compiler will not do a proper function call :) but this becomes more like a macro
+    #[inline]
+    fn next(&mut self) -> Option<usize> {
+        if self.next < self.num_ids{
+            self.next += self.step;
+            Some(self.next - self.step)
+        }else{
+            None
+        }
+    }
 }
 
 impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> GeneratesCandidates

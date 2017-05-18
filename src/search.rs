@@ -29,15 +29,15 @@ pub trait GeneratesCandidates : FMIndexable {
                            sa : &RawSuffixArray,
                 ) -> HashSet<Candidate> {
 
-        println!("WORKING FOR id_a == {}", id_a);
-        println!("\tPATTERN {}", String::from_utf8_lossy(pattern));
+//        println!("WORKING FOR id_a == {}", id_a);
+//        println!("\tPATTERN {}", String::from_utf8_lossy(pattern));
         let patt_len = pattern.len();
         let block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
         let max_b_len =
             if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as usize};
         let block_id_lookup = get_block_id_lookup(max_b_len, config, &block_lengths);
-        println!("block_id_lookup {:?}", &block_id_lookup);
+//        println!("block_id_lookup {:?}", &block_id_lookup);
         let full_interval = Interval {
             lower: 0,
             upper: self.bwt().len() - 1,
@@ -47,10 +47,10 @@ pub trait GeneratesCandidates : FMIndexable {
 
         // FOR EACH FILTER, from smallest prefix to total prefix
         // PREFIX FILTERS
-        println!("\n\nGenerate candidates!");
+//        println!("\n\nGenerate candidates! for ID {}", id_a);
         let patt_blocks : i32 = block_lengths.len() as i32;
         for (block_id, block_len) in block_lengths.iter().enumerate() {
-            println!("\n\n\nnew suff of len {} for {}", block_id+1, String::from_utf8_lossy(&pattern));
+//            println!("\nnew suff of len {} for {}", block_id+1, String::from_utf8_lossy(&pattern));
             let cns = SearchConstants{
                 pattern: pattern,
                 config : config,
@@ -62,12 +62,13 @@ pub trait GeneratesCandidates : FMIndexable {
                 patt_blocks : patt_blocks,
                 blind_chars : patt_len - p_i as usize - 1,
             };
-            println!(">> id_a {} first_block_id {} blind chars {}",
-                     cns.id_a, cns.first_block_id, cns.blind_chars);
+//            println!(">> id_a {} first_block_id {} blind chars {}",
+//                     cns.id_a, cns.first_block_id, cns.blind_chars);
             self.recurse_candidates(&mut candidate_set, &cns, 0, p_i, 0, 0, 0, &full_interval, &String::new());
             p_i -= *block_len;
         }
-        println!("DONE FOR id_a == {}", id_a);
+//        println!("DONE FOR id_a == {}. found {} unique cands", id_a, candidate_set.len());
+        if config.verbose {println!("OK finished candidates for '{}'.", maps.id2name_vec.get(id_a).expect("UNKNOWN ID"))};
         candidate_set
     }
 
@@ -82,13 +83,17 @@ pub trait GeneratesCandidates : FMIndexable {
                           b_match_len : usize,
                           matches : &Interval,
                           debug : &str){
-        println!("'{}'   recurse p_i=={}    {:?}", debug, p_i, &matches);
+//        println!("'{}'   recurse p_i=={}    {:?}", debug, p_i, &matches);
         if matches.lower > matches.upper{
             // range is (lower, upper)  ie. both inclusive
             return
         }
 
-        let completed_blocks : i32 = cns.block_id_lookup.get(max(0, p_i) as usize).expect("COMPLETED BLOCKS") - cns.first_block_id;
+        let completed_blocks : i32 = match cns.block_id_lookup.get(p_i as usize){
+            Some(x) => x - cns.first_block_id,
+            None    => cns.patt_blocks - cns.first_block_id,
+        };
+
         let permitted_error : i32 =
             filter_func(completed_blocks, cns.patt_blocks);
         //        let has_spare_error : bool = errors < permitted_error;
@@ -98,7 +103,7 @@ pub trait GeneratesCandidates : FMIndexable {
         let cand_condition_satisfied =
             candidate_condition(generous_match_len as i32, completed_blocks, cns.config.thresh, errors);
         if cand_condition_satisfied {
-            println!("  !!!!!! CAND COND SATISFIED! :D {}", debug);
+//            println!("CAND? YES");
             let a = b'$';
             let less = self.less(a);
             let dollar_interval = Interval {
@@ -107,33 +112,15 @@ pub trait GeneratesCandidates : FMIndexable {
             };
             //            println!("interval {:?}    ==$==> {:?}", &matches, &dollar_interval);
             let positions = dollar_interval.occ(cns.sa);
-            for p in positions {
-                let fetch_index = (p + 1) as usize;
-                println!("FETCHING ID FOR INDEX {}", fetch_index);
+            add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug);
+        }else{
 
-                let id_b = *cns.maps.id2index_bdmap.get_by_second(&fetch_index).expect("DOLLAR MAP BAD");
-                let c = Candidate {
-                    id_b: id_b,
-                    overlap_a: a_match_len + cns.blind_chars,
-                    overlap_b: b_match_len + cns.blind_chars,
-                    overhang_right_b: 0,
-                    debug_str : debug.to_owned(),
-                };
-                if id_b == cns.id_a{
-                    //skip obvious self-matches
-                    println!("  !!!!!! SELF CAND {:?}, {:?}", p, debug);
-                    cand_set.insert(c);
-                    continue;
-                }
-
-                println!("  !!!!!! ~~~  adding FOUND CANDIDATE AT {} with {}", p, debug);
-                cand_set.insert(c);
-            }
+//            println!("CAND? NO");
         }
         if p_i == -1{
             //END OF PATTERN
             //INCLUSIONS GO HERE
-            println!("KILL");
+//            println!("KILL");
             return
         }
 
@@ -161,6 +148,61 @@ pub trait GeneratesCandidates : FMIndexable {
                                         &next_debug);
             }
         }
+    }
+}
+
+use verification;
+
+#[inline]
+fn add_candidate_here(positions : Vec<usize>,
+                      cand_set : &mut HashSet<Candidate>,
+                      cns : &SearchConstants, a_match_len : usize,
+                      b_match_len : usize, debug : &str){
+    for p in positions {
+        let fetch_index = (p + 1) as usize;
+//        println!("FETCHING ID FOR INDEX {}", fetch_index);
+
+        let id_b = *cns.maps.id2index_bdmap.get_by_second(&fetch_index).expect("DOLLAR MAP BAD");
+
+        if id_b == cns.id_a || cns.id_a == verification::companion_id(cns.id_a){
+//            println!("Killed in the crib. self-match");
+            //TODO continue
+            // continue;
+        }
+        let overlap_a = a_match_len + cns.blind_chars;
+        let overlap_b = b_match_len + cns.blind_chars;
+        let a_len = cns.pattern.len();
+        let b_len = cns.maps.get_length(id_b);
+        if overlap_a == a_len && overlap_b == b_len && cns.id_a > id_b {
+
+//            println!("Killed in the crib. perfect complete overlap. this one is deemed to be redundant");
+            continue;
+        }
+
+        let overhang_right_b = b_len as i32 - (overlap_b as i32);
+        if overhang_right_b < 0{
+//            println!("Killed in the crib. Out of right-side bounds");
+            continue;
+        }
+
+
+        //TODO kill self matches in the crib
+        let c = Candidate {
+            id_b: id_b,
+            overlap_a: overlap_a,
+            overlap_b: overlap_b,
+            overhang_right_b: overhang_right_b,
+            debug_str : debug.to_owned(),
+        };
+        if id_b == cns.id_a{
+            //skip obvious self-matches
+//            println!("  !!!!!! SELF CAND {:?}, {:?}, {:#?}", p, debug, &c);
+            cand_set.insert(c);
+            continue;
+        }
+
+//        println!("  !!!!!! ~~~  adding FOUND CANDIDATE AT {} with {}, {:#?}", p, debug, &c);
+        cand_set.insert(c);
     }
 }
 

@@ -59,15 +59,15 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
         num_ids : num_ids,
     };
 
-    println!("{}", String::from_utf8_lossy(&maps.text));
-    for i in 0..maps.num_ids{
-        for _ in 0..*maps.id2index_bdmap.get_by_first(&i).expect("ffs") as i32{
-            print!(" ");
-        }
-        println!("{}", String::from_utf8_lossy(maps.get_string(i)));
-    }
-
-    println!("{:?}", maps.id2index_bdmap);
+//    println!("{}", String::from_utf8_lossy(&maps.text));
+//    for i in 0..maps.num_ids{
+//        for _ in 0..*maps.id2index_bdmap.get_by_first(&i).expect("ffs") as i32{
+//            print!(" ");
+//        }
+//        println!("{}", String::from_utf8_lossy(maps.get_string(i)));
+//    }
+//
+//    println!("{:?}", maps.id2index_bdmap);
 
 //    println!("MAPS : {:#?}", &maps);
     Ok(maps)

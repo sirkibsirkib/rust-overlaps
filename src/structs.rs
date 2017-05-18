@@ -85,7 +85,7 @@ pub mod run_config{
 
         pub fn get_length(&self, id : usize) -> usize{
             assert!(id < self.num_ids);
-            self.get_end_index(id) - self.id2index_bdmap.get_by_first(&id).expect("WOO") - 1
+            self.get_end_index(id) - self.id2index_bdmap.get_by_first(&id).expect("WOO")
         }
 
         fn get_end_index(&self, id : usize) -> usize{
@@ -105,9 +105,10 @@ pub mod run_config{
         pub output : String,
         pub err_rate : f32,
         pub thresh : i32,
-        pub worker_threads: i32,
+        pub worker_threads: usize,
 
         //optional
+        pub sorted : bool,
         pub reversals : bool,
         pub inclusions : bool,
         pub edit_distance : bool,
