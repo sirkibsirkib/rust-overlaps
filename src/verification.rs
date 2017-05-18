@@ -39,7 +39,7 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
 //        }
     }
 //    println!("VERIFY FOR ID {} END. found {} solutions", id_a, solution_set.len());
-    if config.verbose {println!("OK finished solutions for  '{}'.", maps.id2name_vec.get(id_a).expect("UNKNOWN ID"))};
+    if config.verbose {println!("OK finished solutions for  '{}'.", maps.get_name_for(id_a))};
     solution_set
 }
 

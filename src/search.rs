@@ -70,7 +70,7 @@ pub trait GeneratesCandidates : FMIndexable {
             p_i -= *block_len;
         }
 //        println!("DONE FOR id_a == {}. found {} unique cands", id_a, candidate_set.len());
-        if config.verbose {println!("OK finished candidates for '{}'.", maps.id2name_vec.get(id_a).expect("UNKNOWN ID"))};
+        if config.verbose {println!("OK finished candidates for '{}'.", maps.get_name_for(id_a))};
         candidate_set
     }
 

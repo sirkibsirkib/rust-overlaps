@@ -49,7 +49,7 @@ pub static READ_ERR : u8 = b'N';
 fn main(){
     let start_time = Instant::now();
     let config = setup::parse_run_args();
-    if config.verbose {println!("OK interpreted config args.\n Config : {:#?}", &config)};
+    if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
     let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
     if config.verbose {println!("OK read and mapped fasta input.")};
 
@@ -100,7 +100,7 @@ fn solve(config : &Config, maps : &Maps){
     }
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
     pipeline(
-        "pipelinexyz",              // name of the pipeline for logging
+        "overlap_pipeline",              // name of the pipeline for logging
          config.worker_threads,     // number of worker threads
          id_iterator,                // iterator with work items
          |id_a| solve_an_id(config, maps, id_a, &sa, &fm), // computation to apply in parallel to work items
@@ -125,8 +125,8 @@ fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc 
 #[inline]
 fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps, config : &Config){
     let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-                            maps.id2name_vec.get(s.id_a).expect("IDA IN THERE"),
-                            maps.id2name_vec.get(s.id_b).expect("IDB IN THERE"),
+                            maps.get_name_for(s.id_a),
+                            maps.get_name_for(s.id_b),
                             if s.orientation==Orientation::Normal{"N"}else{"I"},
                             s.overhang_left_a,
                             s.overhang_right_b,
@@ -137,16 +137,18 @@ fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps, config
     );
     buf.write(formatted.as_bytes()).is_ok();
     if config.print{
-        let a = String::from_utf8_lossy(maps.get_string(s.id_a));
-        let b = String::from_utf8_lossy(maps.get_string(s.id_b));
+        let a = &String::from_utf8_lossy(maps.get_string(s.id_a));
+        let b = &String::from_utf8_lossy(maps.get_string(s.id_b));
+        let a_name = maps.get_name_for(s.id_a);
+        let b_name = maps.get_name_for(s.id_b);
         if s.overhang_left_a > 0{
-            let space = std::iter::repeat(" ").take(s.overhang_left_a as usize).collect::<String>();
-            println!("{}\n{}{}\n", a, &space, b);
+            let space = &std::iter::repeat(" ").take(s.overhang_left_a as usize).collect::<String>();
+            println!(" '{}':\t{}\n [{}]:\t{}{}\n", a_name, a, b_name, space, b);
         }else{
-            let space = std::iter::repeat(" ").take((-s.overhang_left_a) as usize).collect::<String>();
-            println!("{}{}\n{}\n", &space, a, b);
+            let space = &std::iter::repeat(" ").take((-s.overhang_left_a) as usize).collect::<String>();
+            println!(" '{}':\t{}{}\n [{}]:\t{}\n", a_name, space, a, b_name, b);
         }
-        println!("{:#?}", &s);
+//        println!("{:#?}", &s);
     }
 }
 

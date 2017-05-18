@@ -109,6 +109,10 @@ pub mod run_config{
             best_id
         }
 
+        pub fn get_name_for(&self, id : usize) -> &str {
+            self.id2name_vec.get(id).expect("get name")
+        }
+
         pub fn print_text_debug(&self){
             println!("{}", String::from_utf8_lossy(&self.text));
         }
