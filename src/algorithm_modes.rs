@@ -1,7 +1,5 @@
-pub fn dank() {println!("LOL");}
 
-#[allow(dead_code)]
-#[allow(unused_variables)]
+
 pub mod kucherov{
 
     use std::cmp::{min, max};

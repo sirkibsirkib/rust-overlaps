@@ -1,9 +1,7 @@
 
 pub mod solutions{
-    use std::hash::{Hash, SipHasher, Hasher};
-    use std::collections::HashMap;
+    use std::hash::{Hash, Hasher};
     use std::cmp::Ordering;
-    use std::cmp;
 
     #[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord)]
     pub enum Orientation{
@@ -73,8 +71,6 @@ pub mod solutions{
 
 pub mod run_config{
     extern crate bidir_map;
-
-    use std::collections::HashMap;
     use bidir_map::BidirMap;
 
     #[derive(Debug)]
@@ -119,9 +115,9 @@ pub mod run_config{
             self.id2name_vec.get(id).expect("get name")
         }
 
-        pub fn print_text_debug(&self){
-            println!("{}", String::from_utf8_lossy(&self.text));
-        }
+//        pub fn print_text_debug(&self){
+//            println!("{}", String::from_utf8_lossy(&self.text));
+//        }
     }
 
     #[derive(Debug)]

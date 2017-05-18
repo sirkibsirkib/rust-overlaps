@@ -1,13 +1,12 @@
-use std::io;
-use std::collections::HashMap;
-use std::fs::File;
-
-
 use bio::io::fasta;
 use bidir_map::BidirMap;
 
-use structs::run_config::*;
+use std::io;
+use std::fs::File;
 
+/////////////////////////////
+
+use structs::run_config::*;
 
 pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io::Error> {
     let mut text : Vec<u8> = Vec::new();

@@ -2,10 +2,8 @@ use structs::solutions::Orientation;
 use structs::solutions::*;
 use structs::run_config::*;
 
-use std::cmp::{max, min};
+use std::cmp::max;
 use std::mem::swap;
-use std::io::stdout;
-use std::io::Write;
 use std::collections::HashSet;
 
 use bio::alignment::distance::*;
@@ -61,7 +59,7 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     }
 }
 
-fn solution_from_candidate(c : Candidate, mut id_a : usize, mut cigar : String, errors : u32,
+fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, errors : u32,
                            maps : &Maps, config : &Config, mut overhang_left_a : i32) -> Solution {
     let mut a_len = maps.get_length(id_a);
     let mut b_len = maps.get_length(c.id_b);
@@ -101,8 +99,6 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, mut cigar : String, 
     }else{
         Orientation::Reversed
     };
-    let a_name = maps.id2name_vec.get(id_a);
-    let b_name = maps.id2name_vec.get(id_b);
 
     Solution{
         id_a : id_a,

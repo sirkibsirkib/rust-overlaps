@@ -3,10 +3,8 @@ use bio::data_structures::fmindex::*;
 use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::data_structures::fmindex::FMIndexable;
 
-use std::collections::HashSet;
 use std;
-use std::cmp::max;
-use std::io::{stdout, Write};
+use std::collections::HashSet;
 
 ////////////////////////////////
 
@@ -33,9 +31,7 @@ pub trait GeneratesCandidates : FMIndexable {
         let patt_len = pattern.len();
         let block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
-        let max_b_len =
-            if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as usize};
-        let block_id_lookup = get_block_id_lookup(max_b_len, config, &block_lengths);
+        let block_id_lookup = get_block_id_lookup(&block_lengths);
         let full_interval = Interval {
             lower: 0,
             upper: self.bwt().len() - 1,
@@ -126,7 +122,9 @@ pub trait GeneratesCandidates : FMIndexable {
                 lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
                 upper : less + self.occ(match_interval.upper, a) - 1,
             };
-            let mut next_debug = format!("{}{}", a as char, debug);
+
+            //TODO remove debug stuff
+            let next_debug = format!("{}{}", a as char, debug);
             if errors < permitted_errors && cns.config.edit_distance {
                 // recursively explore INSERTION cases (if levenshtein)
                 self.recurse_candidates(cand_set,
@@ -163,7 +161,7 @@ pub trait GeneratesCandidates : FMIndexable {
         if cns.config.edit_distance && errors < permitted_errors && !pattern_finished{
             // recursively explore DELETION cases (if levenshtein) and have at least 1 spare pattern char to jump over
             if indel_balance <= 0 {
-                let mut next_debug = format!("{}{}", '_', debug);
+                let next_debug = format!("{}{}", '_', debug);
                 self.recurse_candidates(cand_set,
                                         cns,
                                         errors + 1,
@@ -220,7 +218,7 @@ fn add_candidate_here(positions : Vec<usize>,
 
 
 #[derive(Debug)]
-struct SearchConstants<'a>{
+pub struct SearchConstants<'a>{
     config : &'a Config,
     maps : &'a Maps,
 
@@ -234,7 +232,7 @@ struct SearchConstants<'a>{
     patt_blocks : i32,
 }
 
-fn get_block_id_lookup(max_b_len : usize, config : &Config, block_lengths : &[i32]) -> Vec<i32>{
+fn get_block_id_lookup(block_lengths : &[i32]) -> Vec<i32>{
     let mut lookup : Vec<i32> = Vec::new();
     for (id, block_length) in block_lengths.iter().enumerate() {
         for _ in 0..*block_length{
