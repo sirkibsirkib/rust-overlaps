@@ -14,6 +14,8 @@ use structs::solutions::*;
 use algorithm_modes::kucherov::get_block_lengths;
 use algorithm_modes::kucherov::candidate_condition;
 use algorithm_modes::kucherov::filter_func;
+use std::io::stdout;
+use std::io::Write;
 
 
 pub static ALPH : &'static [u8] = b"ACGNT";
@@ -81,10 +83,10 @@ pub trait GeneratesCandidates : FMIndexable {
                           indel_balance : i32,
                           a_match_len : usize,
                           b_match_len : usize,
-                          matches : &Interval,
+                          match_interval : &Interval,
                           debug : &str){
 //        println!("'{}'   recurse p_i=={}    {:?}", debug, p_i, &matches);
-        if matches.lower > matches.upper{
+        if match_interval.lower > match_interval.upper{
             // range is (lower, upper)  ie. both inclusive
             return
         }
@@ -107,17 +109,25 @@ pub trait GeneratesCandidates : FMIndexable {
             let a = b'$';
             let less = self.less(a);
             let dollar_interval = Interval {
-                lower : less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 },
-                upper : less + self.occ(matches.upper, a),
+                lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
+                upper : less + self.occ(match_interval.upper, a),
             };
             //            println!("interval {:?}    ==$==> {:?}", &matches, &dollar_interval);
             let positions = dollar_interval.occ(cns.sa);
-            add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug);
+            add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, false);
         }else{
 
 //            println!("CAND? NO");
         }
         if p_i == -1{
+            if cand_condition_satisfied{
+                let inclusion_interval = Interval{
+                    lower : match_interval.lower,
+                    upper : match_interval.upper + 1,
+                }; // final interval must have exclusive end
+                let positions = inclusion_interval.occ(cns.sa);
+                add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, true);
+            }
             //END OF PATTERN
             //INCLUSIONS GO HERE
 //            println!("KILL");
@@ -130,8 +140,8 @@ pub trait GeneratesCandidates : FMIndexable {
             //            println!("less  {}", less);
             //            println!("match is {:?}", matches);
             let next_interval = Interval{
-                lower : less + if matches.lower > 0 { self.occ(matches.lower - 1, a) } else { 0 },
-                upper : less + self.occ(matches.upper, a) - 1,
+                lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
+                upper : less + self.occ(match_interval.upper, a) - 1,
             };
             let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
             let recurse_error =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
@@ -157,12 +167,24 @@ use verification;
 fn add_candidate_here(positions : Vec<usize>,
                       cand_set : &mut HashSet<Candidate>,
                       cns : &SearchConstants, a_match_len : usize,
-                      b_match_len : usize, debug : &str){
+                      b_match_len : usize, debug : &str, inclusion : bool){
     for p in positions {
-        let fetch_index = (p + 1) as usize;
+        let fetch_index = (if inclusion {p} else {p+1}) as usize;
+            //account for the '$' when NOT dealing with inclusions
 //        println!("FETCHING ID FOR INDEX {}", fetch_index);
+        println!("\n\nFETCH INDEX IS {}", fetch_index);
+        cns.maps.print_text_debug();
+        for _ in 0..fetch_index{print!(" ");}
+        println!("{} b_match_len: {} inclus? : {}", debug, b_match_len, inclusion);
+        if inclusion{
+        }
 
-        let id_b = *cns.maps.id2index_bdmap.get_by_second(&fetch_index).expect("DOLLAR MAP BAD");
+        stdout().flush();
+        if inclusion{
+            return;
+        }
+
+        let id_b = *cns.maps.id2index_bdmap.get_by_second(&fetch_index).expect(&format!("Cant map index {} to an ID", fetch_index));
 
         if id_b == cns.id_a || cns.id_a == verification::companion_id(cns.id_a){
 //            println!("Killed in the crib. self-match");

@@ -26,10 +26,10 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
 //    println!("VERIFY FOR ID {} START", id_a);
     let mut solution_set : HashSet<Solution> = HashSet::new();
     for c in candidates{
-//        println!("Cand looks like {:#?}", &c);
+//        println!("Cand coming in:\n{:#?}", &c);
         match verify(id_a, c, config, maps){
-            Some(x) => {solution_set.insert(x);},
-            None => (),
+            Some(x) => {solution_set.insert(x); println!("SOLUTION!");},
+            None => {println!("REJECT!");()},
         }
 //        if let Some(x) = verify(id_a, c, config, maps){
 //            println!("SUCCEEDED");

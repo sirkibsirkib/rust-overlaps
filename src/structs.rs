@@ -96,10 +96,30 @@ pub mod run_config{
                 self.id2index_bdmap.get_by_first(&(id + 1)).expect("WAHEY") - 1
             }
         }
+
+        pub fn find_id_for_index_within(&self, index : usize) -> Option<usize>{
+            let mut best = -1;
+            for (id, ind) in self.id2index_bdmap{
+                if index <= ind && ind > best{
+                    best = ind;
+                }
+            }
+            if best == -1{
+                None
+            }else{
+                Some(best);
+            }
+        }
+
+        pub fn print_text_debug(&self){
+            println!("{}", String::from_utf8_lossy(&self.text));
+        }
     }
 
     #[derive(Debug)]
     pub struct Config{
+        //TODO benchmark argument
+
         //required
         pub input : String,
         pub output : String,

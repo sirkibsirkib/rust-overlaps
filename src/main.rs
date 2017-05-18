@@ -5,6 +5,7 @@ use bio::data_structures::bwt::{DerefBWT, DerefOcc, DerefLess};
 use bio::data_structures::bwt::{bwt, less, Occ};
 use bio::data_structures::fmindex::{FMIndex, FMIndexable};
 use bio::data_structures::suffix_array::suffix_array;
+use bio::data_structures::suffix_array::SuffixArray;
 use bio::alphabets::Alphabet;
 
 #[macro_use]
@@ -34,6 +35,8 @@ use structs::run_config::*;
 mod algorithm_modes;
 
 
+use std::collections::HashSet;
+
 use search::GeneratesCandidates;
 
 
@@ -47,7 +50,7 @@ fn main(){
     if config.verbose {println!("OK read and mapped fasta input.")};
 
     solve(&config, &maps);
-    println!("OK done.")
+    println!("OK done.");
 }
 
 fn solve(config : &Config, maps : &Maps){
@@ -104,15 +107,24 @@ fn solve(config : &Config, maps : &Maps){
         "pipelinexyz",              // name of the pipeline for logging
          config.worker_threads,     // number of worker threads
          id_iterator,                // iterator with work items
-         |n| (fm.generate_candidates(maps.get_string(n), config, maps, n, &sa), n), // computation to apply in parallel to work items
-         |(r, n)| {                 // aggregation to apply to work results
-             let solutions = verification::verify_all(n, r, config, maps);
+         |id_a| solve_an_id(config, maps, id_a, &sa, &fm), // computation to apply in parallel to work items
+         |solutions| {                 // aggregation to apply to work results
              for sol in solutions {
                  write_solution(&mut wrt_buf, sol, maps);
              }
          }
     );
 }
+
+#[inline]
+fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone>
+        (config : &Config, maps : &Maps, id_a : usize, sa : &SuffixArray, fm : &FMIndex<DBWT, DLess, DOcc>)
+                -> HashSet<Solution>{
+    let candidates = fm.generate_candidates(maps.get_string(id_a), config, maps, id_a, sa);
+    verification::verify_all(id_a, candidates, config, maps)
+}
+
+
 
 #[inline]
 fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps){
@@ -127,7 +139,7 @@ fn write_solution(buf : &mut BufWriter<File>, s : Solution, maps : &Maps){
                             s.errors,
                             s.cigar,
     );
-    buf.write(formatted.as_bytes());
+    buf.write(formatted.as_bytes()).is_ok();
 }
 
 struct IDIterator{
