@@ -6,53 +6,43 @@ use bio::data_structures::fmindex::FMIndexable;
 use std::collections::HashSet;
 use std;
 use std::cmp::max;
+use std::io::{stdout, Write};
 
+////////////////////////////////
 
 use structs::run_config::*;
 use structs::solutions::*;
 
+use verification;
+
 use algorithm_modes::kucherov::get_block_lengths;
 use algorithm_modes::kucherov::candidate_condition;
 use algorithm_modes::kucherov::filter_func;
-use std::io::stdout;
-use std::io::Write;
-
 
 pub static ALPH : &'static [u8] = b"ACGNT";
 pub static READ_ERR : u8 = b'N';
 
 pub trait GeneratesCandidates : FMIndexable {
-
     fn generate_candidates(&self,
                            pattern : &[u8],
                            config : &Config,
                            maps : &Maps,
                            id_a : usize,
                            sa : &RawSuffixArray,
-                ) -> HashSet<Candidate> {
-
-//        println!("WORKING FOR id_a == {}", id_a);
-//        println!("\tPATTERN {}", String::from_utf8_lossy(pattern));
+                            ) -> HashSet<Candidate> {
         let patt_len = pattern.len();
         let block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
         let max_b_len =
             if config.reversals {patt_len} else {(patt_len as f32 / (1.0 - config.err_rate)).floor() as usize};
         let block_id_lookup = get_block_id_lookup(max_b_len, config, &block_lengths);
-//        println!("block_id_lookup {:?}", &block_id_lookup);
         let full_interval = Interval {
             lower: 0,
             upper: self.bwt().len() - 1,
         };
-
         let mut p_i : i32 = (patt_len-1) as i32;
-
-        // FOR EACH FILTER, from smallest prefix to total prefix
-        // PREFIX FILTERS
-//        println!("\n\nGenerate candidates! for ID {}", id_a);
         let patt_blocks : i32 = block_lengths.len() as i32;
         for (block_id, block_len) in block_lengths.iter().enumerate() {
-//            println!("\nnew suff of len {} for {}", block_id+1, String::from_utf8_lossy(&pattern));
             let cns = SearchConstants{
                 pattern: pattern,
                 config : config,
@@ -64,16 +54,12 @@ pub trait GeneratesCandidates : FMIndexable {
                 patt_blocks : patt_blocks,
                 blind_chars : patt_len - p_i as usize - 1,
             };
-//            println!(">> id_a {} first_block_id {} blind chars {}",
-//                     cns.id_a, cns.first_block_id, cns.blind_chars);
             self.recurse_candidates(&mut candidate_set, &cns, 0, p_i, 0, 0, 0, &full_interval, &String::new());
             p_i -= *block_len;
         }
-//        println!("DONE FOR id_a == {}. found {} unique cands", id_a, candidate_set.len());
         if config.verbose {println!("OK finished candidates for '{}'.", maps.get_name_for(id_a))};
         candidate_set
     }
-
 
     fn recurse_candidates(&self,
                           cand_set : &mut HashSet<Candidate>,
@@ -86,128 +72,103 @@ pub trait GeneratesCandidates : FMIndexable {
                           match_interval : &Interval,
                           debug : &str){
         if match_interval.lower > match_interval.upper{
-            // range is (lower, upper)  ie. both inclusive
+            // range is inclusive on both ends within the walk.
+            // empty range so prune branch
             return
         }
 
         let completed_blocks : i32 = match cns.block_id_lookup.get(p_i as usize){
             Some(x) => x - cns.first_block_id,
+            //the final step (p_i==-1) can still insert. we can't return yet, but we are beyond the blocks
             None    => cns.patt_blocks - cns.first_block_id,
         };
+        let permitted_errors : i32 = filter_func(completed_blocks, cns.patt_blocks);
 
-        let permitted_errors : i32 =
-            filter_func(completed_blocks, cns.patt_blocks);
-        //        let has_spare_error : bool = errors < permitted_error;
 
-        // ADD SUFFIX CANDIDATES
         let generous_match_len = std::cmp::max(a_match_len, b_match_len) + 1;
         let cand_condition_satisfied =
             candidate_condition(generous_match_len as i32, completed_blocks, cns.config.thresh, errors);
 
-
-
-//        println!("'{}'{}   recurse p_i=={}    {:?}", debug, if cand_condition_satisfied {'*'} else {' '},p_i, &match_interval);
         if cand_condition_satisfied {
-//            println!("CAND? YES");
+            // Add candidates to set for matched b strings preceded by '$'
             let a = b'$';
             let less = self.less(a);
             let dollar_interval = Interval {
                 lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
                 upper : less + self.occ(match_interval.upper, a),
-            };
-            //            println!("interval {:?}    ==$==> {:?}", &matches, &dollar_interval);
+            }; //final interval must have exclusive end
             let positions = dollar_interval.occ(cns.sa);
             add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, false);
         }
 
-//        // insertion
-//        for &a in ALPH.iter(){
-//            let less = self.less(a);
-//            //            println!("less  {}", less);
-//            //            println!("match is {:?}", matches);
-//            let next_interval = Interval{
-//                lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
-//                upper : less + self.occ(match_interval.upper, a) - 1,
-//            };
-//            let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
-//            let recurse_error =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
-//            if recurse_error <= permitted_error{
-//                let mut next_debug = format!("{}{}", a as char, debug);
-//                self.recurse_candidates(cand_set,
-//                                        cns,
-//                                        recurse_error,
-//                                        p_i-1,  //step left
-//                                        0,      //indel balance reset
-//                                        a_match_len + 1,
-//                                        b_match_len + 1,
-//                                        &next_interval,
-//                                        &next_debug);
-//            }
-//        }
-
-        if p_i == -1{
+        let pattern_finished = p_i <= -1;
+        if pattern_finished {
+            // end of the pattern string
+            // Add inclusion candidates to set at this position for everything in the remaining range
             if cns.config.inclusions && cand_condition_satisfied{
                 let inclusion_interval = Interval{
                     lower : match_interval.lower,
                     upper : match_interval.upper + 1,
                 }; // final interval must have exclusive end
                 let positions = inclusion_interval.occ(cns.sa);
-//                println!("{} cands?", positions.len());
                 add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, true);
             }
             if cns.config.edit_distance{
-                //Nothing do do here if we are not doing edit distance
+                // if hamming distance, pattern end means nothing left to do. return.
                 return;
             }
         }
 
+        // consider a new derived b string match, one char longer (in front) than existing match
         for &a in ALPH.iter(){
             let less = self.less(a);
-            //            println!("less  {}", less);
-            //            println!("match is {:?}", matches);
             let next_interval = Interval{
                 lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
                 upper : less + self.occ(match_interval.upper, a) - 1,
             };
-            let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
-            let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
             let mut next_debug = format!("{}{}", a as char, debug);
-
-            //substitutions and matches
-            if recurse_errors <= permitted_errors && p_i > -1{
-                self.recurse_candidates(cand_set,
-                                        cns,
-                                        recurse_errors,
-                                        p_i-1,  //step left
-                                        0,      //indel balance reset
-                                        a_match_len + 1,
-                                        b_match_len + 1,
-                                        &next_interval,
-                                        &next_debug);
-            }
-            //insertions
             if errors < permitted_errors && cns.config.edit_distance {
+                // recursively explore INSERTION cases (if levenshtein)
                 self.recurse_candidates(cand_set,
                                         cns,
                                         errors + 1, //always induces an error
                                         p_i-1,      //step left
-                                        1,          //insertion balance
+                                        1,          //indel balance set to 'insertion'
                                         a_match_len,//the pattern string doesn't grow
                                         b_match_len + 1,
                                         &next_interval,
                                         &next_debug);
             }
+            if pattern_finished {
+                // if pattern finished, cannot consider substitution steps
+                continue;
+            }
+
+            let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
+            let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
+            if recurse_errors <= permitted_errors {
+                // recursively explore SUBSTITUTION cases (both hamming and levenshtein)
+                self.recurse_candidates(cand_set,
+                                        cns,
+                                        recurse_errors,
+                                        p_i-1,  //step left
+                                        0,      //indel balance set to 'replacement/reset'
+                                        a_match_len + 1,
+                                        b_match_len + 1,
+                                        &next_interval,
+                                        &next_debug);
+            }
         }
 
-        // deletion
-        if cns.config.edit_distance && errors < permitted_errors{
-            if indel_balance <= 0 && p_i > 1{
+        if cns.config.edit_distance && errors < permitted_errors && !pattern_finished{
+            // recursively explore DELETION cases (if levenshtein) and have at least 1 spare pattern char to jump over
+            if indel_balance <= 0 {
                 let mut next_debug = format!("{}{}", '_', debug);
                 self.recurse_candidates(cand_set,
                                         cns,
                                         errors + 1,
                                         p_i - 1,         //one step without matching
-                                        -1,              //balance
+                                        -1,              //indel balance set to 'deletion'
                                         a_match_len + 1,
                                         b_match_len,     //the matched string doesn't grow
                                         &match_interval, //stays unchanged
@@ -216,8 +177,6 @@ pub trait GeneratesCandidates : FMIndexable {
         }
     }
 }
-
-use verification;
 
 #[inline]
 fn add_candidate_here(positions : Vec<usize>,

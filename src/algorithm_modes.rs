@@ -12,12 +12,10 @@ pub mod kucherov{
     // patt block index is which block we are in relative to PATT
     //  ie: [5,4,3,2,1,0] for all suffs
     pub fn filter_func(completed_blocks : i32, patt_blocks : i32) -> i32{
-        let x = min(
+        min(
             completed_blocks,
             patt_blocks - S_PARAM,
-        );
-//        println!("({}, {}) ===> ({})", completed_blocks, patt_blocks, x);
-        x
+        )
     }
 
     pub fn get_block_lengths(patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i32>{

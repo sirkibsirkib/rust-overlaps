@@ -1,10 +1,11 @@
 
-
 pub mod solutions{
     use std::hash::{Hash, SipHasher, Hasher};
     use std::collections::HashMap;
+    use std::cmp::Ordering;
+    use std::cmp;
 
-    #[derive(Hash,PartialEq, Eq, Debug)]
+    #[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord)]
     pub enum Orientation{
         Normal,
         Reversed,
@@ -21,34 +22,40 @@ pub mod solutions{
     }
 
     //oriented
-
     #[derive(Debug)]
     pub struct Solution{
         pub id_a : usize,
         pub id_b : usize,
         pub orientation : Orientation,
-        pub overlap_a : usize,
-        pub overlap_b : usize,
         pub overhang_left_a : i32,
         pub overhang_right_b : i32,
+        pub overlap_a : usize,
+        pub overlap_b : usize,
         pub errors : u32,
         pub cigar : String,
     }
 
-    impl PartialEq for Solution {
-        fn eq(&self, other: &Solution) -> bool {
-            self.id_a == other.id_a
-            && self.id_b == other.id_b
-            && self.orientation == other.orientation
-            && self.overlap_a == other.overlap_a
-            && self.overlap_b == other.overlap_b
-            && self.overhang_left_a == other.overhang_left_a
-            && self.overhang_right_b == other.overhang_right_b
+    impl Ord for Solution {
+        fn cmp(&self, other: &Self) -> Ordering {
+            (self.id_a, self.id_b, &self.orientation, self.overhang_left_a, self.overhang_right_b, self.overlap_a, self.overlap_b)
+                .cmp(&(other.id_a, other.id_b, &other.orientation, other.overhang_left_a, other.overhang_right_b, other.overlap_a, other.overlap_b))
         }
     }
 
-    // TODO why does it need to be hashable AND eq?
-    impl Eq for Solution {}
+    impl PartialOrd for Solution {
+        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+            Some(self.cmp(other))
+        }
+    }
+
+    impl PartialEq for Solution {
+        fn eq(&self, other: &Self) -> bool {
+            (self.id_a, self.id_b, &self.orientation, self.overhang_left_a, self.overhang_right_b, self.overlap_a, self.overlap_b)
+                == (other.id_a, other.id_b, &other.orientation, other.overhang_left_a, other.overhang_right_b, other.overlap_a, other.overlap_b)
+        }
+    }
+
+    impl Eq for Solution { }
 
     impl Hash for Solution {
         fn hash<H: Hasher>(&self, state: &mut H) {
@@ -59,7 +66,7 @@ pub mod solutions{
             self.overlap_b.hash(state);
             self.overhang_left_a.hash(state);
             self.overhang_right_b.hash(state);
-            // ERRORS and CIGAR not need not be the same
+            // ERRORS and CIGAR not need to contribute to uniqueness
         }
     }
 }
@@ -73,7 +80,6 @@ pub mod run_config{
     #[derive(Debug)]
     pub struct Maps{
         pub text : Vec<u8>,
-//        pub id2string_vec : Vec<&'a [u8]>,
         pub id2name_vec : Vec<String>,
         pub id2index_bdmap : BidirMap<usize, usize>,
         pub num_ids : usize,
@@ -139,4 +145,3 @@ pub mod run_config{
         pub print: bool,
     }
 }
-
