@@ -5,6 +5,8 @@ use bio::data_structures::fmindex::FMIndexable;
 
 use std;
 use std::collections::HashSet;
+use std::cmp::max;
+use std::hash::Hash;
 
 ////////////////////////////////
 
@@ -30,7 +32,6 @@ pub trait GeneratesCandidates : FMIndexable {
                             ) -> HashSet<Candidate> {
         let patt_len = pattern.len();
         let block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
-        println!("block_lengths {:?}", &block_lengths);
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
         let block_id_lookup = get_block_id_lookup(&block_lengths);
         let full_interval = Interval {
@@ -51,7 +52,6 @@ pub trait GeneratesCandidates : FMIndexable {
                 patt_blocks : patt_blocks,
                 blind_chars : patt_len - p_i as usize - 1,
             };
-            println!("Start at p_i == {}", p_i);
             self.recurse_candidates(
                 &mut candidate_set, &cns, 0, p_i,
                 LastOperation::Initial, 0, 0,
@@ -59,8 +59,13 @@ pub trait GeneratesCandidates : FMIndexable {
 
             p_i -= *block_len;
         }
-        if config.verbose {println!("OK finished candidates for '{}';\tfound {}.",
-                                    maps.get_name_for(id_a), candidate_set.len())};
+        if candidate_set.is_empty(){
+            if config.verbose {println!("OK no candidates found for '{}', skipping verification.",
+                                        maps.get_name_for(id_a))};
+        } else {
+            if config.verbose {println!("OK finished candidates for '{}'.",
+                                        maps.get_name_for(id_a))};
+        }
         candidate_set
     }
 
@@ -92,7 +97,7 @@ pub trait GeneratesCandidates : FMIndexable {
         let cand_condition_satisfied =
             candidate_condition(generous_match_len as i32, completed_blocks, cns.config.thresh, errors);
 
-        if cand_condition_satisfied {
+        if cand_condition_satisfied && last_operation.allows_candidates(){
             // Add candidates to set for matched b strings preceded by '$'
             let a = b'$';
             let less = self.less(a);
@@ -108,7 +113,7 @@ pub trait GeneratesCandidates : FMIndexable {
         if pattern_finished {
             // end of the pattern string
             // Add inclusion candidates to set at this position for everything in the remaining range
-            if cns.config.inclusions && cand_condition_satisfied{
+            if cns.config.inclusions && cand_condition_satisfied && last_operation.allows_candidates(){
                 let inclusion_interval = Interval{
                     lower : match_interval.lower,
                     upper : match_interval.upper + 1,
@@ -135,7 +140,7 @@ pub trait GeneratesCandidates : FMIndexable {
             let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
             let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
             if recurse_errors <= permitted_errors {
-                let next_debug = format!("{}{}", a as char, debug);
+//                let next_debug = format!("{}{}", a as char, debug);
                 // recursively explore SUBSTITUTION cases (both hamming and levenshtein)
                 self.recurse_candidates(cand_set,
                                         cns,
@@ -145,11 +150,11 @@ pub trait GeneratesCandidates : FMIndexable {
                                         a_match_len + 1,
                                         b_match_len + 1,
                                         &next_interval,
-                                        &next_debug);
+                                        debug);
             }
-            if (p_char != a) && (errors < permitted_errors) && (cns.config.edit_distance && last_operation.allows_insertion()) {
+            if (p_char != a) && (errors < permitted_errors) && cns.config.edit_distance && last_operation.allows_insertion() {
                 // recursively explore INSERTION cases (if levenshtein)
-                let next_debug = format!("{}{}", smaller(a), debug);
+//                let next_debug = format!("{}{}", smaller(a), debug);
                 self.recurse_candidates(cand_set,
                                         cns,
                                         errors + 1, //always induces an error
@@ -158,7 +163,7 @@ pub trait GeneratesCandidates : FMIndexable {
                                         a_match_len,//the pattern string doesn't grow
                                         b_match_len + 1,
                                         &next_interval,
-                                        &next_debug);
+                                        debug);
 
             }
         }
@@ -167,7 +172,7 @@ pub trait GeneratesCandidates : FMIndexable {
             // recursively explore DELETION cases (if levenshtein) and have at least 1 spare pattern char to jump over
             if last_operation.allows_deletion(){
 
-                let next_debug = format!("{}{}", '_', debug);
+//                let next_debug = format!("{}{}", '_', debug);
                 self.recurse_candidates(cand_set,
                                         cns,
                                         errors + 1,
@@ -176,7 +181,7 @@ pub trait GeneratesCandidates : FMIndexable {
                                         a_match_len + 1,
                                         b_match_len,     //the matched string doesn't grow
                                         &match_interval, //stays unchanged
-                                        &next_debug);
+                                        debug);
             }
         }
     }
@@ -217,6 +222,11 @@ impl LastOperation{
         self == LastOperation::Insertion
             || self == LastOperation::Substitution
     }
+
+    fn allows_candidates(self) -> bool{
+        self == LastOperation::Initial
+            || self == LastOperation::Substitution
+    }
 }
 
 #[inline]
@@ -224,56 +234,80 @@ fn add_candidate_here(positions : Vec<usize>,
                       cand_set : &mut HashSet<Candidate>,
                       cns : &SearchConstants, a_match_len : usize,
                       b_match_len : usize, debug : &str, inclusion : bool){
-    for p in positions {
-        panic!("The B overlap len is wrong somehow. which causes a crash in verification");
+    for mut position in positions {
+        if !inclusion{
+            //non-inclusions include the preceding dollar sign
+            position += 1;
+        }
 
-        println!("\n\nincl: {}", inclusion);
-        cns.maps.print_text_debug();
-        for _ in 0..(if inclusion {p} else {p+1}){print!(" ");}println!("{}", debug);
+//        println!("\n\nincl: {}", inclusion);
+//        cns.maps.print_text_debug();
+//        println!("{}", cns.maps.push_string(debug, " ", position));
 
         let (id_b, index_b) = if inclusion {
-            cns.maps.find_occurrence_containing(p)
+            cns.maps.find_occurrence_containing(position)
         } else {
-            (*cns.maps.id2index_bdmap.get_by_second(&(p+1)).expect("UH OH"), p+1)
+            (cns.maps.id_for(position), position)
         };
-        for _ in 0..*cns.maps.id2index_bdmap.get_by_first(&id_b).expect("?"){print!(" ");}println!("+");
-        println!("idb {}", id_b);
+//        println!("{}", cns.maps.push_string("^", " ", index_b));
+//        println!("ida {}\nidb {} indb {}", cns.id_a, id_b, index_b);
+
+
         if id_b == cns.id_a ||
-            (cns.config.edit_distance && cns.id_a == verification::companion_id(cns.id_a)){
+            (cns.config.edit_distance &&
+                cns.id_a == verification::companion_id(cns.id_a)){
             //self-match or partner match
-            println!("self match");
-//            continue;
+//            println!("self match");
+            continue;
         }
         let overlap_a = a_match_len + cns.blind_chars;
         let overlap_b = b_match_len + cns.blind_chars;
         let a_len = cns.pattern.len();
         let b_len = cns.maps.get_length(id_b);
         let overhang_left_a : i32 = if inclusion{
-            (p as i32) - (index_b as i32)
-        }else{
-            (a_len - overlap_a) as i32
+            //        [aaaa|aa]
+            //   [bbbbbbbbb?????
+            //   ^    ^
+            //   <--->
+            - (position as i32 - index_b as i32)
+        } else {
+            // [aaaaaa|aa]
+            // <--->[b?????????
+            a_len as i32 - overlap_a as i32
         };
-        println!("overhang_left_a {}", overhang_left_a);
+//        println!("overhang_left_a {}", overhang_left_a);
 
         if overlap_a == a_len && overlap_b == b_len && cns.id_a > id_b {
             //perfect complete overlap. this one is deemed to be redundant
-            println!("redundant perfect overlap");
-//            continue;
-        }
-
-        let overhang_right_b = (b_len as i32) - overhang_left_a - (a_len as i32);
-        println!("overhang_right_b {}", overhang_right_b);
-        if overhang_right_b < 0{
-            println!("out of bounds!");
+//            println!("redundant perfect overlap");
             continue;
         }
+
+        if max(overhang_left_a, 0) as usize + overlap_b > b_len {
+            //we have matched with a string beyond the bounds of b
+//            println!("out of bounds!");
+            continue;
+        }
+
+//        println!("LOHA {}", overhang_left_a);
+
+        let mut new_debug = debug.to_owned();
+        new_debug.push_str(&format!(" incl {} blind {}", inclusion, cns.blind_chars));
         let c = Candidate {
             id_b: id_b,
             overlap_a: overlap_a,
             overlap_b: overlap_b,
             overhang_left_a: overhang_left_a,
-            debug_str : debug.to_owned(),
+            debug_str : new_debug,
         };
+
+        if cns.config.edit_distance{
+            panic!("Problem: the amount of 'blind' characters that should be matched is essentially unknowable \
+            so how t.f. am I supposed to reconcile that?");
+        }
+        if cand_set.contains(&c){
+            println!("OLD {:#?}\nNEW {:#?}", c, c);
+        }
         cand_set.insert(c);
     }
 }

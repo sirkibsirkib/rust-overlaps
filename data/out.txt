@@ -1,1 +1,0 @@
-idA	idB	O	-LA	RB-	OLA	OLB	K	CIGAR

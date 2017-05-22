@@ -7,6 +7,7 @@ use bio::data_structures::fmindex::FMIndex;
 use bio::data_structures::suffix_array::suffix_array;
 use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::alphabets::Alphabet;
+use bio::data_structures::fmindex::FMIndexable;
 
 #[macro_use]
 extern crate clap;
@@ -17,7 +18,8 @@ use std::fs::File;
 use std::io::{Write, BufWriter};
 use std::collections::HashSet;
 use std::time::Instant;
-
+use std::thread;
+use std::io::stdout;
 /////////////////////////////////////
 
 mod setup;
@@ -37,24 +39,22 @@ pub static ALPH : &'static [u8] = b"ACGT";
 pub static READ_ERR : u8 = b'N';
 
 fn main(){
-    let start_time = Instant::now();
     let config = setup::parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
+
     let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
     if config.verbose {println!("OK read and mapped fasta input.")};
+
     if !config.n_alphabet{
         if config.verbose {println!("OK cleaned 'N' from input strings.")};
     }
     solve(&config, &maps);
-    println!("OK done. Process finished in {:?}.", &Instant::elapsed(&start_time));
 }
 
 fn solve(config : &Config, maps : &Maps){
-    let alphabet = if config.n_alphabet{
-        Alphabet::new(N_ALPH)
-    }else{
-        Alphabet::new(ALPH)
-    };
+
+
+    let alphabet = if config.n_alphabet { Alphabet::new(N_ALPH) } else { Alphabet::new(ALPH) };
     println!("OK index alphabet set to '{}'",
              String::from_utf8_lossy(if config.n_alphabet {N_ALPH} else {ALPH}));
     let sa = suffix_array(&maps.text);
@@ -62,9 +62,14 @@ fn solve(config : &Config, maps : &Maps){
     let less = less(&bwt, &alphabet);
     let occ = Occ::new(&bwt, 3, &alphabet);
     let fm = FMIndex::new(&bwt, &less, &occ);
-    let f = File::create(&config.output).expect("Unable to create output file");
+    println!("OK index ready.");
+
+    let mut f = File::create(&"out.txt")
+        .expect("Couldn't open output file.");
     let mut wrt_buf = BufWriter::new(f);
-    wrt_buf.write_all("idA\tidB\tO\t-LA\tRB-\tOLA\tOLB\tK\tCIGAR\n".as_bytes()).expect("ech");
+    wrt_buf.write_all("idA\tidB\tO\t-LA\tRB-\tOLA\tOLB\tK\tCIGAR\n".as_bytes())
+        .expect("couldn't write header line to output");
+    if config.verbose{println!("OK output writer ready.");}
 
     let id_iterator = IDIterator{
         num_ids : maps.num_ids,
@@ -75,6 +80,11 @@ fn solve(config : &Config, maps : &Maps){
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
+    if config.edit_distance{
+        println!("BEWARE! current impl. makes assumptions about the size of the blind spot in an overlap");
+    }
+
+    let start_time = Instant::now();
 
     // hygiene block
     {
@@ -89,17 +99,17 @@ fn solve(config : &Config, maps : &Maps){
                 wrt_buf.flush().is_ok();
             }
         };
-        for id_a in id_iterator{
-            aggregator(computation(id_a));
-        }
-        //multithreaded part
-        //    cue::pipeline(
-        //        "overlap_pipeline",          // name of the pipeline for logging
-        //         config.worker_threads,      // number of worker threads
-        //         id_iterator,                // iterator with work items
-        //         computation,
-        //         aggregator,
-        //    );
+//        for id_a in id_iterator{
+//            aggregator(computation(id_a));
+//        }
+//        multithreaded part
+        cue::pipeline(
+            "overlap_pipeline",          // name of the pipeline for logging
+             config.worker_threads,      // number of worker threads
+             id_iterator,                // iterator with work items
+             computation,
+             aggregator,
+        );
     }
 
     //sequential part
@@ -110,7 +120,8 @@ fn solve(config : &Config, maps : &Maps){
             write_solution(&mut wrt_buf, sol, maps, config);
         }
     }
-    if config.verbose{println!("OK output file {} written.", config.output);}
+    if config.verbose{println!("OK output file {} written. Work finished in {:?}.",
+                               config.output, &Instant::elapsed(&start_time));}
 }
 
 #[inline]

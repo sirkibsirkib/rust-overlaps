@@ -72,6 +72,7 @@ pub mod solutions{
 pub mod run_config{
     extern crate bidir_map;
     use bidir_map::BidirMap;
+    use std;
 
     #[derive(Debug)]
     pub struct Maps{
@@ -82,6 +83,7 @@ pub mod run_config{
     }
 
     impl Maps{
+
         pub fn get_string(&self, id : usize) -> &[u8]{
             assert!(id < self.num_ids);
             &self.text[*self.id2index_bdmap.get_by_first(&id).expect("GAH")..self.get_end_index(id)]
@@ -130,6 +132,28 @@ pub mod run_config{
 
         pub fn formatted(&self, id : usize) -> String{
             format!("{}",String::from_utf8_lossy(self.get_string(id)))
+        }
+
+        pub fn push_string(&self, print : &str, push_str : &str, pushes : usize) -> String{
+            let mut s = String::new();
+            for _ in 0..pushes{
+                s.push_str(push_str);
+            }
+            s.push_str(print);
+            s
+        }
+
+        #[inline]
+        pub fn id_for(&self, id : usize) -> usize{
+            *(self.id2index_bdmap.get_by_second(&id)
+                .expect(&format!("no index for ID {}. input has IDs from 0 --> {}",
+                                id, self.num_ids)))
+        }
+
+        #[inline]
+        pub fn index_for(&self, index : usize) -> usize{
+            *(self.id2index_bdmap.get_by_first(&index)
+                .expect(&format!("no id at index {}", index)))
         }
 
         pub fn tildes(&self, num : i32) -> String{

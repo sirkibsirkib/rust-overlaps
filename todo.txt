@@ -1,3 +1,7 @@
+
+
+
+
 Text is FORWARDS
 Filters are FORWARDS (Pattern has Suffix filters)
 Search iterates over characters FORWARDS

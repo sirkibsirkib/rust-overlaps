@@ -2,7 +2,7 @@ use structs::solutions::Orientation;
 use structs::solutions::*;
 use structs::run_config::*;
 
-use std::cmp::max;
+use std::cmp::{min, max};
 use std::mem::swap;
 use std::collections::HashSet;
 
@@ -20,7 +20,6 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
     let num_cands = candidates.len();
     let mut solution_set : HashSet<Solution> = HashSet::new();
     if num_cands == 0{
-        if config.verbose {println!("OK no candidates to verify for {}.", maps.get_name_for(id_a))};
         return solution_set;
     }
     for c in candidates {
@@ -28,14 +27,14 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
             solution_set.insert(solution);
         }
     }
-    if config.verbose {println!("OK finished solutions for  '{}'. Verified {}/{} ({:.2}%.)",
+    if config.verbose {println!("OK finished solutions for  '{}'. Verified {}/{} ({:.2}%).",
                                 maps.get_name_for(id_a), solution_set.len(), num_cands,
-                                (solution_set.len() as i32) / (num_cands as i32) * 100)};
+                                (solution_set.len() as f32) / (num_cands as f32) * 100.0)};
     solution_set
 }
 
 fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
-    println!("\n\n");
+//    println!("\n\n");
 
     let a_len = maps.get_length(id_a);
     let b_len = maps.get_length(c.id_b);
@@ -45,14 +44,14 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     let overlap_a_start : usize = max(0, overhang_left_a) as usize;
     let overlap_a_end : usize = overlap_a_start + c.overlap_a;
 
-    println!("id_a : {}", id_a);
-    println!("{}{}", maps.spaces(overhang_left_a), maps.formatted(id_a));
-    println!("{}{}", maps.spaces(-overhang_left_a), maps.formatted(c.id_b));
-    println!("{:#?}", &c);
-    stdout().flush();
+//    println!("id_a : {}", id_a);
+//    println!("{}{}", maps.spaces(-overhang_left_a), maps.formatted(id_a));
+//    println!("{}{}", maps.spaces(overhang_left_a), maps.formatted(c.id_b));
+//    println!("{:#?}", &c);
+//    stdout().flush();
     let overlap_b_start : usize  = max(0, -overhang_left_a) as usize;
-    let overlap_b_end : usize  = overlap_b_start + c.overlap_b as usize;
-
+    let overlap_b_end : usize  = overlap_b_start + c.overlap_b;
+//    println!(" alen {} blen {}", a_len, b_len);
 
     assert!(overlap_a_end <= a_len);
     assert!(overlap_b_end <= b_len);
