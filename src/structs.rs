@@ -122,14 +122,6 @@ pub mod run_config{
             println!("{}", String::from_utf8_lossy(&self.text));
         }
 
-        pub fn spaces(&self, num : i32) -> String{
-            let mut s = String::new();
-            for _ in 0..num{
-                s.push(' ');
-            }
-            s
-        }
-
         pub fn formatted(&self, id : usize) -> String{
             format!("{}",String::from_utf8_lossy(self.get_string(id)))
         }
@@ -154,14 +146,6 @@ pub mod run_config{
         pub fn index_for(&self, index : usize) -> usize{
             *(self.id2index_bdmap.get_by_first(&index)
                 .expect(&format!("no id at index {}", index)))
-        }
-
-        pub fn tildes(&self, num : i32) -> String{
-            let mut s = String::new();
-            for _ in 0..num{
-                s.push('~');
-            }
-            s
         }
     }
 

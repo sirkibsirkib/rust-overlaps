@@ -55,16 +55,18 @@ fn solve(config : &Config, maps : &Maps){
 
 
     let alphabet = if config.n_alphabet { Alphabet::new(N_ALPH) } else { Alphabet::new(ALPH) };
-    println!("OK index alphabet set to '{}'",
-             String::from_utf8_lossy(if config.n_alphabet {N_ALPH} else {ALPH}));
+    if config.verbose{
+        println!("OK index alphabet set to '{}'",
+                 String::from_utf8_lossy(if config.n_alphabet {N_ALPH} else {ALPH}));
+    }
     let sa = suffix_array(&maps.text);
     let bwt = bwt(&maps.text, &sa);
     let less = less(&bwt, &alphabet);
     let occ = Occ::new(&bwt, 3, &alphabet);
     let fm = FMIndex::new(&bwt, &less, &occ);
-    println!("OK index ready.");
+    if config.verbose{println!("OK index ready.");};
 
-    let mut f = File::create(&"out.txt")
+    let f = File::create(&config.output)
         .expect("Couldn't open output file.");
     let mut wrt_buf = BufWriter::new(f);
     wrt_buf.write_all("idA\tidB\tO\t-LA\tRB-\tOLA\tOLB\tK\tCIGAR\n".as_bytes())
@@ -84,12 +86,13 @@ fn solve(config : &Config, maps : &Maps){
         println!("BEWARE! current impl. makes assumptions about the size of the blind spot in an overlap");
     }
 
+    println!("OK working.");
     let start_time = Instant::now();
 
     // hygiene block
     {
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm);
-        let mut aggregator = |solutions| {               // aggregation to apply to work results
+        let aggregator = |solutions| {               // aggregation to apply to work results
             if config.sorted {
                 //workers ==> solutions --> sorted_solutions --> out
                 for sol in solutions {&mut complete_solution_list.push(sol);}
@@ -115,13 +118,27 @@ fn solve(config : &Config, maps : &Maps){
     //sequential part
     if config.sorted{
         if config.verbose{println!("OK output list sorted.");}
+        complete_solution_list.dedup();
         complete_solution_list.sort();
+//        println!("{:#?}", &complete_solution_list);
         for sol in complete_solution_list.iter(){
             write_solution(&mut wrt_buf, sol, maps, config);
         }
+        println!("OK wrote {} solutions.", complete_solution_list.len());
     }
-    if config.verbose{println!("OK output file {} written. Work finished in {:?}.",
-                               config.output, &Instant::elapsed(&start_time));}
+    if config.verbose{println!("OK output file {} written.", config.output);};
+
+    //TODO replace elapsed time with something better
+    let s = match Instant::elapsed(&start_time).as_secs(){
+        x if x == 0 => format!("< 1 sec"),
+        x if x < 200 => format!("~{} sec", x),
+        x if x < 60*120 => format!("~{} min", x/60),
+        x if x < 60*60*100 => format!("~{} hrs", x/60/60),
+        x if x < 60*60*24*3 => format!("~{} days", x/60/60/24),
+        x if x < 60*60*24*7*3 => format!("~{} weeks", x/60/60/24/7),
+        x => format!("~{} months", x/60/60/24/30),
+    };
+    println!("OK completed in {}.", s);
 }
 
 #[inline]
