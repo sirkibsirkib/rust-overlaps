@@ -256,9 +256,9 @@ fn add_candidate_here(positions : Vec<usize>,
         }
         let a_len = cns.pattern.len();
         let b_len = cns.maps.get_length(id_b);
-        println!("alen {}, blen {}", a_len, b_len);
+//        println!("alen {}, blen {}", a_len, b_len);
 
-        // [a1 | a2 ]
+        // [e1 | a2 ]
         //     [ b2 | b3]  for suff-pref overlap
         //
         //     [ a2 ]
@@ -284,8 +284,8 @@ fn add_candidate_here(positions : Vec<usize>,
         }
 
         assert!(a1 * b1 <= 0);
-        println!("\n\nincl {}\n[{}/{}/{}]", inclusion, a1,a2,a3);
-        println!("[{}/{}/{}]", b1,b2,b3);
+//        println!("\n\nincl {}\n[{}/{}/{}]", inclusion, a1,a2,a3);
+//        println!("[{}/{}/{}]", b1,b2,b3);
 
 //        if (a2 == a_len) && (b2 == b_len as i32) && (cns.id_a > id_b) {
 //            //perfect complete overlap. this one is deemed to be redundant
@@ -300,7 +300,7 @@ fn add_candidate_here(positions : Vec<usize>,
             overhang_left_a: a1 - b1,
             debug_str : new_debug,
         };
-        println!("CAND {:#?}", &c);
+//        println!("CAND {:#?}", &c);
         cand_set.insert(c);
     }
 }

@@ -1,7 +1,7 @@
-use super::*;
+
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::super::*;
     use std::io::{BufReader, BufRead};
 
     #[derive (Eq, PartialEq, Hash, Debug)]
@@ -61,11 +61,34 @@ mod tests {
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         solve(&config, &maps);
-        let results = read_output(&config.output, &maps);
+        let results = read_output(&config.output);
         must_contain(&results, "x", "y", Orientation::Normal, -5, 10, 5, 5, 0);
     }
 
-    fn read_output(filename : &str, maps : &Maps) -> HashSet<GoodSolution>{
+    #[test]
+    fn edit() {
+        let config = Config{
+            input  :        "./test_input/edit.fasta".to_owned(),
+            output  :       "./test_output/edit.txt".to_owned(),
+            err_rate :      0.167,
+            thresh :        5,
+            worker_threads: 1,
+            reversals :     false,
+            inclusions :    false,
+            edit_distance :     true,
+            verbose :       false,
+            sorted :        false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        must_contain(&results, "x", "y", Orientation::Normal, 7, 7, 6, 5, 1);
+    }
+
+    fn read_output(filename : &str) -> HashSet<GoodSolution>{
         let mut result : HashSet<GoodSolution> = HashSet::new();
         let f = File::open(filename).unwrap();
         let file = BufReader::new(&f);

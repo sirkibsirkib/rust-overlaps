@@ -1,2 +1,2 @@
 idA	idB	O	-LA	RB-	OLA	OLB	K	CIGAR
-x	y	N	-10	15	5	5	0	ids: 1->0
+x	y	N	-5	10	5	5	0	ids: 1->0

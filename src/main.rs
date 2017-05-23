@@ -28,6 +28,7 @@ mod search;
 mod verification;
 mod structs;
 mod algorithm_modes;
+mod testing;
 
 use structs::solutions::*;
 use structs::run_config::*;
@@ -210,5 +211,3 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
     // empty
 }
 
-mod testing;
-/////////////////////////////////////////////////////////////////////////////

@@ -13,7 +13,7 @@ indexes for $ are at the FRONT of the string
 
 TODO:
 	cargo args / program args
-
+	internal representation of strings is backwards. this has ramifications for what is a_left etc.
 
 
 TODO rustbio feedback:
