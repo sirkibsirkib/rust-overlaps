@@ -256,6 +256,7 @@ fn add_candidate_here(positions : Vec<usize>,
         }
         let a_len = cns.pattern.len();
         let b_len = cns.maps.get_length(id_b);
+        println!("alen {}, blen {}", a_len, b_len);
 
         // [a1 | a2 ]
         //     [ b2 | b3]  for suff-pref overlap
@@ -277,15 +278,19 @@ fn add_candidate_here(positions : Vec<usize>,
             // b is too short to match
             continue;
         }
+        if !cns.config.edit_distance && b2 != a2 as i32{
+            // hamming requires the lengths match
+            continue;
+        }
+
         assert!(a1 * b1 <= 0);
-//        println!("\n\nincl {}\n[{}/{}/{}]", inclusion, a1,a2,a3);
-//        println!("[{}/{}/{}]", b1,b2,b3);
+        println!("\n\nincl {}\n[{}/{}/{}]", inclusion, a1,a2,a3);
+        println!("[{}/{}/{}]", b1,b2,b3);
 
 //        if (a2 == a_len) && (b2 == b_len as i32) && (cns.id_a > id_b) {
 //            //perfect complete overlap. this one is deemed to be redundant
 //            continue;
 //        }
-
         let mut new_debug = debug.to_owned();
         new_debug.push_str(&format!(" incl {} blind {}", inclusion, cns.blind_a_chars));
         let c = Candidate {
@@ -295,87 +300,8 @@ fn add_candidate_here(positions : Vec<usize>,
             overhang_left_a: a1 - b1,
             debug_str : new_debug,
         };
+        println!("CAND {:#?}", &c);
         cand_set.insert(c);
-//
-//        let overlap_a = a_match_len + cns.blind_a_chars;
-//        let overhang_left_a : i32 = if inclusion{
-//            //        [aaaa|aa]
-//            //   [bbbbbbbbb?????
-//            //   ^    ^
-//            //   <--->
-//            - (position as i32 - index_b as i32)
-//        } else {
-//            // [aaaaaa|aa]
-//            // <--->[b?????????
-//            a_len as i32 - (overlap_a as i32)
-//        };
-//        let blind_b_chars = cns.blind_a_chars; //TODO major assumption!
-//        let overlap_b : i32 = if inclusion {
-//            //inclusion, overhang_left_a <= a
-//            min(
-//                (b_match_len + blind_b_chars) as i32 + overhang_left_a,
-//                                                   //case where there is space
-//                b_len as i32 + overhang_left_a
-//                                                   //case where the overlap shrinks to fit
-//            )
-//        } else {
-//            // suff-prefix overlap, overhang_left_a >= a
-//            min(
-//                (b_match_len + cns.blind_a_chars) as i32,   //case where there is space
-//                (b_len - b_match_len) as i32                //case where the overlap shrinks to fit
-//            )
-//        };
-//        if overlap_b < 0 {
-//            //no way to overlap at all
-//            continue;
-//        }
-//        let overlap_b = overlap_b as usize;
-//
-//        let a1 = max(0, overhang_left_a);
-//        let a2 = overlap_a as i32;
-//        let a3 = a_len as i32 - a1 - a2;
-//        let b1 = max(0, -overhang_left_a);
-//        let b2 = overlap_b as i32;
-//        let b3 = a_len as i32 - b1 - b2;
-//
-//        if a3 < 0 || b3 < 0{
-//            println!("PROBLEM! this would crash the verifier");
-//            println!("\n\nincl: {}", inclusion);
-////            cns.maps.print_text_debug();
-////            println!("{}", &cns.maps.push_string(debug, " ", position));
-////            println!("{}", &cns.maps.push_string(&"^", " ", index_b));
-//            println!("alen {}, blen {}", a_len, b_len);
-//            println!("{} | {} / {} | ?", overhang_left_a, a_match_len, cns.blind_a_chars);
-//            println!("{} | {} / {} | ?", overhang_left_a, b_match_len, blind_b_chars);
-//            println!("aovr {}, bover {}", overlap_a, overlap_b);
-//            println!("[{}/{}/{}]", a1,a2,a3);
-//            println!("[{}/{}/{}]", b1,b2,b3);
-//            continue;
-//        }
-//
-//
-//        if overlap_a == a_len && overlap_b == b_len && cns.id_a > id_b {
-//            //perfect complete overlap. this one is deemed to be redundant
-////            println!("redundant perfect overlap");
-//            continue;
-//        }
-//
-//
-////        println!("LOHA {}", overhang_left_a);
-//
-//        let mut new_debug = debug.to_owned();
-//        new_debug.push_str(&format!(" incl {} blind {}", inclusion, cns.blind_a_chars));
-//        let c = Candidate {
-//            id_b: id_b,
-//            overlap_a: overlap_a,
-//            overlap_b: overlap_b,
-//            overhang_left_a: overhang_left_a,
-//            debug_str : new_debug,
-//        };
-//        if cand_set.contains(&c){
-//            println!("OLD {:#?}\nNEW {:#?}", c, c);
-//        }
-//        cand_set.insert(c);
     }
 }
 

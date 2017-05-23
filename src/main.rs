@@ -73,12 +73,7 @@ fn solve(config : &Config, maps : &Maps){
         .expect("couldn't write header line to output");
     if config.verbose{println!("OK output writer ready.");}
 
-    let id_iterator = IDIterator{
-        num_ids : maps.num_ids,
-        next : 0,
-        //skip reversed input strings (would find redundant solutions)
-        step : if config.reversals {2} else {1},
-    };
+    let id_iterator = get_id_iterator(maps.num_ids, config.reversals);
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
@@ -92,7 +87,7 @@ fn solve(config : &Config, maps : &Maps){
     // hygiene block
     {
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm);
-        let aggregator = |solutions| {               // aggregation to apply to work results
+        let mut aggregator = |solutions| {               // aggregation to apply to work results
             if config.sorted {
                 //workers ==> solutions --> sorted_solutions --> out
                 for sol in solutions {&mut complete_solution_list.push(sol);}
@@ -102,17 +97,17 @@ fn solve(config : &Config, maps : &Maps){
                 wrt_buf.flush().is_ok();
             }
         };
-//        for id_a in id_iterator{
-//            aggregator(computation(id_a));
-//        }
+        for id_a in id_iterator{
+            aggregator(computation(id_a));
+        }
 //        multithreaded part
-        cue::pipeline(
-            "overlap_pipeline",          // name of the pipeline for logging
-             config.worker_threads,      // number of worker threads
-             id_iterator,                // iterator with work items
-             computation,
-             aggregator,
-        );
+//        cue::pipeline(
+//            "overlap_pipeline",          // name of the pipeline for logging
+//             config.worker_threads,      // number of worker threads
+//             id_iterator,                // iterator with work items
+//             computation,
+//             aggregator,
+//        );
     }
 
     //sequential part
@@ -139,6 +134,16 @@ fn solve(config : &Config, maps : &Maps){
         x => format!("~{} months", x/60/60/24/30),
     };
     println!("OK completed in {}.", s);
+}
+
+#[inline]
+fn get_id_iterator(num_ids : usize, reversals : bool) -> IDIterator{
+    IDIterator{
+        num_ids : num_ids,
+        next : 0,
+        //skip reversed input strings (would find redundant solutions)
+        step : if reversals {2} else {1},
+    }
 }
 
 #[inline]
@@ -204,3 +209,6 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
                     for FMIndex<DBWT, DLess, DOcc> {
     // empty
 }
+
+mod testing;
+/////////////////////////////////////////////////////////////////////////////

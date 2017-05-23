@@ -12,14 +12,8 @@ indexes for $ are at the FRONT of the string
 
 
 TODO:
-	Convention: when to use usize etc.
-	change the numeric types to avoid some casting.
-	trim the fat with imports.
+	cargo args / program args
 
-	remove self-cands in search step
-	debug the direction of things
-
-	does maps.get() for Vec<String> return the entire string? that would be bad.
 
 
 TODO rustbio feedback:
