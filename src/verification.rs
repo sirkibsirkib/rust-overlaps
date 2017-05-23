@@ -87,7 +87,7 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, erro
         sol.v_flip();
     }
     sol.un_reverse();
-    assert!(!config.reversals || id_a % 2 == 0);
+    assert!(!config.reversals || sol.id_a % 2 == 0);
     sol
 
 
