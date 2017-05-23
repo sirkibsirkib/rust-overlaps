@@ -107,7 +107,7 @@ pub trait GeneratesCandidates : FMIndexable {
                 upper : less + self.occ(match_interval.upper, a),
             }; //final interval must have exclusive end
             let positions = dollar_interval.occ(cns.sa);
-            add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, false);
+            add_candidates_from_positions(positions, cand_set, cns, a_match_len, b_match_len, debug, false);
         }
 
         let pattern_finished = p_i <= -1;
@@ -120,7 +120,7 @@ pub trait GeneratesCandidates : FMIndexable {
                     upper : match_interval.upper + 1,
                 }; // final interval must have exclusive end
                 let positions = inclusion_interval.occ(cns.sa);
-                add_candidate_here(positions, cand_set, cns, a_match_len, b_match_len, debug, true);
+                add_candidates_from_positions(positions, cand_set, cns, a_match_len, b_match_len, debug, true);
             }
             return;
             //nothing to do here.
@@ -230,17 +230,20 @@ impl LastOperation{
     }
 }
 
-#[inline]
-fn add_candidate_here(positions : Vec<usize>,
-                      cand_set : &mut HashSet<Candidate>,
-                      cns : &SearchConstants, a_match_len : usize,
-                      b_match_len : usize, debug : &str, inclusion : bool){
+/*
+given positions in the text (and various other data) determine which of these are suitable
+locations to generate candidates. For each, add a new candidate to cand_set
+*/
+fn add_candidates_from_positions(positions : Vec<usize>,
+                                 cand_set : &mut HashSet<Candidate>,
+                                 cns : &SearchConstants, a_match_len : usize,
+                                 b_match_len : usize, debug : &str, inclusion : bool){
     for mut position in positions {
-        println!("FOUND");
         if !inclusion{
             //non-inclusions include the preceding dollar sign
             position += 1;
         }
+        //from position, identify the b string we are dealing with. how we do so differs for inclusions
         let (id_b, index_b) = if inclusion {
             cns.maps.find_occurrence_containing(position)
         } else {
@@ -249,32 +252,37 @@ fn add_candidate_here(positions : Vec<usize>,
 
         if id_b == cns.id_a || (cns.config.edit_distance &&
                 cns.id_a == verification::companion_id(cns.id_a)){
-            // matching self or partner
+            // matching self or partner. not interested in these solutions.
             continue;
         }
 
         let a_len = cns.pattern.len();
         let b_len = cns.maps.get_length(id_b);
 
-        // [e1 | a2 ]
-        //     [ b2 | b3]  for suff-pref overlap
+        // a: [e1 | a2 ]
+        // b:     [ b2 | b3]  for suff-pref overlap
         //
-        //     [ a2 ]
-        // [b1 | b2 | b3]  for inclusions
+        // a:     [ a2 ]
+        // b: [b1 | b2 | b3]  for inclusions
 
+        //a1,a2,a3 are all derivable from known values
         let a2 = a_match_len + cns.blind_a_chars;
         let a1 = if inclusion {0} else {(a_len - a2) as i32};
         let a3 = a_len as i32 - a1 - (a2 as i32);
+        //neither inclusions nor suff-pref overlap search processes should find cands where a3 > 0
         assert!(a3 == 0);
 
         let b1 = if inclusion {(position - index_b) as i32} else {0};
-        assert!(a1 * b1 <= 0);
+        //a1 and b2 can be represented as one value (a_left_overhang) but here they are divided
+        //into a1 and b2 (with one always being zero) to help make the code more comprehensible.
+        //candidates collapse a1 and b1 into this one value as storage space becomes a factor
+        assert!(a1 * b1 == 0);
         let (min_b2, max_b2) = if !cns.config.edit_distance {
-            //if hamming a2 == b2
+            //if hamming a2 == b2. So the possible values range from b2-->b2 (inclusively)
             (a2, a2)
         } else {
-            // b_overlap_len is unknown, but it is bound by a number of factors
-            // so here we decide the upper and lower bound for b2
+            // b_overlap_len is unknown, but it has upper and lower bounds as determined by the
+            // length of b, the error rate etc.
             (
                 max((a2 as f32 * (1.0-cns.config.err_rate)).ceil() as usize,
                     b_match_len),
@@ -283,6 +291,8 @@ fn add_candidate_here(positions : Vec<usize>,
             )
         };
         let possible_b2s = (min_b2)..(max_b2 + 1);
+
+        // for edit distance, numerous instantiations of 
         for b2 in possible_b2s{
             let b3 = b_len as i32 - b1 - (b2 as i32);
             if b3 < 0 {
