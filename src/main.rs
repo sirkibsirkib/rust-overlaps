@@ -20,6 +20,7 @@ use std::collections::HashSet;
 use std::time::Instant;
 use std::thread;
 use std::io::stdout;
+use std::fmt;
 /////////////////////////////////////
 
 mod setup;
@@ -70,7 +71,7 @@ fn solve(config : &Config, maps : &Maps){
     let f = File::create(&config.output)
         .expect("Couldn't open output file.");
     let mut wrt_buf = BufWriter::new(f);
-    wrt_buf.write_all("idA\tidB\tO\t-LA\tRB-\tOLA\tOLB\tK\tCIGAR\n".as_bytes())
+    wrt_buf.write_all("idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\n".as_bytes())
         .expect("couldn't write header line to output");
     if config.verbose{println!("OK output writer ready.");}
 
@@ -158,7 +159,7 @@ fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc 
 
 #[inline]
 fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, config : &Config){
-    let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+    let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                             maps.get_name_for(s.id_a),
                             maps.get_name_for(s.id_b),
                             if s.orientation==Orientation::Normal{"N"}else{"I"},
@@ -167,7 +168,6 @@ fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, confi
                             s.overlap_a,
                             s.overlap_b,
                             s.errors,
-                            s.cigar,
     );
     buf.write(formatted.as_bytes()).is_ok();
     if config.print{

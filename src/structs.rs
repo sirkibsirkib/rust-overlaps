@@ -2,11 +2,20 @@
 pub mod solutions{
     use std::hash::{Hash, Hasher};
     use std::cmp::Ordering;
+    use std::fmt;
+    use std::cmp::max;
 
     #[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord)]
     pub enum Orientation{
         Normal,
         Reversed,
+    }
+
+    impl fmt::Display for Orientation {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            let s = if *self == Orientation::Normal{"N"} else {"I"};
+            write!(f, "{}", s)
+        }
     }
 
     //NOT oriented
@@ -16,7 +25,35 @@ pub mod solutions{
         pub overlap_a : usize,
         pub overlap_b : usize,
         pub overhang_left_a : i32,
+
+        //DEBUG
         pub debug_str : String,
+    }
+
+    impl Candidate{
+
+
+        #[inline]
+        fn a1(&self) -> usize {
+            max(0, self.overhang_left_a) as usize
+        }
+
+        #[inline]
+        fn b1(&self) -> usize {
+            max(0, -self.overhang_left_a) as usize
+        }
+
+        #[inline]
+        fn a3(&self, a_len : usize) -> usize {
+            assert!(a_len >= self.a1() + self.overlap_a);
+            a_len - self.a1() - self.overlap_a
+        }
+
+        #[inline]
+        fn b3(&self, b_len : usize) -> usize {
+            assert!(b_len >= self.a1() + self.overlap_a);
+            b_len - self.b1() - self.overlap_b
+        }
     }
 
     //oriented
