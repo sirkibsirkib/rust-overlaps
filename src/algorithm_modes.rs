@@ -1,5 +1,12 @@
 
+/*
+Kucherov's suffix filters and partition scheme for the ASPOP exact algorithm.
+This module is loaded so that it's functions can be used in the candidate generation step.
 
+Other modules can be swapped in as long as they have the same functions.
+Ensure that your scheme is CORRECT (doesn't miss solutions)
+TODO write tests to check
+*/
 pub mod kucherov{
 
     use std::cmp::{min, max};
@@ -47,6 +54,12 @@ pub mod kucherov{
         block_lengths
     }
 
+    /*
+    During the recursive index search of the candidate generation step, this function will be called
+    to check whether it is necessary to generate candidates at this point.
+    NOTE: Be more lenient toward correctness
+    NOTE: Be more strict toward a faster candidate verification phase
+    */
     pub fn candidate_condition(
                 generous_match_len : i32,
                 completed_blocks : i32,

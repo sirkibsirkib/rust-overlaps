@@ -35,9 +35,15 @@ use structs::solutions::*;
 use structs::run_config::*;
 use search::GeneratesCandidates;
 
-
+// this u8 character represents an ERROR read. Its matching always incurs an error.
 pub static READ_ERR : u8 = b'N';
 
+
+//TODO make a diagram that shows the structure of the program
+/*
+Gets the config and writes all the necessary data into the map struct.
+calls solve() which does all the work
+*/
 fn main(){
     let config = setup::parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
@@ -51,9 +57,14 @@ fn main(){
     solve(&config, &maps);
 }
 
+/*
+1. build index from text
+2. prepare output file
+3. generate tasks for each FORWARD string in the text (ie: patterns)
+4. spawn workers in a threadpool to solve tasks
+5. write to output either after verification asynchronously? //TODO is this reall how it works?
+*/
 fn solve(config : &Config, maps : &Maps){
-
-
     let alphabet = Alphabet::new(config.alphabet());
     if config.verbose{
         println!("OK index alphabet set to '{}'",
@@ -136,6 +147,9 @@ fn solve(config : &Config, maps : &Maps){
     println!("OK completed in {}.", s);
 }
 
+/*
+generates an iterator for all the forward strings in the input (patterns) ie. not reversals
+*/
 #[inline]
 fn get_id_iterator(num_ids : usize, reversals : bool) -> IDIterator{
     IDIterator{
@@ -146,6 +160,11 @@ fn get_id_iterator(num_ids : usize, reversals : bool) -> IDIterator{
     }
 }
 
+/*
+This is one task.
+essentially converts an ID (and some constant information)
+into a set of solutions involved with that ID.
+*/
 #[inline]
 fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone>
         (config : &Config, maps : &Maps, id_a : usize, sa : &RawSuffixArray, fm : &FMIndex<DBWT, DLess, DOcc>)
@@ -154,7 +173,10 @@ fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc 
     verification::verify_all(id_a, candidates, config, maps)
 }
 
-
+/*
+writes a single solution to file.
+the written string won't be broken up
+*/
 #[inline]
 fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, config : &Config){
     let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",

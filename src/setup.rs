@@ -1,6 +1,9 @@
 
 use structs::run_config::Config;
 
+/*
+Using Clap, builds a config struct that contains all the user's input
+*/
 pub fn parse_run_args() -> Config{
     let matches = clap_app!(ASPOPsolver =>
         (version: "1.0")

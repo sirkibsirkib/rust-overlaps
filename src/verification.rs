@@ -12,10 +12,27 @@ use std::io::stdout;
 
 use bio::alignment::distance::*;
 
+/*
+only needed if reversals are enabled.
+For each input string, two unique text entries are appended, one forwards and one backwards.
+The orientation of these strings corresponds with the parity of their ID's
+(an internal representation of the strings) with NORMAL strings having EVEN IDs and REVERSED strings having ODD parity.
+Note that this is "normal" and "reversed" considering the inverse reading direction of the index.
+ie: given a string "XYZ", this will append the "normal" (ZYX) to the text with ID 0 and (XYZ) to the text with ID 1.
+
+This function simply finds the ID of the strings with the given ID such that the two
+strings are from the same input string, but lie in opposite directions
+*/
 pub fn companion_id(id : usize) -> usize{
     if id%2==0 {id+1} else {id-1}
 }
 
+/*
+Another major step in the program, the candidate verification step. (AKA the filter step)
+This function returns a set of solutions, each of which corresponds to a candidate in the input set.
+Only candidates that are found (somewhat naively) to have small enough error distances (as defined in config)
+correspond with an output solution. Other candidates are "filtered" out.
+*/
 pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Config, maps : &Maps) -> HashSet<Solution>{
     let num_cands = candidates.len();
     let mut solution_set : HashSet<Solution> = HashSet::new();
@@ -36,11 +53,27 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
     solution_set
 }
 
+/*
+Returns a solution corresponding with the given candidate if appropriate.
+This function performs the CHECK if the candidate verifies.
+
+The index can generate candidates that come in two forms:
+>Suff-pref overlaps
+a: [a1|a2]     a3==0
+b:    [b2|b3]  b1==0
+
+>Inclusions
+a:    [a2]     a1==a3==0
+b: [b1|b2|b3]
+
+where a1,a2...b3 correspond with the LENGTHS of chunks of the pattern and match strings respectively,
+a2 and b2 are the overlapping sections, and a1,a3,b1,b3 are the lengths of parts before and after.
+*/
 fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
     let a_len = maps.get_length(id_a);
     let b_len = maps.get_length(c.id_b);
     assert_eq!(c.a3(a_len), 0);
-    assert!(c.b3(b_len) >= 0); //would actually crash because usize but OK
+    assert!(c.b3(b_len) >= 0); //would actually panic before this line because b3() -> usize but OK
 
     let a_part : &[u8] = &maps.get_string(id_a)  [c.a1()..(c.a1()+c.a2())];
     let b_part : &[u8] = &maps.get_string(c.id_b)[c.b1()..(c.b1()+c.b2())];
@@ -63,6 +96,17 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     }
 }
 
+/*
+Translates the input Candidate to a Solution.
+This function does NOT check whether the input candidate is for a real solution.
+
+This is one of the most confusing parts of the entire program, as everything is reversed
+several times and it gets hard to keep track of how many times something is flipped.
+Solutions correspond exactly with the EXTERNAL representations of the input strings,
+but Candidates are largely INTERNAL (as verifying them requires the use of the index text).
+
+*See annotation for verify() above for an explanation of a1,a2,a3,b1,b2,b3 etc. used here.
+*/
 fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, errors : u32,
                            maps : &Maps, config : &Config) -> Solution {
     let mut a_len = maps.get_length(id_a);
@@ -84,72 +128,10 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, erro
         cigar : cigar,
     };
     if id_a > c.id_b {
+        //flip which strings are A and B, as the output needs to adhere to an ascending ordering
         sol.v_flip();
     }
-    sol.un_reverse();
+    sol.un_reverse(); //finally, compensate for the index being entirely backwards
     assert!(!config.reversals || sol.id_a % 2 == 0);
     sol
-
-
-//    let mut id_b = c.id_b;
-
-//    let mut overlap_a = c.overlap_a;
-//    let mut overlap_b = c.overlap_b;
-//    let mut overhang_left_a = c.overhang_left_a;
-//    let mut overhang_right_b = if overhang_left_a == 0{
-//        (b_len as i32) - (overlap_b as i32)
-////        (b_len as i32) - (a_len as i32) - overhang_left_a;
-//    } else {
-//        (b_len as i32) - (overlap_b as i32) - overhang_left_a
-//    };
-//    println!("!??!?  {}", overhang_right_b);
-
-
-    // GUARANTEE 1/2: id_a <= id_b
-    // REMEDY: vertical flip. a becomes b, b becomes a.
-//    if id_a > id_b {
-//        //
-////        println!("VFLIP");
-//        overhang_left_a *= -1;
-//        overhang_right_b *= -1;
-//        swap(&mut a_len, &mut b_len);
-//        swap(&mut id_a, &mut id_b);
-//        swap(&mut overlap_a, &mut overlap_b);
-////        cigar = cigar.vflip();  // I->D, D->I
-//    }
-//
-////    // GUARANTEE 2/2: A is a string from the input (not a flipped string)
-////    // REMEDY: horizontal flip. a becomes b, b becomes a.
-////    if config.reversals && id_a % 2 == 1 {
-//////        println!("HFLIP");
-////        swap(&mut overhang_left_a, &mut overhang_right_b);
-////        overhang_left_a *= -1;
-////        overhang_right_b *= -1;
-////        id_a = companion_id(id_a);
-////        id_b = companion_id(id_b);
-//////        cigar.h_flip(); // XYZ -> ZYX
-////    }
-//    let orientation = if !config.reversals || id_b%2==0{
-//        Orientation::Normal
-//    }else{
-//        Orientation::Reversed
-//    };
-//
-//    // INTERNAL --> EXTERNAL REPRESENTATION
-//    swap(&mut overhang_left_a, &mut overhang_right_b);
-//    overhang_left_a *= -1;
-//    overhang_right_b *= -1;
-//
-//
-//    Solution{
-//        id_a : id_a,
-//        id_b : id_b,
-//        orientation : orientation,
-//        overlap_a : overlap_a,
-//        overlap_b : overlap_b,
-//        overhang_left_a : overhang_left_a,
-//        overhang_right_b : overhang_right_b,
-//        errors : errors,
-//        cigar : cigar,
-//    }
 }

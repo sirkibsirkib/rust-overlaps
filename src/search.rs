@@ -20,6 +20,24 @@ use algorithm_modes::kucherov::candidate_condition;
 use algorithm_modes::kucherov::filter_func;
 pub static READ_ERR : u8 = b'N';
 
+/*
+This is the meat and potatoes of this program, the candidate generation step (AKA search step).
+Given a pattern string (and some other information) and a config struct,
+will ultimately return a set of candidate solutions.
+These candidates store just enough necessary to indicate a specific "match" in the FMindex's text
+Such matches are prefix-suffix overlaps between the pattern and the match location strings,
+in the code the pattern is often referred to as 'a' and the match is referred to as 'b'
+Depending on the config, candidates will be generated according to reversals, edit distance, inclusions etc.
+
+In the literature, often the patterns are solved by way of numerous SUFFIX FILTERS and solved with
+forwards search. This concept of direction is dependent on the frame of reference in this implementation.
+Due to the backwards search of the FMIndex, the text string used for the BWT is actually backwards.
+For this reason, much of the search, iteration etc. are all backwards
+(with respect to left -> right or ascending indexes).
+Relative to the actual strings inside the text, and conceptually, the search is still forwards.
+These two equally-correct perspectives cannot be resolved in all cases, so when possible I use
+terms that are general in both directions. ie: FILTER instead of SUFFIX FILTER
+*/
 pub trait GeneratesCandidates : FMIndexable {
     fn generate_candidates(&self,
                            pattern : &[u8],
@@ -38,6 +56,9 @@ pub trait GeneratesCandidates : FMIndexable {
         };
         let mut p_i : i32 = (patt_len-1) as i32;
         let patt_blocks : i32 = block_lengths.len() as i32;
+
+        // each of these represents a suffix filter to be treated as a pattern to query the index
+        //TODO split into PatternConstant and FilterConstant structs
         for (block_id, block_len) in block_lengths.iter().enumerate() {
             let cns = SearchConstants{
                 pattern: pattern,
@@ -52,11 +73,14 @@ pub trait GeneratesCandidates : FMIndexable {
                 blind_a_chars: patt_len - p_i as usize - 1,
                 max_b_len : if config.edit_distance {(patt_len as f32 / (1.0-config.err_rate)).floor() as usize} else {patt_len},
             };
+
+            //This begins the search and represents a single "query" for a single pattern filter
             self.recurse_candidates(
                 &mut candidate_set, &cns, 0, p_i,
                 LastOperation::Initial, 0, 0,
                 &full_interval, &String::new());
 
+            // the filters begin as the entire pattern, and gradually get shorter.
             p_i -= *block_len;
         }
         if candidate_set.is_empty(){
@@ -69,6 +93,11 @@ pub trait GeneratesCandidates : FMIndexable {
         candidate_set
     }
 
+    /*
+    This conceptually corresponds to the search for one FILTER of the candidate.
+    The call branches recursively as specified by the functions used for the algorithm mode.
+    Various information that changes with each iteration is stored on the call stack directly.
+    */
     fn recurse_candidates(&self,
                           cand_set : &mut HashSet<Candidate>,
                           cns : &SearchConstants,
@@ -81,17 +110,20 @@ pub trait GeneratesCandidates : FMIndexable {
                           debug : &str){
         if match_interval.lower > match_interval.upper{
             // range is inclusive on both ends within the walk.
-            // empty range so prune branch
+            // empty range -> prune branch
             return
         }
 
         let completed_blocks : i32 = match cns.block_id_lookup.get(p_i as usize){
+            //p_i corresponds with the index of the NEXT matched character. Upon matching the entire pattern,
+            //this value can become -1. Here this match statement takes care of this special case
             Some(x) => x - cns.first_block_id,
-            //the final step (p_i==-1) can still insert. we can't return yet, but we are beyond the blocks
             None    => cns.patt_blocks - cns.first_block_id,
         };
+        //look up how many errors are allowed from the filter module
         let permitted_errors : i32 = min(cns.hard_error_cap, filter_func(completed_blocks, cns.patt_blocks));
 
+        //Design decision: if the lengths of A and B differ, we are generous with the size for lookups
         let generous_match_len = std::cmp::max(a_match_len, b_match_len) + 1;
         let cand_condition_satisfied =
             candidate_condition(generous_match_len as i32, completed_blocks, cns.config.thresh, errors);
@@ -203,6 +235,10 @@ pub enum LastOperation{
     Deletion,
 }
 
+/*
+There are many ways to the same B match when insertions and deletions are allowed.
+Restricting the branching attempts to avoid these redundant walks
+*/
 impl LastOperation{
     fn allows_deletion(self) -> bool{
         self == LastOperation::Deletion

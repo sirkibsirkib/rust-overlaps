@@ -1,3 +1,5 @@
+//TODO dead code goes here that I might want to use later
+
 
 // RUST BIO TEST
 //fn doz(config : &Config){
@@ -198,6 +200,71 @@ pub mod string_walk{
         }
     }
 }
+
+
+
+
+//    let mut id_b = c.id_b;
+
+//    let mut overlap_a = c.overlap_a;
+//    let mut overlap_b = c.overlap_b;
+//    let mut overhang_left_a = c.overhang_left_a;
+//    let mut overhang_right_b = if overhang_left_a == 0{
+//        (b_len as i32) - (overlap_b as i32)
+////        (b_len as i32) - (a_len as i32) - overhang_left_a;
+//    } else {
+//        (b_len as i32) - (overlap_b as i32) - overhang_left_a
+//    };
+//    println!("!??!?  {}", overhang_right_b);
+
+
+    // GUARANTEE 1/2: id_a <= id_b
+    // REMEDY: vertical flip. a becomes b, b becomes a.
+//    if id_a > id_b {
+//        //
+////        println!("VFLIP");
+//        overhang_left_a *= -1;
+//        overhang_right_b *= -1;
+//        swap(&mut a_len, &mut b_len);
+//        swap(&mut id_a, &mut id_b);
+//        swap(&mut overlap_a, &mut overlap_b);
+////        cigar = cigar.vflip();  // I->D, D->I
+//    }
+//
+////    // GUARANTEE 2/2: A is a string from the input (not a flipped string)
+////    // REMEDY: horizontal flip. a becomes b, b becomes a.
+////    if config.reversals && id_a % 2 == 1 {
+//////        println!("HFLIP");
+////        swap(&mut overhang_left_a, &mut overhang_right_b);
+////        overhang_left_a *= -1;
+////        overhang_right_b *= -1;
+////        id_a = companion_id(id_a);
+////        id_b = companion_id(id_b);
+//////        cigar.h_flip(); // XYZ -> ZYX
+////    }
+//    let orientation = if !config.reversals || id_b%2==0{
+//        Orientation::Normal
+//    }else{
+//        Orientation::Reversed
+//    };
+//
+//    // INTERNAL --> EXTERNAL REPRESENTATION
+//    swap(&mut overhang_left_a, &mut overhang_right_b);
+//    overhang_left_a *= -1;
+//    overhang_right_b *= -1;
+//
+//
+//    Solution{
+//        id_a : id_a,
+//        id_b : id_b,
+//        orientation : orientation,
+//        overlap_a : overlap_a,
+//        overlap_b : overlap_b,
+//        overhang_left_a : overhang_left_a,
+//        overhang_right_b : overhang_right_b,
+//        errors : errors,
+//        cigar : cigar,
+//    }
 
 //    // the search guarantees this; Thus omitted from the candidate struct.
 //    let overhang_left_a = c.overhang_left_a;

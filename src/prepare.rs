@@ -8,6 +8,14 @@ use std::fs::File;
 
 use structs::run_config::*;
 
+/*
+builds the maps data structure from a fasta file + config
+the "maps" contains most of the constant information for the run
+> mappings from internal to external representations of strings ie: id-->"name"
+> mappings between internal represenations ie: id<-->index(in text)
+> important data ie: text
+> some convenient functions ie: get &str (in the text)
+*/
 pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io::Error> {
     let mut text : Vec<u8> = Vec::new();
     let mut id2name_vec : Vec<String> = Vec::new();

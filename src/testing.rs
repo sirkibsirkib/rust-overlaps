@@ -1,4 +1,8 @@
 
+/*
+Some simple tests to check if the system and all its various modes behave correctly and find
+the right solutions, using some predetermined inputs in th text_input directory.
+*/
 #[cfg(test)]
 mod tests {
     use super::super::*;

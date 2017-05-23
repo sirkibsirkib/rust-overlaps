@@ -1,4 +1,7 @@
 
+/*
+Structs and methods for solutions and candidate solutions to be used throughout the program
+*/
 pub mod solutions{
     use std::hash::{Hash, Hasher};
     use std::cmp::Ordering;
@@ -6,6 +9,8 @@ pub mod solutions{
     use std::cmp::max;
     use std::mem::swap;
 
+    // Normal refers to a solution where both strings are NOT reversed
+    // Reversed refers to a solution where A is normal and B is reversed
     #[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord)]
     pub enum Orientation{
         Normal,
@@ -135,7 +140,12 @@ pub mod solutions{
 }
 
 
-
+/*
+Some structs and convenience functions for storing the data needed throughout the run.
+The config struct stores the user's input parameters and is checked frequently but never changed.
+The maps struct is built once, stores text, and various mappings between different string
+representations and is queried throughout the run, also never changing after being populated.
+*/
 pub mod run_config{
     extern crate bidir_map;
     use bidir_map::BidirMap;
