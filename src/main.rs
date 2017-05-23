@@ -36,8 +36,6 @@ use structs::run_config::*;
 use search::GeneratesCandidates;
 
 
-pub static N_ALPH : &'static [u8] = b"ACGNT";
-pub static ALPH : &'static [u8] = b"ACGT";
 pub static READ_ERR : u8 = b'N';
 
 fn main(){
@@ -56,10 +54,10 @@ fn main(){
 fn solve(config : &Config, maps : &Maps){
 
 
-    let alphabet = if config.n_alphabet { Alphabet::new(N_ALPH) } else { Alphabet::new(ALPH) };
+    let alphabet = Alphabet::new(config.alphabet());
     if config.verbose{
         println!("OK index alphabet set to '{}'",
-                 String::from_utf8_lossy(if config.n_alphabet {N_ALPH} else {ALPH}));
+                 String::from_utf8_lossy(config.alphabet()));
     }
     let sa = suffix_array(&maps.text);
     let bwt = bwt(&maps.text, &sa);

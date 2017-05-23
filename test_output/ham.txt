@@ -1,2 +1,2 @@
 idA	idB	O	OHA	OHB	OLA	OLB	K
-x	y	N	-5	10	5	5	0
+x	y	N	5	10	5	5	0

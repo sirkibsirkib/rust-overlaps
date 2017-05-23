@@ -199,6 +199,25 @@ pub mod string_walk{
     }
 }
 
+//    // the search guarantees this; Thus omitted from the candidate struct.
+//    let overhang_left_a = c.overhang_left_a;
+//    let overlap_a_start : usize = max(0, overhang_left_a) as usize;
+//    let overlap_a_end : usize = overlap_a_start + c.overlap_a;
+//
+////    println!("id_a : {}", id_a);
+////    println!("{}", maps.push_string(&maps.formatted(id_a), " ", max(0, -overhang_left_a) as usize));
+////    println!("{}", maps.push_string(&maps.formatted(c.id_b), " ",  max(0, overhang_left_a) as usize));
+////    stdout().flush();
+//    let overlap_b_start : usize  = max(0, -overhang_left_a) as usize;
+//    let overlap_b_end : usize  = overlap_b_start + c.overlap_b;
+////    println!(" alen {} blen {}", a_len, b_len);
+//
+//    assert!(overlap_a_end <= a_len);
+//    assert!(overlap_b_end <= b_len);
+//    let a_part : &[u8] = &maps.get_string(id_a)  [overlap_a_start..overlap_a_end];
+//    let b_part : &[u8] = &maps.get_string(c.id_b)[overlap_b_start..overlap_b_end];
+
+//    println!("VERIFYING <{}> <{}>", String::from_utf8_lossy(a_part), String::from_utf8_lossy(b_part));
 
 //
 //        let overlap_a = a_match_len + cns.blind_a_chars;

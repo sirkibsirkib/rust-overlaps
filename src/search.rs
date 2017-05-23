@@ -18,8 +18,6 @@ use verification;
 use algorithm_modes::kucherov::get_block_lengths;
 use algorithm_modes::kucherov::candidate_condition;
 use algorithm_modes::kucherov::filter_func;
-
-pub static ALPH : &'static [u8] = b"ACGNT";
 pub static READ_ERR : u8 = b'N';
 
 pub trait GeneratesCandidates : FMIndexable {
@@ -127,7 +125,7 @@ pub trait GeneratesCandidates : FMIndexable {
         }
 
         // consider a new derived b string match, one char longer (in front) than existing match
-        for &a in ALPH.iter(){
+        for &a in cns.config.alphabet() {
             let less = self.less(a);
             let next_interval = Interval{
                 lower : less + if match_interval.lower > 0 { self.occ(match_interval.lower - 1, a) } else { 0 },
@@ -135,8 +133,6 @@ pub trait GeneratesCandidates : FMIndexable {
             };
 
             //TODO remove debug stuff
-
-
 
             let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
             let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
@@ -206,12 +202,6 @@ pub enum LastOperation{
     Insertion,
     Deletion,
 }
-
-//fn branch_allowed(last_operation : LastOperation, desired_operation : LastOperation) -> bool{
-//    match last_operation{
-//        Initial => true
-//    }
-//}
 
 impl LastOperation{
     fn allows_deletion(self) -> bool{
@@ -292,7 +282,7 @@ fn add_candidates_from_positions(positions : Vec<usize>,
         };
         let possible_b2s = (min_b2)..(max_b2 + 1);
 
-        // for edit distance, numerous instantiations of 
+        // for edit distance, numerous instantiations of
         for b2 in possible_b2s{
             let b3 = b_len as i32 - b1 - (b2 as i32);
             if b3 < 0 {
@@ -304,10 +294,11 @@ fn add_candidates_from_positions(positions : Vec<usize>,
             let c = Candidate {
                 id_b: id_b,
                 overlap_a: a2,
-                overlap_b: b2 as usize,
+                overlap_b: b2,
                 overhang_left_a: a1 - b1,
                 debug_str : new_debug,
             };
+//            println!("{:#?}", &c);
             cand_set.insert(c);
         }
     }

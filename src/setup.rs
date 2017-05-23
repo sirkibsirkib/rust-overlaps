@@ -34,6 +34,6 @@ pub fn parse_run_args() -> Config{
         sorted :        if matches.occurrences_of("sorted")        >= 1 {true} else {false},
         time:           if matches.occurrences_of("time")          >= 1 {true} else {false},
         print:          if matches.occurrences_of("print")         >= 1 {true} else {false},
-        n_alphabet:     if matches.occurrences_of("no_n")          == 0 {true} else {false},
+        n_alphabet :    if matches.occurrences_of("no_n")          == 0 {true} else {false},
     }
 }

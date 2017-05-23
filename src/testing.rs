@@ -62,7 +62,7 @@ mod tests {
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         solve(&config, &maps);
         let results = read_output(&config.output);
-        must_contain(&results, "x", "y", Orientation::Normal, -5, 10, 5, 5, 0);
+        must_contain(&results, "x", "y", Orientation::Normal, 5, 10, 5, 5, 0);
     }
 
     #[test]
@@ -70,7 +70,7 @@ mod tests {
         let config = Config{
             input  :        "./test_input/edit.fasta".to_owned(),
             output  :       "./test_output/edit.txt".to_owned(),
-            err_rate :      0.167,
+            err_rate :      0.2,
             thresh :        5,
             worker_threads: 1,
             reversals :     false,

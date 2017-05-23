@@ -4,6 +4,7 @@ pub mod solutions{
     use std::cmp::Ordering;
     use std::fmt;
     use std::cmp::max;
+    use std::mem::swap;
 
     #[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord)]
     pub enum Orientation{
@@ -32,27 +33,37 @@ pub mod solutions{
 
     impl Candidate{
 
-
         #[inline]
-        fn a1(&self) -> usize {
+        pub fn a1(&self) -> usize {
             max(0, self.overhang_left_a) as usize
         }
 
         #[inline]
-        fn b1(&self) -> usize {
+        pub fn b1(&self) -> usize {
             max(0, -self.overhang_left_a) as usize
         }
 
         #[inline]
-        fn a3(&self, a_len : usize) -> usize {
-            assert!(a_len >= self.a1() + self.overlap_a);
-            a_len - self.a1() - self.overlap_a
+        pub fn a2(&self) -> usize {
+            self.overlap_a
         }
 
         #[inline]
-        fn b3(&self, b_len : usize) -> usize {
-            assert!(b_len >= self.a1() + self.overlap_a);
-            b_len - self.b1() - self.overlap_b
+        pub fn b2(&self) -> usize {
+            self.overlap_b
+        }
+
+        //TODO tidy up these silly a2() etc. calls later
+        #[inline]
+        pub fn a3(&self, a_len : usize) -> usize {
+            assert!(a_len >= self.a1() + self.overlap_a);
+            a_len - self.a1() - self.a2()
+        }
+
+        #[inline]
+        pub fn b3(&self, b_len : usize) -> usize {
+            assert!(b_len >= self.b1() + self.overlap_b);
+            b_len - self.b1() - self.b2()
         }
     }
 
@@ -68,6 +79,23 @@ pub mod solutions{
         pub overlap_b : usize,
         pub errors : u32,
         pub cigar : String,
+    }
+
+    impl Solution{
+        pub fn v_flip(&mut self){
+            self.overhang_left_a *= -1;
+            self.overhang_right_b *= -1;
+            swap(&mut self.id_a, &mut self.id_b);
+            swap(&mut self.overlap_a, &mut self.overlap_b);
+            //VFLIP CIGAR
+        }
+
+        pub fn un_reverse(&mut self){
+            swap(&mut self.overhang_left_a, &mut self.overhang_right_b);
+            self.overhang_left_a *= -1;
+            self.overhang_right_b *= -1;
+            //H-FLIP CIGAR
+        }
     }
 
     impl Ord for Solution {
@@ -105,6 +133,8 @@ pub mod solutions{
         }
     }
 }
+
+
 
 pub mod run_config{
     extern crate bidir_map;
@@ -186,6 +216,8 @@ pub mod run_config{
         }
     }
 
+    pub static N_ALPH : &'static [u8] = b"ACGNT";
+    pub static ALPH : &'static [u8] = b"ACGT";
     #[derive(Debug)]
     pub struct Config{
         //TODO benchmark argument
@@ -206,5 +238,15 @@ pub mod run_config{
         pub time: bool,
         pub print: bool,
         pub n_alphabet: bool,
+    }
+
+    impl Config{
+        pub fn alphabet(&self) -> &[u8]{
+            if self.n_alphabet {
+                &N_ALPH
+            } else {
+                &ALPH
+            }
+        }
     }
 }
