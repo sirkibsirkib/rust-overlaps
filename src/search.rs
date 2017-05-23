@@ -53,7 +53,6 @@ pub trait GeneratesCandidates : FMIndexable {
                 patt_blocks : patt_blocks,
                 blind_a_chars: patt_len - p_i as usize - 1,
                 max_b_len : if config.edit_distance {(patt_len as f32 / (1.0-config.err_rate)).floor() as usize} else {patt_len},
-                min_b_len : if config.edit_distance {(patt_len as f32 * (1.0-config.err_rate)).floor() as usize} else {patt_len},
             };
             self.recurse_candidates(
                 &mut candidate_set, &cns, 0, p_i,
@@ -242,26 +241,20 @@ fn add_candidate_here(positions : Vec<usize>,
             //non-inclusions include the preceding dollar sign
             position += 1;
         }
-
-
         let (id_b, index_b) = if inclusion {
             cns.maps.find_occurrence_containing(position)
         } else {
             (cns.maps.id_for(position), position)
         };
 
-        if id_b == cns.id_a ||
-            (cns.config.edit_distance &&
+        if id_b == cns.id_a || (cns.config.edit_distance &&
                 cns.id_a == verification::companion_id(cns.id_a)){
-            //self-match or partner match
-//            println!("self match");
+            // matching self or partner
             continue;
         }
 
-
         let a_len = cns.pattern.len();
         let b_len = cns.maps.get_length(id_b);
-//        println!("alen {}, blen {}", a_len, b_len);
 
         // [e1 | a2 ]
         //     [ b2 | b3]  for suff-pref overlap
@@ -269,46 +262,33 @@ fn add_candidate_here(positions : Vec<usize>,
         //     [ a2 ]
         // [b1 | b2 | b3]  for inclusions
 
-//        let blind_b_chars = cns.blind_a_chars; //TODO this is an assumption
-//        let ()
-
-
-
         let a2 = a_match_len + cns.blind_a_chars;
         let a1 = if inclusion {0} else {(a_len - a2) as i32};
         let a3 = a_len as i32 - a1 - (a2 as i32);
         assert!(a3 == 0);
 
         let b1 = if inclusion {(position - index_b) as i32} else {0};
-
-        let b_ovr_smallest = max(cns.min_b_len, b_match_len);
-        let b_ovr_largest = min(b_len, cns.max_b_len);
-        let b_ovr_iter = (b_ovr_smallest)..(b_ovr_largest+1);
-        println!("{} - ({}) - {}", cns.min_b_len, cns.pattern.len(), cns.max_b_len);
-        println!("[{}/{}/{}]", a1, a2, a3);
-        println!("b2iter : {:?} \n b2 has length of {}", b_ovr_iter.clone().collect::<Vec<_>>(), b_ovr_iter.len());
-
-
-        for b_ovr in b_ovr_iter{
-            let b2 = b_ovr - b_match_len;
+        assert!(a1 * b1 <= 0);
+        let (min_b2, max_b2) = if !cns.config.edit_distance {
+            //if hamming a2 == b2
+            (a2, a2)
+        } else {
+            // b_overlap_len is unknown, but it is bound by a number of factors
+            // so here we decide the upper and lower bound for b2
+            (
+                max((a2 as f32 * (1.0-cns.config.err_rate)).ceil() as usize,
+                    b_match_len),
+                min((a2 as f32 / (1.0-cns.config.err_rate)).floor() as usize,
+                    b_len),
+            )
+        };
+        let possible_b2s = (min_b2)..(max_b2 + 1);
+        for b2 in possible_b2s{
             let b3 = b_len as i32 - b1 - (b2 as i32);
-            if b3 < 0{
-                // b is too short to match
+            if b3 < 0 {
+                // b is too short to accommodate a suitable match length
                 continue;
             }
-            if !cns.config.edit_distance && b2 != a2 {
-                // hamming requires the lengths match
-                continue;
-            }
-
-            assert!(a1 * b1 <= 0);
-            //        println!("\n\nincl {}\n[{}/{}/{}]", inclusion, a1,a2,a3);
-            //        println!("[{}/{}/{}]", b1,b2,b3);
-
-            //        if (a2 == a_len) && (b2 == b_len as i32) && (cns.id_a > id_b) {
-            //            //perfect complete overlap. this one is deemed to be redundant
-            //            continue;
-            //        }
             let mut new_debug = debug.to_owned();
             new_debug.push_str(&format!(" incl {} blind {}", inclusion, cns.blind_a_chars));
             let c = Candidate {
@@ -318,7 +298,6 @@ fn add_candidate_here(positions : Vec<usize>,
                 overhang_left_a: a1 - b1,
                 debug_str : new_debug,
             };
-            //        println!("CAND {:#?}", &c);
             cand_set.insert(c);
         }
     }
@@ -337,7 +316,6 @@ pub struct SearchConstants<'a>{
     blind_a_chars: usize,
     hard_error_cap : i32,
 
-    min_b_len : usize,
     max_b_len : usize,
 
     first_block_id : i32,
