@@ -1,5 +1,4 @@
 use fmt;
-use structs;
 
 #[inline]
 pub fn for_reversed_string(id : usize) -> bool {

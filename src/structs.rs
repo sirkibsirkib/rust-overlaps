@@ -6,12 +6,9 @@ Structs and methods for solutions and candidate solutions to be used throughout 
 pub mod solutions{
     use std::hash::{Hash, Hasher};
     use std::cmp::Ordering;
-    use std::fmt;
     use std::cmp::max;
     use std::mem::swap;
     use super::useful::*;
-
-
 
     //NOT oriented
     #[derive(Hash,PartialEq, Eq, Debug)]
@@ -145,7 +142,6 @@ representations and is queried throughout the run, also never changing after bei
 pub mod run_config{
     extern crate bidir_map;
     use bidir_map::BidirMap;
-    use std;
 
     #[derive(Debug)]
     pub struct Maps{
@@ -156,7 +152,6 @@ pub mod run_config{
     }
 
     impl Maps{
-
         pub fn get_string(&self, id : usize) -> &[u8]{
             assert!(id < self.num_ids);
             &self.text[*self.id2index_bdmap.get_by_first(&id).expect("GAH")..self.get_end_index(id)]
@@ -191,22 +186,22 @@ pub mod run_config{
             self.id2name_vec.get(id).expect("get name")
         }
 
-        pub fn print_text_debug(&self){
-            println!("{}", String::from_utf8_lossy(&self.text));
-        }
+//        pub fn print_text_debug(&self){
+//            println!("{}", String::from_utf8_lossy(&self.text));
+//        }
 
-        pub fn formatted(&self, id : usize) -> String{
-            format!("{}",String::from_utf8_lossy(self.get_string(id)))
-        }
+//        pub fn formatted(&self, id : usize) -> String{
+//            format!("{}",String::from_utf8_lossy(self.get_string(id)))
+//        }
 
-        pub fn push_string(&self, print : &str, push_str : &str, pushes : usize) -> String{
-            let mut s = String::new();
-            for _ in 0..pushes{
-                s.push_str(push_str);
-            }
-            s.push_str(print);
-            s
-        }
+//        pub fn push_string(&self, print : &str, push_str : &str, pushes : usize) -> String{
+//            let mut s = String::new();
+//            for _ in 0..pushes{
+//                s.push_str(push_str);
+//            }
+//            s.push_str(print);
+//            s
+//        }
 
         #[inline]
         pub fn id_for(&self, id : usize) -> usize{
@@ -215,11 +210,11 @@ pub mod run_config{
                                 id, self.num_ids)))
         }
 
-        #[inline]
-        pub fn index_for(&self, index : usize) -> usize{
-            *(self.id2index_bdmap.get_by_first(&index)
-                .expect(&format!("no id at index {}", index)))
-        }
+//        #[inline]
+//        pub fn index_for(&self, index : usize) -> usize{
+//            *(self.id2index_bdmap.get_by_first(&index)
+//                .expect(&format!("no id at index {}", index)))
+//        }
     }
 
     pub static N_ALPH : &'static [u8] = b"ACGNT";

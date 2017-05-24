@@ -6,7 +6,6 @@ use bio::data_structures::fmindex::FMIndexable;
 use std;
 use std::collections::HashSet;
 use std::cmp::{min,max};
-use std::hash::Hash;
 
 ////////////////////////////////
 

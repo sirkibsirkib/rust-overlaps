@@ -1,35 +1,5 @@
-
-
-
-
-Text is FORWARDS
-Filters are FORWARDS (Pattern has Suffix filters)
-Search iterates over characters FORWARDS
----------the mapping from p_i --> pattern[?] is BACKWARDS (REVERSAL)-------
-Text is FORWARDS
-indexes for $ are at the FRONT of the string
-
-
-
 TODO:
-	cargo args / program args
-	internal representation of strings is backwards. this has ramifications for what is a_left etc.
 
-
-TODO rustbio feedback:
-	hamming returns u64, levenstein returns u32
-
-
-
-
-[pattern]
-[f0     ]
-[f1  ]
-[f2]
-
-  $[match??????]
-
-cands:
-
-[pattern]
-    [   ]
+are my structs (ie: PatternConstant, Config) too large?
+is my program setup sensible?
+should I care about these types?

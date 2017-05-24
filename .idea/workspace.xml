@@ -2,14 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_input/incl.fasta" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prepare.rs" afterPath="$PROJECT_DIR$/src/prepare.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/search.rs" afterPath="$PROJECT_DIR$/src/search.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/structs.rs" afterPath="$PROJECT_DIR$/src/structs.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/testing.rs" afterPath="$PROJECT_DIR$/src/testing.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/useful.rs" afterPath="$PROJECT_DIR$/src/useful.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/verification.rs" afterPath="$PROJECT_DIR$/src/verification.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_output/edit.txt" afterPath="$PROJECT_DIR$/test_output/edit.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/todo.txt" afterPath="$PROJECT_DIR$/todo.txt" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -29,8 +28,18 @@
       <file leaf-file-name="verification.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/verification.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="336">
-              <caret line="123" column="5" lean-forward="true" selection-start-line="123" selection-start-column="5" selection-end-line="123" selection-end-column="5" />
+            <state relative-caret-position="324">
+              <caret line="91" column="8" lean-forward="false" selection-start-line="91" selection-start-column="8" selection-end-line="91" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="useful.rs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/useful.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="8" lean-forward="false" selection-start-line="0" selection-start-column="8" selection-end-line="0" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -66,21 +75,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ham_rev_incl.fasta" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test_input/ham_rev_incl.fasta">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="3" column="5" lean-forward="true" selection-start-line="3" selection-start-column="5" selection-end-line="3" selection-end-column="5" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="search.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/search.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="211">
-              <caret line="361" column="52" lean-forward="false" selection-start-line="361" selection-start-column="52" selection-end-line="361" selection-end-column="52" />
+            <state relative-caret-position="87">
+              <caret line="288" column="22" lean-forward="true" selection-start-line="288" selection-start-column="22" selection-end-line="288" selection-end-column="22" />
               <folding />
             </state>
           </provider>
@@ -89,8 +88,8 @@
       <file leaf-file-name="structs.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/structs.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="115" column="44" lean-forward="false" selection-start-line="115" selection-start-column="44" selection-end-line="115" selection-end-column="44" />
+            <state relative-caret-position="675">
+              <caret line="216" column="11" lean-forward="false" selection-start-line="212" selection-start-column="14" selection-end-line="216" selection-end-column="11" />
               <folding />
             </state>
           </provider>
@@ -106,11 +105,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="249">
-              <caret line="49" column="21" lean-forward="false" selection-start-line="49" selection-start-column="14" selection-end-line="49" selection-end-column="21" />
+            <state relative-caret-position="75">
+              <caret line="18" column="23" lean-forward="false" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="todo.txt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/todo.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="100">
+              <caret line="4" column="32" lean-forward="false" selection-start-line="4" selection-start-column="32" selection-end-line="4" selection-end-column="32" />
               <folding />
             </state>
           </provider>
@@ -127,10 +136,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>id</find>
-      <find>&amp;i</find>
-      <find>id2name</find>
-      <find>i32</find>
       <find>text</find>
       <find>'a</find>
       <find>unwra</find>
@@ -157,6 +162,10 @@
       <find>useful</find>
       <find>scns</find>
       <find>s_cns</find>
+      <find>verbose</find>
+      <find>maps.id2</find>
+      <find>id2index_bdmap</find>
+      <find>mut id</find>
     </findStrings>
     <replaceStrings>
       <replace>b_match_len</replace>
@@ -205,7 +214,6 @@
         <option value="$PROJECT_DIR$/data/out.txt" />
         <option value="$PROJECT_DIR$/test_input/basic_mapping.fasta" />
         <option value="$PROJECT_DIR$/test_input/ham.fasta" />
-        <option value="$PROJECT_DIR$/todo.txt" />
         <option value="$PROJECT_DIR$/test_output/ham.txt" />
         <option value="$PROJECT_DIR$/test_input/edit.fasta" />
         <option value="$PROJECT_DIR$/src/algorithm_modes.rs" />
@@ -215,17 +223,18 @@
         <option value="$PROJECT_DIR$/src/setup.rs" />
         <option value="$PROJECT_DIR$/src/helper.rs" />
         <option value="$PROJECT_DIR$/test_output/reverse.txt" />
-        <option value="$PROJECT_DIR$/src/main.rs" />
-        <option value="$PROJECT_DIR$/src/useful.rs" />
         <option value="$PROJECT_DIR$/test_input/incl.fasta" />
-        <option value="$PROJECT_DIR$/src/structs.rs" />
         <option value="$PROJECT_DIR$/test_input/no_n.fasta" />
         <option value="$PROJECT_DIR$/test_input/ham_rev_incl.fasta" />
-        <option value="$PROJECT_DIR$/src/verification.rs" />
-        <option value="$PROJECT_DIR$/src/search.rs" />
         <option value="$PROJECT_DIR$/test_input/edit_incl.fasta" />
         <option value="$PROJECT_DIR$/src/prepare.rs" />
         <option value="$PROJECT_DIR$/src/testing.rs" />
+        <option value="$PROJECT_DIR$/todo.txt" />
+        <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/src/search.rs" />
+        <option value="$PROJECT_DIR$/src/structs.rs" />
+        <option value="$PROJECT_DIR$/src/verification.rs" />
+        <option value="$PROJECT_DIR$/src/useful.rs" />
       </list>
     </option>
   </component>
@@ -758,13 +767,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/todo.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="15" column="99" lean-forward="false" selection-start-line="15" selection-start-column="99" selection-end-line="15" selection-end-column="99" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test_output/ham.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -833,14 +835,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/useful.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="26" column="7" lean-forward="false" selection-start-line="26" selection-start-column="7" selection-end-line="26" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/setup.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="522">
@@ -873,14 +867,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/structs.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="115" column="44" lean-forward="false" selection-start-line="115" selection-start-column="44" selection-end-line="115" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test_input/ham_rev_incl.fasta">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -893,22 +879,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
           <caret line="3" column="14" lean-forward="false" selection-start-line="3" selection-start-column="14" selection-end-line="3" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/verification.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="123" column="5" lean-forward="true" selection-start-line="123" selection-start-column="5" selection-end-line="123" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/search.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="211">
-          <caret line="361" column="52" lean-forward="false" selection-start-line="361" selection-start-column="52" selection-end-line="361" selection-end-column="52" />
           <folding />
         </state>
       </provider>
@@ -937,10 +907,50 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/todo.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="100">
+          <caret line="4" column="32" lean-forward="false" selection-start-line="4" selection-start-column="32" selection-end-line="4" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="249">
-          <caret line="49" column="21" lean-forward="false" selection-start-line="49" selection-start-column="14" selection-end-line="49" selection-end-column="21" />
+        <state relative-caret-position="75">
+          <caret line="18" column="23" lean-forward="false" selection-start-line="18" selection-start-column="23" selection-end-line="18" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/search.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="87">
+          <caret line="288" column="22" lean-forward="true" selection-start-line="288" selection-start-column="22" selection-end-line="288" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/structs.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="675">
+          <caret line="216" column="11" lean-forward="false" selection-start-line="212" selection-start-column="14" selection-end-line="216" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/verification.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="91" column="8" lean-forward="false" selection-start-line="91" selection-start-column="8" selection-end-line="91" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/useful.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="8" lean-forward="false" selection-start-line="0" selection-start-column="8" selection-end-line="0" selection-end-column="8" />
           <folding />
         </state>
       </provider>

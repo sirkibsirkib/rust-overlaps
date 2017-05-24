@@ -1,9 +1,5 @@
-use std::cmp::{min, max};
-use std::mem::swap;
+use std::cmp::max;
 use std::collections::HashSet;
-use std::thread;
-use std::io::Write;
-use std::io::stdout;
 
 use bio::alignment::distance::*;
 
@@ -57,14 +53,11 @@ a2 and b2 are the overlapping sections, and a1,a3,b1,b3 are the lengths of parts
 */
 fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
     let a_len = maps.get_length(id_a);
-    let b_len = maps.get_length(c.id_b);
     assert_eq!(c.a3(a_len), 0);
-    assert!(c.b3(b_len) >= 0); //would actually panic before this line because b3() -> usize but OK
+    //b3 is usize, so implicitly b3 >= 0
 
     let a_part : &[u8] = &maps.get_string(id_a)  [c.a1()..(c.a1()+c.a2())];
     let b_part : &[u8] = &maps.get_string(c.id_b)[c.b1()..(c.b1()+c.b2())];
-
-//    println!("{:?}\n{:?}\n\n", String::from_utf8_lossy(a_part), String::from_utf8_lossy(b_part));
 
     let errors : u32 = if config.edit_distance{
         levenshtein(a_part, b_part)
@@ -93,10 +86,10 @@ but Candidates are largely INTERNAL (as verifying them requires the use of the i
 
 *See annotation for verify() above for an explanation of a1,a2,a3,b1,b2,b3 etc. used here.
 */
-fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, errors : u32,
+fn solution_from_candidate(c : Candidate, id_a : usize, cigar : String, errors : u32,
                            maps : &Maps, config : &Config) -> Solution {
-    let mut a_len = maps.get_length(id_a);
-    let mut b_len = maps.get_length(c.id_b);
+    let a_len = maps.get_length(id_a);
+    let b_len = maps.get_length(c.id_b);
     let orientation = relative_orientation(id_a, c.id_b, config.reversals);
     let mut sol = Solution{
         id_a : id_a,

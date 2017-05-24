@@ -7,7 +7,6 @@ use bio::data_structures::fmindex::FMIndex;
 use bio::data_structures::suffix_array::suffix_array;
 use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::alphabets::Alphabet;
-use bio::data_structures::fmindex::FMIndexable;
 
 #[macro_use]
 extern crate clap;
@@ -18,8 +17,6 @@ use std::fs::File;
 use std::io::{Write, BufWriter};
 use std::collections::HashSet;
 use std::time::Instant;
-use std::thread;
-use std::io::stdout;
 use std::fmt;
 /////////////////////////////////////
 
@@ -85,7 +82,6 @@ fn solve(config : &Config, maps : &Maps){
         .expect("couldn't write header line to output");
     if config.verbose{println!("OK output writer ready.");}
 
-//    let id_iterator = get_id_iterator(maps.num_ids, config.reversals);
     let id_iterator = 0..maps.num_ids;
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
@@ -93,10 +89,9 @@ fn solve(config : &Config, maps : &Maps){
     println!("OK working.");
     let start_time = Instant::now();
 
-    // hygiene block
     {
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm);
-        let mut aggregator = |solutions| {               // aggregation to apply to work results
+        let aggregator = |solutions| {               // aggregation to apply to work results
             if config.greedy_output {
                 //workers ==> out
                 for sol in solutions {write_solution(&mut wrt_buf, &sol, maps, config);}
@@ -106,22 +101,19 @@ fn solve(config : &Config, maps : &Maps){
                 for sol in solutions {&mut complete_solution_list.push(sol);}
             }
         };
-        for id_a in id_iterator{
-            aggregator(computation(id_a));
-        }
-//        multithreaded part
-//        cue::pipeline(
-//            "overlap_pipeline",          // name of the pipeline for logging
-//             config.worker_threads,      // number of worker threads
-//             id_iterator,                // iterator with work items
-//             computation,
-//             aggregator,
-//        );
-    }
+        // SINGLE-THREADED mode
+//        for id_a in id_iterator{
+//            aggregator(computation(id_a));
+//        }
+        cue::pipeline(
+            "overlap_pipeline",          // name of the pipeline for logging
+             config.worker_threads,      // number of worker threads
+             id_iterator,                // iterator with work items
+             computation,
+             aggregator,
+        );
+    } // borrow of solution now returned
 
-    //sequential part
-
-    use std::hash::{Hash, SipHasher, Hasher};
     if !config.greedy_output {
         complete_solution_list.sort();
         if config.verbose{println!("OK output list sorted.");}
@@ -136,7 +128,12 @@ fn solve(config : &Config, maps : &Maps){
     if config.verbose{println!("OK output file {} written.", config.output);};
 
     //TODO replace elapsed time with something better
-    let s = match Instant::elapsed(&start_time).as_secs(){
+    println!("OK completed in {}.", approx_elapsed_string(&start_time));
+}
+
+#[inline]
+fn approx_elapsed_string(start_time : &Instant) -> String{
+    match Instant::elapsed(&start_time).as_secs(){
         x if x == 0 => format!("< 1 sec"),
         x if x < 200 => format!("~{} sec", x),
         x if x < 60*120 => format!("~{} min", x/60),
@@ -144,22 +141,8 @@ fn solve(config : &Config, maps : &Maps){
         x if x < 60*60*24*3 => format!("~{} days", x/60/60/24),
         x if x < 60*60*24*7*3 => format!("~{} weeks", x/60/60/24/7),
         x => format!("~{} months", x/60/60/24/30),
-    };
-    println!("OK completed in {}.", s);
+    }
 }
-
-/*
-generates an iterator for all the forward strings in the input (patterns) ie. not reversals
-*/
-//#[inline]
-//fn get_id_iterator(num_ids : usize, reversals : bool) -> IDIterator{
-//    IDIterator{
-//        num_ids : num_ids,
-//        next : 0,
-//        //skip reversed input strings (would find redundant solutions)
-//        step : if reversals {2} else {1},
-//    }
-//}
 
 /*
 This is one task.
@@ -206,29 +189,8 @@ fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, confi
     }
 }
 
-//#[derive(Debug, Clone)]
-//struct IDIterator{
-//    num_ids : usize,
-//    next : usize,
-//    step : usize,
-//}
-//
-//impl Iterator for IDIterator {
-//    type Item = usize;
-//
-//    #[inline]
-//    fn next(&mut self) -> Option<usize> {
-//        if self.next < self.num_ids{
-//            self.next += self.step;
-//            Some(self.next - self.step)
-//        }else{
-//            None
-//        }
-//    }
-//}
-
 impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> GeneratesCandidates
                     for FMIndex<DBWT, DLess, DOcc> {
-    // empty
+    //empty
 }
 
