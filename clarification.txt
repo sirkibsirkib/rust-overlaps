@@ -1,0 +1,48 @@
+The start or end / direction of strings is ambiguous, as it differs depending on the context.
+> Left / Right / Leffix / Riffix refer to the directions of left and right, and [prefixes or suffixes of strings]
+  strictly with respect to their IN-SILICO representation. (ie how they would actually occur in memory)
+  In much of the program (ie during search and for candidates) this is reversed.
+  So a leffix of a string would map to a suffix during search. etc.
+
+> Forward / Backward / Prefix / Suffix refer to the CONCEPTUAL directions with respect to the input strings.
+
+The input strings are stored backwards in the text
+input XYZ --> text $ZYX#
+
+        $ZYX#
+so here  Z
+this Z is at the LEFT side (since its in the leftmost index position in the actual text)
+this Z is at BACK (as it is the last character of the input string XYZ
+'Z' also forms a leffix / suffix of the text's pattern string
+
+
+$GFEDCBA$ZYXW#      <-- text for inputs {ABCDEFG, WXYZ}
+ GFEDCBA			<-- pattern for input string ABCDEFG
+ |||||||
+ GFEDCBA			\
+ GFEDC''             | Leffixes / Suffixes of the patterns. The 's represent BLIND characters not searched
+ GFE''''            /
+
+LR search direction is (right to left, rightward)
+which maps to (front to back, forwards)
+ie: given the leffix/suffix: GFEDCBA
+GFEDCBA
+....<--
+..<----
+<------
+
+A suffix-prefix overlap found in this manner would be found like this
+
+a: GFEDCBA          PATTERN string
+   ..<--
+b:   EDC''''''''    MATCH string
+
+For the pattern's Riffix / prefix overlaps the match's Leffix.
+The 's here represent chars in the MATCH string that fall into and beyond the BLIND section of the suffix filter.
+The string ends somewhere to the right but where is not known immediately.
+
+The whole point of this confusing design is that from the OUTSIDE looking in,
+the filters are SUFFIX filters (and thus match the literature).
+The confusion is contained within the search and verification steps only.
+
+

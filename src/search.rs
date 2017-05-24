@@ -46,6 +46,7 @@ pub trait GeneratesCandidates : FMIndexable {
                            id_a : usize,
                            sa : &RawSuffixArray,
                             ) -> HashSet<Candidate> {
+//        println!("\nPATTERN {}", String::from_utf8_lossy(pattern));
         let patt_len = pattern.len();
         let block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
@@ -59,7 +60,10 @@ pub trait GeneratesCandidates : FMIndexable {
 
         // each of these represents a suffix filter to be treated as a pattern to query the index
         //TODO split into PatternConstant and FilterConstant structs
+//        println!("{:?}", &block_lengths);
         for (block_id, block_len) in block_lengths.iter().enumerate() {
+//            println!("\nFILTER  {}", String::from_utf8_lossy(&pattern[..(p_i as usize + 1)]));
+            //TODO how do i slice a slice?
             let cns = SearchConstants{
                 pattern: pattern,
                 hard_error_cap : (patt_len as f32 * config.err_rate).floor() as i32,
@@ -157,6 +161,10 @@ pub trait GeneratesCandidates : FMIndexable {
         }
 
         // consider a new derived b string match, one char longer (in front) than existing match
+        let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
+//        println!();
+//        println!("{}", String::from_utf8_lossy(cns.pattern));
+//        println!("{}|{}", cns.maps.push_string(&(p_char as char).to_string(), " ", p_i as usize), debug);
         for &a in cns.config.alphabet() {
             let less = self.less(a);
             let next_interval = Interval{
@@ -165,11 +173,10 @@ pub trait GeneratesCandidates : FMIndexable {
             };
 
             //TODO remove debug stuff
-
-            let p_char = *cns.pattern.get(p_i as usize).expect("THE P CHAR");
             let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
+            let debug_a = if p_char == a {a as char} else {smaller(a)};
             if recurse_errors <= permitted_errors {
-                let next_debug = format!("{}{}", a as char, debug);
+                let next_debug = format!("{}{}", debug_a, debug);
                 // recursively explore SUBSTITUTION cases (both hamming and levenshtein)
                 self.recurse_candidates(cand_set,
                                         cns,
@@ -181,18 +188,24 @@ pub trait GeneratesCandidates : FMIndexable {
                                         &next_interval,
                                         &next_debug);
             }
-            if (p_char != a) && (errors < permitted_errors) && cns.config.edit_distance && last_operation.allows_insertion() {
-                // recursively explore INSERTION cases (if levenshtein)
-                let next_debug = format!("{}{}", smaller(a), debug);
-                self.recurse_candidates(cand_set,
-                                        cns,
-                                        errors + 1, //always induces an error
-                                        p_i,        //don't step left
-                                        LastOperation::Insertion,
-                                        a_match_len,//the pattern string doesn't grow
-                                        b_match_len + 1,
-                                        &next_interval,
-                                        &next_debug);
+            if (errors < permitted_errors) && cns.config.edit_distance && last_operation.allows_insertion() {
+                if p_char != a{
+                    // recursively explore INSERTION cases (if levenshtein)
+                    let next_debug = format!("{}.{}", debug_a, debug);
+                    self.recurse_candidates(cand_set,
+                                            cns,
+                                            errors + 1, //always induces an error
+                                            p_i,        //don't step left
+                                            LastOperation::Insertion,
+                                            a_match_len,//the pattern string doesn't grow
+                                            b_match_len + 1,
+                                            &next_interval,
+                                            &next_debug);
+                }else{
+
+//                    println!("{} insert prohibited", a as char);
+                }
+
 
             }
         }
@@ -281,6 +294,9 @@ fn add_candidates_from_positions(positions : Vec<usize>,
             // matching self or partner. not interested in these solutions.
             continue;
         }
+//        println!();
+//        cns.maps.print_text_debug();
+//        println!("{}{}", cns.maps.push_string(debug, " ", position), cns.maps.push_string("", "~", cns.blind_a_chars));
 
         let a_len = cns.pattern.len();
         let b_len = cns.maps.get_length(id_b);

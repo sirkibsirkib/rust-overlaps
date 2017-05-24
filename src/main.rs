@@ -88,10 +88,6 @@ fn solve(config : &Config, maps : &Maps){
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
-    if config.edit_distance{
-        println!("BEWARE! current impl. makes assumptions about the size of the blind spot in an overlap");
-    }
-
     println!("OK working.");
     let start_time = Instant::now();
 

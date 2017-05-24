@@ -40,10 +40,10 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
         return solution_set;
     }
     for c in candidates {
-        let format = format!("{:#?}", &c);
+//        let format = format!("{:#?}", &c);
         if let Some(solution) = verify(id_a, c, config, maps){
 //            println!("SOL {:#?}",&solution);
-            println!("{:?}\n{:#?}\n\n", format, &solution);
+//            println!("{:?}\n{:#?}\n\n", format, &solution);
             solution_set.insert(solution);
         }
     }
@@ -78,7 +78,7 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     let a_part : &[u8] = &maps.get_string(id_a)  [c.a1()..(c.a1()+c.a2())];
     let b_part : &[u8] = &maps.get_string(c.id_b)[c.b1()..(c.b1()+c.b2())];
 
-    println!("{:?}\n{:?}\n\n", String::from_utf8_lossy(a_part), String::from_utf8_lossy(b_part));
+//    println!("{:?}\n{:?}\n\n", String::from_utf8_lossy(a_part), String::from_utf8_lossy(b_part));
 
     let errors : u32 = if config.edit_distance{
         levenshtein(a_part, b_part)

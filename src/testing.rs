@@ -10,14 +10,14 @@ mod tests {
 
     #[derive (Eq, PartialEq, Hash, Debug)]
     struct GoodSolution{
-        a_name : String,
-        b_name : String,
-        orientation : Orientation,
-        overhang_left_a : i32,
-        overhang_right_b : i32,
-        overlap_a : usize,
-        overlap_b : usize,
-        errors : u32,
+        a_nm: String,
+        b_nm: String,
+        or: Orientation,
+        oha: i32,
+        ohb: i32,
+        ola: usize,
+        olb: usize,
+        err: u32,
     }
 
     #[test]
@@ -66,7 +66,10 @@ mod tests {
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         solve(&config, &maps);
         let results = read_output(&config.output);
-        must_contain(&results, "x", "y", Orientation::Normal, 5, 10, 5, 5, 0);
+        use Orientation::*;
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:5, ohb:10, ola:5, olb:5, err:0});
+        panic_if_solutions_missing(results, should_contain);
     }
 
     #[test]
@@ -89,7 +92,12 @@ mod tests {
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         solve(&config, &maps);
         let results = read_output(&config.output);
-        must_contain(&results, "x", "y", Orientation::Normal, 7, 7, 6, 5, 1);
+
+
+        use Orientation::*;
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:7, ohb:7, ola:6, olb:7, err:1});
+        panic_if_solutions_missing(results, should_contain);
     }
 
     fn read_output(filename : &str) -> HashSet<GoodSolution>{
@@ -101,14 +109,14 @@ mod tests {
                 Ok(l) =>  {
                     let parts = l.split("\t").collect::<Vec<_>>();
                     let sol = GoodSolution{
-                        a_name : parts[0].to_owned(),
-                        b_name : parts[1].to_owned(),
-                        orientation : if parts[2]=="N" {Orientation::Normal} else {Orientation::Reversed},
-                        overhang_left_a : parts[3].parse().unwrap(),
-                        overhang_right_b : parts[4].parse().unwrap(),
-                        overlap_a : parts[5].parse().unwrap(),
-                        overlap_b : parts[6].parse().unwrap(),
-                        errors : parts[7].parse().unwrap(),
+                        a_nm: parts[0].to_owned(),
+                        b_nm: parts[1].to_owned(),
+                        or: if parts[2]=="N" {Orientation::Normal} else {Orientation::Reversed},
+                        oha: parts[3].parse().unwrap(),
+                        ohb: parts[4].parse().unwrap(),
+                        ola: parts[5].parse().unwrap(),
+                        olb: parts[6].parse().unwrap(),
+                        err: parts[7].parse().unwrap(),
                     };
                     result.insert(sol);
                 },
@@ -118,22 +126,18 @@ mod tests {
         result
     }
 
-    fn must_contain(solutions : &HashSet<GoodSolution>,
-                    a_name : &str, b_name : &str, orientation : Orientation,
-                    overhang_left_a : i32, overhang_right_b : i32,
-                    overlap_a : usize, overlap_b : usize, errors : u32) {
-        let sol = GoodSolution{
-            a_name : a_name.to_owned(),
-            b_name : b_name.to_owned(),
-            orientation : orientation,
-            overhang_left_a : overhang_left_a,
-            overhang_right_b : overhang_right_b,
-            overlap_a : overlap_a,
-            overlap_b : overlap_b,
-            errors : errors,
-        };
-        if !solutions.contains(&sol){
-            panic!(format!("Solution missing! {:#?}\nSolutions : {:#?}", &sol, &solutions));
+    fn panic_if_solutions_missing(solutions : HashSet<GoodSolution>, should_contain : HashSet<GoodSolution>){
+        let mut found : HashSet<&GoodSolution> = HashSet::new();
+        let mut missing : HashSet<&GoodSolution> = HashSet::new();
+        for x in should_contain.iter(){
+            if solutions.contains(&x){
+                found.insert(x);
+            }else{
+                missing.insert(x);
+            }
+        }
+        if missing.len() > 0{
+            panic!(format!("MISSING {} / {} solutions\n{:#?}", missing.len(), should_contain.len(), &missing));
         }
     }
 }
