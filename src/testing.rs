@@ -100,6 +100,33 @@ mod tests {
         panic_if_solutions_missing(results, should_contain);
     }
 
+    #[test]
+    fn reverse() {
+        let config = Config{
+            input  :        "./test_input/reverse.fasta".to_owned(),
+            output  :       "./test_output/reverse.txt".to_owned(),
+            err_rate :      0.2,
+            thresh :        5,
+            worker_threads: 1,
+            reversals :         true,
+            inclusions :    false,
+            edit_distance : false,
+            verbose :       false,
+            sorted :        false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+
+        use Orientation::*;
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:-8, ohb:-8, ola:8, olb:8, err:0});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
     fn read_output(filename : &str) -> HashSet<GoodSolution>{
         let mut result : HashSet<GoodSolution> = HashSet::new();
         let f = File::open(filename).unwrap();
@@ -137,7 +164,8 @@ mod tests {
             }
         }
         if missing.len() > 0{
-            panic!(format!("MISSING {} / {} solutions\n{:#?}", missing.len(), should_contain.len(), &missing));
+            panic!(format!("MISSING {} / {} solutions\n{:#?}. all solutions {:#?}",
+                           missing.len(), should_contain.len(), &missing, &solutions));
         }
     }
 }

@@ -2,13 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/clarification.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test_input/reverse.fasta" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/search.rs" afterPath="$PROJECT_DIR$/src/search.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/prepare.rs" afterPath="$PROJECT_DIR$/src/prepare.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/testing.rs" afterPath="$PROJECT_DIR$/src/testing.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/verification.rs" afterPath="$PROJECT_DIR$/src/verification.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -38,8 +35,28 @@
       <file leaf-file-name="testing.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/testing.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="425">
-              <caret line="17" column="8" lean-forward="false" selection-start-line="17" selection-start-column="8" selection-end-line="17" selection-end-column="11" />
+            <state relative-caret-position="286">
+              <caret line="119" column="86" lean-forward="true" selection-start-line="119" selection-start-column="86" selection-end-line="119" selection-end-column="86" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="reverse.fasta" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test_input/reverse.fasta">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="75">
+              <caret line="3" column="6" lean-forward="true" selection-start-line="3" selection-start-column="6" selection-end-line="3" selection-end-column="6" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="prepare.rs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/prepare.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="611">
+              <caret line="71" column="28" lean-forward="false" selection-start-line="71" selection-start-column="28" selection-end-line="71" selection-end-column="28" />
               <folding />
             </state>
           </provider>
@@ -48,18 +65,18 @@
       <file leaf-file-name="search.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/search.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="625">
-              <caret line="298" column="21" lean-forward="false" selection-start-line="296" selection-start-column="21" selection-end-line="298" selection-end-column="21" />
+            <state relative-caret-position="475">
+              <caret line="298" column="66" lean-forward="true" selection-start-line="298" selection-start-column="66" selection-end-line="298" selection-end-column="66" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="261">
-              <caret line="88" column="89" lean-forward="false" selection-start-line="88" selection-start-column="89" selection-end-line="88" selection-end-column="89" />
+            <state relative-caret-position="-114">
+              <caret line="97" column="30" lean-forward="true" selection-start-line="97" selection-start-column="30" selection-end-line="97" selection-end-column="30" />
               <folding />
             </state>
           </provider>
@@ -69,7 +86,7 @@
         <entry file="file://$PROJECT_DIR$/test_input/edit.fasta">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="75">
-              <caret line="3" column="7" lean-forward="true" selection-start-line="3" selection-start-column="7" selection-end-line="3" selection-end-column="14" />
+              <caret line="3" column="14" lean-forward="true" selection-start-line="3" selection-start-column="14" selection-end-line="3" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -178,15 +195,16 @@
         <option value="$PROJECT_DIR$/test_output/ham.txt" />
         <option value="$PROJECT_DIR$/test_input/edit.fasta" />
         <option value="$PROJECT_DIR$/src/algorithm_modes.rs" />
-        <option value="$PROJECT_DIR$/src/prepare.rs" />
         <option value="$PROJECT_DIR$/src/setup.rs" />
         <option value="$PROJECT_DIR$/src/structs.rs" />
         <option value="$PROJECT_DIR$/graveyard.txt" />
         <option value="$PROJECT_DIR$/clarification.txt" />
-        <option value="$PROJECT_DIR$/src/testing.rs" />
         <option value="$PROJECT_DIR$/src/verification.rs" />
         <option value="$PROJECT_DIR$/src/search.rs" />
         <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/test_input/reverse.fasta" />
+        <option value="$PROJECT_DIR$/src/testing.rs" />
+        <option value="$PROJECT_DIR$/src/prepare.rs" />
       </list>
     </option>
   </component>
@@ -600,14 +618,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/algorithm_modes.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2675">
@@ -830,14 +840,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/prepare.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="275">
-          <caret line="11" column="57" lean-forward="false" selection-start-line="11" selection-start-column="57" selection-end-line="11" selection-end-column="57" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/setup.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="100">
@@ -876,22 +878,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test_input/edit.fasta">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="3" column="7" lean-forward="true" selection-start-line="3" selection-start-column="7" selection-end-line="3" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/testing.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="17" column="8" lean-forward="false" selection-start-line="17" selection-start-column="8" selection-end-line="17" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/verification.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="200">
@@ -900,18 +886,50 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/search.rs">
+    <entry file="file://$PROJECT_DIR$/test_input/reverse.fasta">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="625">
-          <caret line="298" column="21" lean-forward="false" selection-start-line="296" selection-start-column="21" selection-end-line="298" selection-end-column="21" />
+        <state relative-caret-position="75">
+          <caret line="3" column="6" lean-forward="true" selection-start-line="3" selection-start-column="6" selection-end-line="3" selection-end-column="6" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="88" column="89" lean-forward="false" selection-start-line="88" selection-start-column="89" selection-end-line="88" selection-end-column="89" />
+        <state relative-caret-position="-114">
+          <caret line="97" column="30" lean-forward="true" selection-start-line="97" selection-start-column="30" selection-end-line="97" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/testing.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="119" column="86" lean-forward="true" selection-start-line="119" selection-start-column="86" selection-end-line="119" selection-end-column="86" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/search.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="475">
+          <caret line="298" column="66" lean-forward="true" selection-start-line="298" selection-start-column="66" selection-end-line="298" selection-end-column="66" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test_input/edit.fasta">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="3" column="14" lean-forward="true" selection-start-line="3" selection-start-column="14" selection-end-line="3" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/prepare.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="611">
+          <caret line="71" column="28" lean-forward="false" selection-start-line="71" selection-start-column="28" selection-end-line="71" selection-end-column="28" />
           <folding />
         </state>
       </provider>
