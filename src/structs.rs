@@ -114,7 +114,6 @@ pub mod solutions{
 
     impl PartialEq for Solution {
         fn eq(&self, other: &Self) -> bool {
-            let (s, z) = (self, other);
             (self.id_a, self.id_b, &self.orientation, self.overhang_left_a, self.overhang_right_b, self.overlap_a, self.overlap_b)
                 == (other.id_a, other.id_b, &other.orientation, other.overhang_left_a, other.overhang_right_b, other.overlap_a, other.overlap_b)
         }

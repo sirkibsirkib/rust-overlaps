@@ -115,7 +115,9 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, erro
 
 fn translate_solution_to_external(sol : &mut Solution, config : &Config){
     assert!(sol.id_a != sol.id_b);
-    if config.reversals { assert!(sol.id_a != companion_id(sol.id_b, config.reversals)); }
+    if config.reversals {
+        assert!(sol.id_a != companion_id(sol.id_b, config.reversals));
+    }
 
     if sol.id_a > sol.id_b {
         sol.v_flip();

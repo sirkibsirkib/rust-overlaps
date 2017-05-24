@@ -42,13 +42,10 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
 
             if config.reversals{
                 let id = id2name_vec.len();
-                println!("IN {}", &String::from_utf8_lossy(&str_vec));
                 str_vec.reverse();
-
                 for i in 0..str_vec.len(){
                     str_vec[i] = complement_u8(str_vec[i]);
                 }
-                println!("out {}\n", &String::from_utf8_lossy(&str_vec));
                 text.push('$' as u8);
                 let index = text.len();
                 id2index_bdmap.insert(id, index);

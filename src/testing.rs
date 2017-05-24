@@ -98,10 +98,10 @@ mod tests {
     }
 
     #[test]
-    fn reverse() {
+    fn ham_rev() {
         let config = Config{
-            input  :        "./test_input/reverse.fasta".to_owned(),
-            output  :       "./test_output/reverse.txt".to_owned(),
+            input  :        "./test_input/ham_rev.fasta".to_owned(),
+            output  :       "./test_output/ham_rev.txt".to_owned(),
             err_rate :      0.02,
             thresh :        5,
             worker_threads: 1,
@@ -119,6 +119,131 @@ mod tests {
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:8, ohb:8, ola:8, olb:8, err:0});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
+    #[test]
+    fn ham_incl() {
+        let config = Config{
+            input  :        "./test_input/ham_incl.fasta".to_owned(),
+            output  :       "./test_output/ham_incl.txt".to_owned(),
+            err_rate :      0.02,
+            thresh :        6,
+            worker_threads: 1,
+            reversals :     false,
+            inclusions :        true,
+            edit_distance : false,
+            verbose :       false,
+            greedy_output:  false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:4, ohb:-4, ola:8, olb:8, err:0});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
+    #[test]
+    fn ham_no_n() {
+        let config = Config{
+            input  :        "./test_input/ham_no_n.fasta".to_owned(),
+            output  :       "./test_output/ham_no_n.txt".to_owned(),
+            err_rate :      0.02,
+            thresh :        5,
+            worker_threads: 1,
+            reversals :     false,
+            inclusions :    false,
+            edit_distance : false,
+            verbose :       false,
+            greedy_output:  false,
+            time:           false,
+            print:          false,
+            n_alphabet:         false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:6, ohb:9, ola:6, olb:6, err:0});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
+    #[test]
+    fn ham_rev_incl() {
+        let config = Config{
+            input  :        "./test_input/ham_rev_incl.fasta".to_owned(),
+            output  :       "./test_output/ham_rev_incl.txt".to_owned(),
+            err_rate :      0.02,
+            thresh :        5,
+            worker_threads: 1,
+            reversals :         true,
+            inclusions :        true,
+            edit_distance : false,
+            verbose :       false,
+            greedy_output:  false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:5, ohb:-5, ola:5, olb:5, err:0});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
+    #[test]
+    fn edit_rev() {
+        let config = Config{
+            input  :        "./test_input/edit_rev.fasta".to_owned(),
+            output  :       "./test_output/edit_rev.txt".to_owned(),
+            err_rate :      0.18,
+            thresh :        7,
+            worker_threads: 1,
+            reversals :         true,
+            inclusions :    false,
+            edit_distance :     true,
+            verbose :       false,
+            greedy_output:  false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:4, ohb:8, ola:7, olb:6, err:1});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
+    #[test]
+    fn edit_incl() {
+        let config = Config{
+            input  :        "./test_input/edit_incl.fasta".to_owned(),
+            output  :       "./test_output/edit_incl.txt".to_owned(),
+            err_rate :      0.17,
+            thresh :        7,
+            worker_threads: 1,
+            reversals :     false,
+            inclusions :        true,
+            edit_distance :     true,
+            verbose :       false,
+            greedy_output:  false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:4, ohb:-8, ola:7, olb:6, err:1});
         panic_if_solutions_missing(results, should_contain);
     }
 

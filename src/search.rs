@@ -299,15 +299,15 @@ fn add_candidates_from_positions(positions : Vec<usize>,
         };
 
         if id_b == p_cns.id_a || (p_cns.config.reversals &&
-                p_cns.id_a == companion_id(p_cns.id_a, p_cns.config.reversals)){
+                p_cns.id_a == companion_id(id_b, p_cns.config.reversals)){
             // matching self or partner. not interested in these solutions.
             continue;
         }
 
-        if p_cns.config.reversals && p_cns.id_a > id_b{
+        if p_cns.config.reversals && !inclusion{
             //don't need this candidate. A complementary candidate (that verifies to same solution)
             //will be found by a partner task for which id_a < id_b
-            continue;
+            if p_cns.id_a > id_b {continue;}
             //TODO ensure correctness!
         }
 //        println!();
@@ -316,6 +316,12 @@ fn add_candidates_from_positions(positions : Vec<usize>,
 
         let a_len = p_cns.pattern.len();
         let b_len = p_cns.maps.get_length(id_b);
+
+        if a_len == a_match_len && b_len == b_match_len && a_len == b_len && inclusion{
+            //perfect complete match. A very niche case where inclusions will be found twice
+            //discards one of them
+            if p_cns.id_a > id_b {continue;}
+        }
 
         // a: [e1 | a2 ]
         // b:     [ b2 | b3]  for suff-pref overlap
@@ -352,6 +358,11 @@ fn add_candidates_from_positions(positions : Vec<usize>,
 
         // for edit distance, numerous instantiations of
         for b2 in possible_b2s{
+            if max(a2, b2) < p_cns.config.thresh as usize{
+                //TODO thresh should maybe be usize?
+                //not over threshhold
+                continue;
+            }
             let b3 = b_len as i32 - b1 - (b2 as i32);
             if b3 < 0 {
                 // b is too short to accommodate a suitable match length
