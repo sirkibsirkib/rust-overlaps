@@ -21,7 +21,7 @@ mod tests {
         err: u32,
     }
 
-//    #[test]
+    #[test]
     fn basic_mapping() {
         let config = Config{
             input  :        "./test_input/basic_mapping.fasta".to_owned(),
@@ -33,7 +33,7 @@ mod tests {
             inclusions :    false,
             edit_distance : false,
             verbose :       false,
-            greedy_output:        false,
+            greedy_output:  false,
             time:           false,
             print:          false,
             n_alphabet:     false,
@@ -47,7 +47,7 @@ mod tests {
         assert_eq!(maps.get_string(1).len(), 6);
     }
 
-//    #[test]
+    #[test]
     fn ham() {
         let config = Config{
             input  :        "./test_input/ham.fasta".to_owned(),
@@ -72,7 +72,7 @@ mod tests {
         panic_if_solutions_missing(results, should_contain);
     }
 
-//    #[test]
+    #[test]
     fn edit() {
         let config = Config{
             input  :        "./test_input/edit.fasta".to_owned(),
@@ -102,7 +102,7 @@ mod tests {
         let config = Config{
             input  :        "./test_input/reverse.fasta".to_owned(),
             output  :       "./test_output/reverse.txt".to_owned(),
-            err_rate :      0.2,
+            err_rate :      0.02,
             thresh :        5,
             worker_threads: 1,
             reversals :         true,

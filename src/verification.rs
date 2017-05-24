@@ -97,7 +97,7 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, erro
                            maps : &Maps, config : &Config) -> Solution {
     let mut a_len = maps.get_length(id_a);
     let mut b_len = maps.get_length(c.id_b);
-    let orientation = relative_orientation(id_a, c.id_b);
+    let orientation = relative_orientation(id_a, c.id_b, config.reversals);
     let mut sol = Solution{
         id_a : id_a,
         id_b : c.id_b,
@@ -115,7 +115,7 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, erro
 
 fn translate_solution_to_external(sol : &mut Solution, config : &Config){
     assert!(sol.id_a != sol.id_b);
-    if config.reversals { assert!(sol.id_a != companion_id(sol.id_b)); }
+    if config.reversals { assert!(sol.id_a != companion_id(sol.id_b, config.reversals)); }
 
     if sol.id_a > sol.id_b {
         sol.v_flip();
@@ -126,7 +126,7 @@ fn translate_solution_to_external(sol : &mut Solution, config : &Config){
 
     if config.reversals {
         if for_reversed_string(sol.id_a){
-            sol.h_flip();
+            sol.h_flip(config.reversals);
         }
         assert!(!for_reversed_string(sol.id_a));
     }

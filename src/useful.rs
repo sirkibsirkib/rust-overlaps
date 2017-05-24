@@ -1,4 +1,5 @@
 use fmt;
+use structs;
 
 #[inline]
 pub fn for_reversed_string(id : usize) -> bool {
@@ -17,12 +18,13 @@ This function simply finds the ID of the strings with the given ID such that the
 strings are from the same input string, but lie in opposite directions
 */
 #[inline]
-pub fn companion_id(id : usize) -> usize{
+pub fn companion_id(id : usize, reversals : bool) -> usize{
+    assert!(reversals);
     if for_reversed_string(id) {id-1} else {id+1}
 }
 
-pub fn relative_orientation(id_a : usize, id_b : usize) -> Orientation {
-    if (id_a + id_b)%2 == 1{
+pub fn relative_orientation(id_a : usize, id_b : usize, reversals : bool) -> Orientation {
+    if reversals && (id_a + id_b)%2 == 1{
         Orientation::Reversed
     } else {
         Orientation::Normal

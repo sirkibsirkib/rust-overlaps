@@ -84,9 +84,9 @@ pub mod solutions{
             //TODO V-FLIP CIGAR
         }
 
-        pub fn h_flip(&mut self){
-            self.id_a = companion_id(self.id_a);
-            self.id_b = companion_id(self.id_b);
+        pub fn h_flip(&mut self, reversals : bool){
+            self.id_a = companion_id(self.id_a, reversals);
+            self.id_b = companion_id(self.id_b, reversals);
             self.un_reverse();
         }
 
@@ -114,6 +114,7 @@ pub mod solutions{
 
     impl PartialEq for Solution {
         fn eq(&self, other: &Self) -> bool {
+            let (s, z) = (self, other);
             (self.id_a, self.id_b, &self.orientation, self.overhang_left_a, self.overhang_right_b, self.overlap_a, self.overlap_b)
                 == (other.id_a, other.id_b, &other.orientation, other.overhang_left_a, other.overhang_right_b, other.overlap_a, other.overlap_b)
         }

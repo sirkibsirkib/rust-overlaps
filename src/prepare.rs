@@ -69,8 +69,6 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
         id2index_bdmap : id2index_bdmap,
         num_ids : num_ids,
     };
-    maps.print_text_debug();
-    println!("NUM IDS {}", maps.num_ids);
     Ok(maps)
 }
 

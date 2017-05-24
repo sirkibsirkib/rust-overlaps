@@ -120,11 +120,13 @@ fn solve(config : &Config, maps : &Maps){
     }
 
     //sequential part
+
+    use std::hash::{Hash, SipHasher, Hasher};
     if !config.greedy_output {
-        complete_solution_list.dedup();
-        if config.verbose{println!("OK output list deduplicated.");}
         complete_solution_list.sort();
         if config.verbose{println!("OK output list sorted.");}
+        complete_solution_list.dedup();
+        if config.verbose{println!("OK output list deduplicated.");}
 //        println!("{:#?}", &complete_solution_list);
         for sol in complete_solution_list.iter(){
             write_solution(&mut wrt_buf, sol, maps, config);
