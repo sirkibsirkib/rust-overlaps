@@ -18,25 +18,32 @@ pub fn parse_run_args() -> Config{
         (@arg inclusions: -i --inclusions "Enables finding of inclusion overlaps (one string within another)")
         (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming /  distance")
         (@arg verbose: -v --verbose "Prints completed steps of the run process")
-        (@arg greedy_output: -g --greedy_output "Threads print solutions to output greedily. Saves time and space but outputs will not be sorted and MAY have the same solutions x2 in some cases")
-        (@arg time: -t --time "Records time taken to finish working.")
-        (@arg print: -p --print "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes).")
-        (@arg no_n: -n --no_n "Omits 'N' from the alphabet and cleans it from input strings, increasing run speed. Will not consider N when searching.")
+        (@arg greedy_output: -g --greedy_output "Threads print solutions to output greedily. Saves time and space. Limited duplication may arise")
+//        (@arg time: -t --time "Records time taken to finish working.")
+        (@arg print: -p --print "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes)")
+        (@arg no_n: -n --no_n "Omits N symbol from alphabet saving time. Will remove N symbols from input file (with a warning)")
+        (@arg task_completion: -t --task_completion "Prints progress bar for completed tasks to stdout")
     ).get_matches();
 
     Config{
-        input  : matches.value_of("IN_PATH").unwrap().to_owned(),
-        output : matches.value_of("OUT_PATH").unwrap().to_owned(),
-        err_rate : matches.value_of("ERR_RATE").unwrap().parse().unwrap(),
-        thresh : matches.value_of("THRESH").unwrap().parse().unwrap(),
-        worker_threads: matches.value_of("WORKER_THREADS").unwrap().parse().unwrap(),
-        reversals :     if matches.occurrences_of("reversals")     >= 1 {true} else {false},
-        inclusions :    if matches.occurrences_of("inclusions")    >= 1 {true} else {false},
-        edit_distance : if matches.occurrences_of("edit_distance") >= 1 {true} else {false},
-        verbose :       if matches.occurrences_of("verbose")       >= 1 {true} else {false},
-        greedy_output:  if matches.occurrences_of("greedy_output") >= 1 {true} else {false},
-        time:           if matches.occurrences_of("time")          >= 1 {true} else {false},
-        print:          if matches.occurrences_of("print")         >= 1 {true} else {false},
-        n_alphabet :    if matches.occurrences_of("no_n")          == 0 {true} else {false},
+        //required
+        input  :            matches.value_of("IN_PATH").unwrap().to_owned(),
+        output :            matches.value_of("OUT_PATH").unwrap().to_owned(),
+        err_rate :          matches.value_of("ERR_RATE").unwrap().parse().unwrap(),
+        thresh :            matches.value_of("THRESH").unwrap().parse().unwrap(),
+        worker_threads:     matches.value_of("WORKER_THREADS").unwrap().parse().unwrap(),
+
+        //opt-in
+        reversals :         if matches.occurrences_of("reversals")          >= 1 {true} else {false},
+        inclusions :        if matches.occurrences_of("inclusions")         >= 1 {true} else {false},
+        edit_distance :     if matches.occurrences_of("edit_distance")      >= 1 {true} else {false},
+        verbose :           if matches.occurrences_of("verbose")            >= 1 {true} else {false},
+        greedy_output:      if matches.occurrences_of("greedy_output")      >= 1 {true} else {false},
+//        time:             if matches.occurrences_of("time")          >= 1 {true} else {false},
+        print:              if matches.occurrences_of("print")              >= 1 {true} else {false},
+        task_completion:    if matches.occurrences_of("task_completion")    >= 1 {true} else {false},
+
+        //opt-out
+        n_alphabet :        if matches.occurrences_of("no_n")               == 0 {true} else {false},
     }
 }

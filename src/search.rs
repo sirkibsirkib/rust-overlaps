@@ -91,13 +91,13 @@ pub trait GeneratesCandidates : FMIndexable {
             // the filters begin as the entire pattern, and gradually get shorter.
             p_i -= *block_len;
         }
-        if candidate_set.is_empty(){
-            if config.verbose {println!("OK no candidates found for '{}', skipping verification.",
-                                        maps.get_name_for(id_a))};
-        } else {
-            if config.verbose {println!("OK finished candidates for '{}'.",
-                                        maps.get_name_for(id_a))};
-        }
+//        if candidate_set.is_empty(){
+//            if config.verbose {println!("OK no candidates found for '{}', skipping verification.",
+//                                        maps.get_name_for(id_a))};
+//        } else {
+//            if config.verbose {println!("OK finished candidates for '{}'.",
+//                                        maps.get_name_for(id_a))};
+//        }
         candidate_set
     }
 

@@ -24,6 +24,7 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
     let f = File::open(filename)
         .expect(&format!("Failed to open input file at {:?}\n", filename));
     let reader = fasta::Reader::new(f);
+    let mut n_symbols_removed = 0;
     for record in reader.records() {
         let record = record?;
         if let Some(name) = record.id(){
@@ -31,7 +32,11 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
             let name = name.to_owned();
             let mut str_vec = record.seq().to_vec();
             if !config.n_alphabet{
+                let before_len = str_vec.len();
                 str_vec.retain(|c|*c != ('N' as u8));
+                if str_vec.len() < before_len{
+                    n_symbols_removed += before_len - str_vec.len();
+                }
             }
             str_vec.reverse();
             text.push('$' as u8);
@@ -53,6 +58,11 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
                 id2name_vec.push(name);
             }
         }
+    }
+
+
+    if n_symbols_removed > 0 {
+        println!("    WARNING\n\tOmitted {} N symbols found in input data.\n\tRun without flag --no_n to use these N strings intact.", n_symbols_removed);
     }
 
     text.push('#' as u8);

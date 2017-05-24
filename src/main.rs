@@ -7,7 +7,6 @@ use bio::data_structures::fmindex::FMIndex;
 use bio::data_structures::suffix_array::suffix_array;
 use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::alphabets::Alphabet;
-
 #[macro_use]
 extern crate clap;
 
@@ -18,6 +17,9 @@ use std::io::{Write, BufWriter};
 use std::collections::HashSet;
 use std::time::Instant;
 use std::fmt;
+use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
+use std::{thread, time};
+use std::io::stdout;
 /////////////////////////////////////
 
 mod setup;
@@ -42,6 +44,9 @@ pub static READ_ERR : u8 = b'N';
 Gets the config and writes all the necessary data into the map struct.
 calls solve() which does all the work
 */
+
+static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
+
 fn main(){
     let config = setup::parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
@@ -84,9 +89,24 @@ fn solve(config : &Config, maps : &Maps){
 
     let id_iterator = 0..maps.num_ids;
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
+
+    let config_task_completion_clone = config.task_completion;
+    let num_tasks = maps.num_ids;
+    let time_keeper_thread = thread::spawn(move || {
+        time_keeper(config_task_completion_clone, num_tasks);
+    });
+    if config.task_completion{
+        if config.verbose{println!("OK spawning time keeper thread.");}
+    }else{
+        if config.verbose{println!("OK suppressing time keeper thread.");}
+    }
+    if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
+
+
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
     println!("OK working.");
+
     let start_time = Instant::now();
 
     {
@@ -100,6 +120,7 @@ fn solve(config : &Config, maps : &Maps){
                 //workers ==> solutions --> sorted_solutions --> out
                 for sol in solutions {&mut complete_solution_list.push(sol);}
             }
+            if config.task_completion { ATOMIC_TASKS_DONE.fetch_add(1, Ordering::SeqCst);}
         };
         // SINGLE-THREADED mode
 //        for id_a in id_iterator{
@@ -113,7 +134,10 @@ fn solve(config : &Config, maps : &Maps){
              aggregator,
         );
     } // borrow of solution now returned
-
+    if config.task_completion{
+        ATOMIC_TASKS_DONE.store(num_tasks, Ordering::Relaxed);
+        time_keeper_thread.join().is_ok();
+    }
     if !config.greedy_output {
         complete_solution_list.sort();
         if config.verbose{println!("OK output list sorted.");}
@@ -131,16 +155,72 @@ fn solve(config : &Config, maps : &Maps){
     println!("OK completed in {}.", approx_elapsed_string(&start_time));
 }
 
-#[inline]
+
+
 fn approx_elapsed_string(start_time : &Instant) -> String{
-    match Instant::elapsed(&start_time).as_secs(){
+    time_display(Instant::elapsed(&start_time).as_secs())
+}
+
+
+/*
+If the user enables it, this time keeper process will print a nice progress bar
+and ETA to STDOUT using carriage returns.
+*/
+fn time_keeper(enabled : bool, num_tasks : usize) {
+    let my_start_time = Instant::now();
+    if !enabled {
+        return;
+    }
+    let chars = 30;
+    let mut complete = String::new();
+    let mut incomplete = String::new();
+    for _ in 0..chars{ incomplete.push(' ');}
+    let sleep_time = time::Duration::from_millis(500);
+    let mut tick_modulo = 0;
+    let tick_out_freq = 8;
+    let mut redraw = true;
+
+    loop{
+        let tasks_done = ATOMIC_TASKS_DONE.load(Ordering::Relaxed);
+        while  tasks_done as f32 / (num_tasks as f32) > complete.len() as f32/ ((complete.len() + incomplete.len()) as f32){
+            redraw = true;
+            tick_modulo = -1;
+            incomplete.pop();
+            complete.push('#');
+        }
+        tick_modulo += 1;
+        if redraw || tick_modulo == tick_out_freq {
+            let elapsed = Instant::elapsed(&my_start_time).as_secs();
+            let eta = elapsed as f32 * ((num_tasks-tasks_done) as f32) / (tasks_done as f32 + 0.2);
+            let eta_str = time_display(eta as u64);
+            print!("\r[{}{}] {}/{} tasks done. ETA {}             ",
+                   &complete, &incomplete, tasks_done, num_tasks, eta_str);
+            stdout().flush().is_ok();
+            redraw = false;
+            tick_modulo = 0;
+        }
+        if tasks_done >= num_tasks{
+            println!("\r[{}{}] {}/{} tasks done.                    ",
+                     &complete, &incomplete, tasks_done, num_tasks);
+            stdout().flush().is_ok();
+            break;
+        }
+        thread::sleep(sleep_time);
+    }
+}
+
+
+fn time_display(sec : u64) -> String{
+    match sec {
         x if x == 0 => format!("< 1 sec"),
         x if x < 200 => format!("~{} sec", x),
         x if x < 60*120 => format!("~{} min", x/60),
         x if x < 60*60*100 => format!("~{} hrs", x/60/60),
         x if x < 60*60*24*3 => format!("~{} days", x/60/60/24),
         x if x < 60*60*24*7*3 => format!("~{} weeks", x/60/60/24/7),
-        x => format!("~{} months", x/60/60/24/30),
+        x if x < 60*60*24*30*4 => format!("~{} months", x/60/60/24/30),
+        x if x < 60*60*24*365*5 => format!("~{} years", x/60/60/24/30),
+        _ => format!("eternity"),
     }
 }
 

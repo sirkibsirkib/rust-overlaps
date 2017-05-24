@@ -236,9 +236,10 @@ pub mod run_config{
         pub inclusions : bool,
         pub edit_distance : bool,
         pub verbose : bool,
-        pub time: bool,
+//        pub time: bool,
         pub print: bool,
         pub n_alphabet: bool,
+        pub task_completion: bool,
     }
 
     impl Config{
