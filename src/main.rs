@@ -90,25 +90,20 @@ fn solve(config : &Config, maps : &Maps){
     let id_iterator = 0..maps.num_ids;
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
 
-    let config_task_completion_clone = config.task_completion;
+    let config_task_completion_clone = config.track_progress;
     let num_tasks = maps.num_ids;
-    let time_keeper_thread = thread::spawn(move || {
-        time_keeper(config_task_completion_clone, num_tasks);
+    let progress_tracker = thread::spawn(move || {
+        track_progress(config_task_completion_clone, num_tasks);
     });
-    if config.task_completion{
-        if config.verbose{println!("OK spawning time keeper thread.");}
+    if config.track_progress {
+        if config.verbose{println!("OK spawning progress tracker thread.");}
     }else{
-        if config.verbose{println!("OK suppressing time keeper thread.");}
+        if config.verbose{println!("OK suppressing progress tracker thread.");}
     }
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
-
-    if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
-
     println!("OK working.");
-
-    let start_time = Instant::now();
-
+    let work_start = Instant::now();
     {
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm);
         let aggregator = |solutions| {               // aggregation to apply to work results
@@ -120,7 +115,7 @@ fn solve(config : &Config, maps : &Maps){
                 //workers ==> solutions --> sorted_solutions --> out
                 for sol in solutions {&mut complete_solution_list.push(sol);}
             }
-            if config.task_completion { ATOMIC_TASKS_DONE.fetch_add(1, Ordering::SeqCst);}
+            if config.track_progress { ATOMIC_TASKS_DONE.fetch_add(1, Ordering::SeqCst);}
         };
         // SINGLE-THREADED mode
 //        for id_a in id_iterator{
@@ -134,9 +129,9 @@ fn solve(config : &Config, maps : &Maps){
              aggregator,
         );
     } // borrow of solution now returned
-    if config.task_completion{
+    if config.track_progress {
         ATOMIC_TASKS_DONE.store(num_tasks, Ordering::Relaxed);
-        time_keeper_thread.join().is_ok();
+        progress_tracker.join().is_ok();
     }
     if !config.greedy_output {
         complete_solution_list.sort();
@@ -152,7 +147,7 @@ fn solve(config : &Config, maps : &Maps){
     if config.verbose{println!("OK output file {} written.", config.output);};
 
     //TODO replace elapsed time with something better
-    println!("OK completed in {}.", approx_elapsed_string(&start_time));
+    println!("OK completed in {}.", approx_elapsed_string(&work_start));
 }
 
 
@@ -166,7 +161,7 @@ fn approx_elapsed_string(start_time : &Instant) -> String{
 If the user enables it, this time keeper process will print a nice progress bar
 and ETA to STDOUT using carriage returns.
 */
-fn time_keeper(enabled : bool, num_tasks : usize) {
+fn track_progress(enabled : bool, num_tasks : usize) {
     let my_start_time = Instant::now();
     if !enabled {
         return;

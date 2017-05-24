@@ -18,11 +18,11 @@ pub fn parse_run_args() -> Config{
         (@arg inclusions: -i --inclusions "Enables finding of inclusion overlaps (one string within another)")
         (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming /  distance")
         (@arg verbose: -v --verbose "Prints completed steps of the run process")
-        (@arg greedy_output: -g --greedy_output "Threads print solutions to output greedily. Saves time and space. Limited duplication may arise")
+        (@arg greedy_output: -g --greedy_output "Threads print solutions to output greedily instead of storing them. Limited duplication may arise")
 //        (@arg time: -t --time "Records time taken to finish working.")
         (@arg print: -p --print "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes)")
         (@arg no_n: -n --no_n "Omits N symbol from alphabet saving time. Will remove N symbols from input file (with a warning)")
-        (@arg task_completion: -t --task_completion "Prints progress bar for completed tasks to stdout")
+        (@arg track_progress: -t --track_progress "Prints progress bar for completed tasks and ETA to stdout")
     ).get_matches();
 
     Config{
@@ -41,7 +41,7 @@ pub fn parse_run_args() -> Config{
         greedy_output:      if matches.occurrences_of("greedy_output")      >= 1 {true} else {false},
 //        time:             if matches.occurrences_of("time")          >= 1 {true} else {false},
         print:              if matches.occurrences_of("print")              >= 1 {true} else {false},
-        task_completion:    if matches.occurrences_of("task_completion")    >= 1 {true} else {false},
+        track_progress:    if matches.occurrences_of("track_progress")    >= 1 {true} else {false},
 
         //opt-out
         n_alphabet :        if matches.occurrences_of("no_n")               == 0 {true} else {false},

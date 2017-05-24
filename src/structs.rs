@@ -239,7 +239,7 @@ pub mod run_config{
 //        pub time: bool,
         pub print: bool,
         pub n_alphabet: bool,
-        pub task_completion: bool,
+        pub track_progress: bool,
     }
 
     impl Config{
