@@ -18,7 +18,7 @@ pub fn parse_run_args() -> Config{
         (@arg inclusions: -i --inclusions "Enables finding of inclusion overlaps (one string within another)")
         (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming /  distance")
         (@arg verbose: -v --verbose "Prints completed steps of the run process")
-        (@arg sorted: -s --sorted "Prints output solution lines in sorted order at a time and space cost. (Not practical with long inputs)")
+        (@arg greedy_output: -g --greedy_output "Threads print solutions to output greedily. Saves time and space but outputs will not be sorted and MAY have the same solutions x2 in some cases")
         (@arg time: -t --time "Records time taken to finish working.")
         (@arg print: -p --print "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes).")
         (@arg no_n: -n --no_n "Omits 'N' from the alphabet and cleans it from input strings, increasing run speed. Will not consider N when searching.")
@@ -34,7 +34,7 @@ pub fn parse_run_args() -> Config{
         inclusions :    if matches.occurrences_of("inclusions")    >= 1 {true} else {false},
         edit_distance : if matches.occurrences_of("edit_distance") >= 1 {true} else {false},
         verbose :       if matches.occurrences_of("verbose")       >= 1 {true} else {false},
-        sorted :        if matches.occurrences_of("sorted")        >= 1 {true} else {false},
+        greedy_output:  if matches.occurrences_of("greedy_output") >= 1 {true} else {false},
         time:           if matches.occurrences_of("time")          >= 1 {true} else {false},
         print:          if matches.occurrences_of("print")         >= 1 {true} else {false},
         n_alphabet :    if matches.occurrences_of("no_n")          == 0 {true} else {false},

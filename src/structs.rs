@@ -1,3 +1,4 @@
+use useful;
 
 /*
 Structs and methods for solutions and candidate solutions to be used throughout the program
@@ -8,21 +9,9 @@ pub mod solutions{
     use std::fmt;
     use std::cmp::max;
     use std::mem::swap;
+    use super::useful::*;
 
-    // Normal refers to a solution where both strings are NOT reversed
-    // Reversed refers to a solution where A is normal and B is reversed
-    #[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord)]
-    pub enum Orientation{
-        Normal,
-        Reversed,
-    }
 
-    impl fmt::Display for Orientation {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            let s = if *self == Orientation::Normal{"N"} else {"I"};
-            write!(f, "{}", s)
-        }
-    }
 
     //NOT oriented
     #[derive(Hash,PartialEq, Eq, Debug)]
@@ -92,14 +81,21 @@ pub mod solutions{
             self.overhang_right_b *= -1;
             swap(&mut self.id_a, &mut self.id_b);
             swap(&mut self.overlap_a, &mut self.overlap_b);
-            //VFLIP CIGAR
+            //TODO V-FLIP CIGAR
         }
 
+        pub fn h_flip(&mut self){
+            self.id_a = companion_id(self.id_a);
+            self.id_b = companion_id(self.id_b);
+            self.un_reverse();
+        }
+
+        //strictly reverses orientation to compensate for index being backwards
         pub fn un_reverse(&mut self){
             swap(&mut self.overhang_left_a, &mut self.overhang_right_b);
             self.overhang_left_a *= -1;
             self.overhang_right_b *= -1;
-            //H-FLIP CIGAR
+            //TODO H-FLIP CIGAR
         }
     }
 
@@ -240,7 +236,7 @@ pub mod run_config{
         pub worker_threads: usize,
 
         //optional
-        pub sorted : bool,
+        pub greedy_output: bool,
         pub reversals : bool,
         pub inclusions : bool,
         pub edit_distance : bool,

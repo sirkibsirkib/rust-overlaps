@@ -30,6 +30,7 @@ mod verification;
 mod structs;
 mod algorithm_modes;
 mod testing;
+mod useful;
 
 use structs::solutions::*;
 use structs::run_config::*;
@@ -84,7 +85,8 @@ fn solve(config : &Config, maps : &Maps){
         .expect("couldn't write header line to output");
     if config.verbose{println!("OK output writer ready.");}
 
-    let id_iterator = get_id_iterator(maps.num_ids, config.reversals);
+//    let id_iterator = get_id_iterator(maps.num_ids, config.reversals);
+    let id_iterator = 0..maps.num_ids;
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
@@ -95,13 +97,13 @@ fn solve(config : &Config, maps : &Maps){
     {
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm);
         let mut aggregator = |solutions| {               // aggregation to apply to work results
-            if config.sorted {
-                //workers ==> solutions --> sorted_solutions --> out
-                for sol in solutions {&mut complete_solution_list.push(sol);}
-            }else {
+            if config.greedy_output {
                 //workers ==> out
                 for sol in solutions {write_solution(&mut wrt_buf, &sol, maps, config);}
                 wrt_buf.flush().is_ok();
+            }else {
+                //workers ==> solutions --> sorted_solutions --> out
+                for sol in solutions {&mut complete_solution_list.push(sol);}
             }
         };
         for id_a in id_iterator{
@@ -118,10 +120,11 @@ fn solve(config : &Config, maps : &Maps){
     }
 
     //sequential part
-    if config.sorted{
-        if config.verbose{println!("OK output list sorted.");}
+    if !config.greedy_output {
         complete_solution_list.dedup();
+        if config.verbose{println!("OK output list deduplicated.");}
         complete_solution_list.sort();
+        if config.verbose{println!("OK output list sorted.");}
 //        println!("{:#?}", &complete_solution_list);
         for sol in complete_solution_list.iter(){
             write_solution(&mut wrt_buf, sol, maps, config);
@@ -146,15 +149,15 @@ fn solve(config : &Config, maps : &Maps){
 /*
 generates an iterator for all the forward strings in the input (patterns) ie. not reversals
 */
-#[inline]
-fn get_id_iterator(num_ids : usize, reversals : bool) -> IDIterator{
-    IDIterator{
-        num_ids : num_ids,
-        next : 0,
-        //skip reversed input strings (would find redundant solutions)
-        step : if reversals {2} else {1},
-    }
-}
+//#[inline]
+//fn get_id_iterator(num_ids : usize, reversals : bool) -> IDIterator{
+//    IDIterator{
+//        num_ids : num_ids,
+//        next : 0,
+//        //skip reversed input strings (would find redundant solutions)
+//        step : if reversals {2} else {1},
+//    }
+//}
 
 /*
 This is one task.
@@ -178,7 +181,7 @@ fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, confi
     let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                             maps.get_name_for(s.id_a),
                             maps.get_name_for(s.id_b),
-                            if s.orientation==Orientation::Normal{"N"}else{"I"},
+                            s.orientation,
                             s.overhang_left_a,
                             s.overhang_right_b,
                             s.overlap_a,
@@ -201,26 +204,26 @@ fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, confi
     }
 }
 
-#[derive(Debug, Clone)]
-struct IDIterator{
-    num_ids : usize,
-    next : usize,
-    step : usize,
-}
-
-impl Iterator for IDIterator {
-    type Item = usize;
-
-    #[inline]
-    fn next(&mut self) -> Option<usize> {
-        if self.next < self.num_ids{
-            self.next += self.step;
-            Some(self.next - self.step)
-        }else{
-            None
-        }
-    }
-}
+//#[derive(Debug, Clone)]
+//struct IDIterator{
+//    num_ids : usize,
+//    next : usize,
+//    step : usize,
+//}
+//
+//impl Iterator for IDIterator {
+//    type Item = usize;
+//
+//    #[inline]
+//    fn next(&mut self) -> Option<usize> {
+//        if self.next < self.num_ids{
+//            self.next += self.step;
+//            Some(self.next - self.step)
+//        }else{
+//            None
+//        }
+//    }
+//}
 
 impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> GeneratesCandidates
                     for FMIndex<DBWT, DLess, DOcc> {

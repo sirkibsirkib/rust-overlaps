@@ -13,7 +13,7 @@ use std::hash::Hash;
 use structs::run_config::*;
 use structs::solutions::*;
 
-use verification;
+use useful::*;
 
 use algorithm_modes::kucherov::get_block_lengths;
 use algorithm_modes::kucherov::candidate_condition;
@@ -290,9 +290,17 @@ fn add_candidates_from_positions(positions : Vec<usize>,
         };
 
         if id_b == cns.id_a || (cns.config.edit_distance &&
-                cns.id_a == verification::companion_id(cns.id_a)){
+                cns.id_a == companion_id(cns.id_a)){
             // matching self or partner. not interested in these solutions.
             continue;
+        }
+
+        if cns.config.edit_distance && cns.id_a > id_b{
+            //don't need this candidate. A complementary candidate (that verifies to same solution)
+            //will be found by a partner task for which id_a < id_b
+            println!("DISCARDING");
+            continue;
+            //TODO ensure correctness!
         }
 //        println!();
 //        cns.maps.print_text_debug();

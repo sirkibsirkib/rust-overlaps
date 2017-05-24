@@ -1,1 +1,5 @@
 idA	idB	O	OHA	OHB	OLA	OLB	K
+x	y	I	8	8	8	8	0
+x	y	I	8	8	8	8	0
+x	y	I	9	9	7	7	1
+x	y	I	9	9	7	7	1

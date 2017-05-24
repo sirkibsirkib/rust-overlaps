@@ -1,31 +1,17 @@
-use structs::solutions::Orientation;
-use structs::solutions::*;
-use structs::run_config::*;
-
 use std::cmp::{min, max};
 use std::mem::swap;
 use std::collections::HashSet;
-
 use std::thread;
 use std::io::Write;
 use std::io::stdout;
 
 use bio::alignment::distance::*;
 
-/*
-only needed if reversals are enabled.
-For each input string, two unique text entries are appended, one forwards and one backwards.
-The orientation of these strings corresponds with the parity of their ID's
-(an internal representation of the strings) with NORMAL strings having EVEN IDs and REVERSED strings having ODD parity.
-Note that this is "normal" and "reversed" considering the inverse reading direction of the index.
-ie: given a string "XYZ", this will append the "normal" (ZYX) to the text with ID 0 and (XYZ) to the text with ID 1.
+use structs::solutions::*;
+use structs::run_config::*;
 
-This function simply finds the ID of the strings with the given ID such that the two
-strings are from the same input string, but lie in opposite directions
-*/
-pub fn companion_id(id : usize) -> usize{
-    if id%2==0 {id+1} else {id-1}
-}
+use useful::*;
+
 
 /*
 Another major step in the program, the candidate verification step. (AKA the filter step)
@@ -111,11 +97,7 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, erro
                            maps : &Maps, config : &Config) -> Solution {
     let mut a_len = maps.get_length(id_a);
     let mut b_len = maps.get_length(c.id_b);
-    let orientation = if !config.reversals || c.id_b%2==0{
-        Orientation::Normal
-    }else{
-        Orientation::Reversed
-    };
+    let orientation = relative_orientation(id_a, c.id_b);
     let mut sol = Solution{
         id_a : id_a,
         id_b : c.id_b,
@@ -127,11 +109,28 @@ fn solution_from_candidate(c : Candidate, mut id_a : usize, cigar : String, erro
         errors : errors,
         cigar : cigar,
     };
-    if id_a > c.id_b {
-        //flip which strings are A and B, as the output needs to adhere to an ascending ordering
+    translate_solution_to_external(&mut sol, config);
+    sol
+}
+
+fn translate_solution_to_external(sol : &mut Solution, config : &Config){
+    assert!(sol.id_a != sol.id_b);
+    if config.reversals { assert!(sol.id_a != companion_id(sol.id_b)); }
+
+    if sol.id_a > sol.id_b {
         sol.v_flip();
     }
+    assert!(sol.id_a <= sol.id_b);
+
+    //TODO reversals allow for things to be skipped.
+
+    if config.reversals {
+        if for_reversed_string(sol.id_a){
+            sol.h_flip();
+        }
+        assert!(!for_reversed_string(sol.id_a));
+    }
+
     sol.un_reverse(); //finally, compensate for the index being entirely backwards
     assert!(!config.reversals || sol.id_a % 2 == 0);
-    sol
 }
