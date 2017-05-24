@@ -65,11 +65,11 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
         assert!(a_part.len() == b_part.len());
         hamming(a_part, b_part) as u32
     };
-    let mut cigar = String::new();
-    cigar.push_str(&format!("ids: {}->{}", id_a, c.id_b));
+//    let mut cigar = String::new();
+//    cigar.push_str(&format!("ids: {}->{}", id_a, c.id_b));
     let k_limit = (config.err_rate*(max(c.overlap_a, c.overlap_b) as f32)) as u32;
     if errors <= k_limit{
-        Some(solution_from_candidate(c, id_a, cigar, errors, maps, config))
+        Some(solution_from_candidate(c, id_a, errors, maps, config))
     }else{
         None
     }
@@ -86,7 +86,7 @@ but Candidates are largely INTERNAL (as verifying them requires the use of the i
 
 *See annotation for verify() above for an explanation of a1,a2,a3,b1,b2,b3 etc. used here.
 */
-fn solution_from_candidate(c : Candidate, id_a : usize, cigar : String, errors : u32,
+fn solution_from_candidate(c : Candidate, id_a : usize, errors : u32,
                            maps : &Maps, config : &Config) -> Solution {
     let a_len = maps.get_length(id_a);
     let b_len = maps.get_length(c.id_b);
@@ -100,7 +100,7 @@ fn solution_from_candidate(c : Candidate, id_a : usize, cigar : String, errors :
         overhang_left_a : c.overhang_left_a,
         overhang_right_b : (c.b3(b_len) as i32) - (c.a3(a_len) as i32),
         errors : errors,
-        cigar : cigar,
+//        cigar : cigar,
     };
     translate_solution_to_external(&mut sol, config);
     sol

@@ -1,0 +1,4 @@
+idA	idB	O	OHA	OHB	OLA	OLB	K
+x	y	N	0	0	10	10	4
+x	y	N	1	1	9	9	3
+x	y	N	2	2	8	8	2

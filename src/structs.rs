@@ -19,7 +19,7 @@ pub mod solutions{
         pub overhang_left_a : i32,
 
         //DEBUG
-        pub debug_str : String,
+//        pub debug_str : String,
     }
 
     impl Candidate{
@@ -69,7 +69,7 @@ pub mod solutions{
         pub overlap_a : usize,
         pub overlap_b : usize,
         pub errors : u32,
-        pub cigar : String,
+//        pub cigar : String,
     }
 
     impl Solution{

@@ -86,7 +86,7 @@ pub trait GeneratesCandidates : FMIndexable {
             self.recurse_candidates(
                 &mut candidate_set, &p_cns, &s_cns, 0, p_i,
                 LastOperation::Initial, 0, 0,
-                &full_interval, &String::new());
+                &full_interval);
 
             // the filters begin as the entire pattern, and gradually get shorter.
             p_i -= *block_len;
@@ -116,7 +116,7 @@ pub trait GeneratesCandidates : FMIndexable {
                           a_match_len : usize,
                           b_match_len : usize,
                           match_interval : &Interval,
-                          debug : &str){
+                          ){
         if match_interval.lower > match_interval.upper{
             // range is inclusive on both ends within the walk.
             // empty range -> prune branch
@@ -146,7 +146,7 @@ pub trait GeneratesCandidates : FMIndexable {
                 upper : less + self.occ(match_interval.upper, a),
             }; //final interval must have exclusive end
             let positions = dollar_interval.occ(p_cns.sa);
-            add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, debug, false);
+            add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, false);
         }
 
         let pattern_finished = p_i <= -1;
@@ -159,7 +159,7 @@ pub trait GeneratesCandidates : FMIndexable {
                     upper : match_interval.upper + 1,
                 }; // final interval must have exclusive end
                 let positions = inclusion_interval.occ(p_cns.sa);
-                add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, debug, true);
+                add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, true);
             }
             return;
             //nothing to do here.
@@ -179,9 +179,9 @@ pub trait GeneratesCandidates : FMIndexable {
 
             //TODO remove debug stuff
             let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
-            let debug_a = if p_char == a {a as char} else {smaller(a)};
+//            let debug_a = if p_char == a {a as char} else {smaller(a)};
             if recurse_errors <= permitted_errors {
-                let next_debug = format!("{}{}", debug_a, debug);
+//                let next_debug = format!("{}{}", debug_a, debug);
                 // recursively explore SUBSTITUTION cases (both hamming and levenshtein)
                 self.recurse_candidates(cand_set,
                                         p_cns,
@@ -192,12 +192,12 @@ pub trait GeneratesCandidates : FMIndexable {
                                         a_match_len + 1,
                                         b_match_len + 1,
                                         &next_interval,
-                                        &next_debug);
+                                        );
             }
             if (errors < permitted_errors) && p_cns.config.edit_distance && last_operation.allows_insertion() {
                 if p_char != a{
                     // recursively explore INSERTION cases (if levenshtein)
-                    let next_debug = format!("{}.{}", debug_a, debug);
+//                    let next_debug = format!("{}.{}", debug_a, debug);
                     self.recurse_candidates(cand_set,
                                             p_cns,
                                             s_cns,
@@ -207,13 +207,8 @@ pub trait GeneratesCandidates : FMIndexable {
                                             a_match_len,//the pattern string doesn't grow
                                             b_match_len + 1,
                                             &next_interval,
-                                            &next_debug);
-                }else{
-
-//                    println!("{} insert prohibited", a as char);
+                                            );
                 }
-
-
             }
         }
 
@@ -221,7 +216,7 @@ pub trait GeneratesCandidates : FMIndexable {
             // recursively explore DELETION cases (if levenshtein) and have at least 1 spare pattern char to jump over
             if last_operation.allows_deletion(){
 
-                let next_debug = format!("{}{}", '_', debug);
+//                let next_debug = format!("{}{}", '_', debug);
                 self.recurse_candidates(cand_set,
                                         p_cns,
                                         s_cns,
@@ -231,22 +226,22 @@ pub trait GeneratesCandidates : FMIndexable {
                                         a_match_len + 1,
                                         b_match_len,     //the matched string doesn't grow
                                         &match_interval, //stays unchanged
-                                        &next_debug);
+                                        );
             }
         }
     }
 }
 
-fn smaller(a : u8) -> char{
-    match a as char {
-        'A' => 'a',
-        'C' => 'c',
-        'N' => 'n',
-        'G' => 'g',
-        'T' => 't',
-        _ => '?',
-    }
-}
+//fn smaller(a : u8) -> char{
+//    match a as char {
+//        'A' => 'a',
+//        'C' => 'c',
+//        'N' => 'n',
+//        'G' => 'g',
+//        'T' => 't',
+//        _ => '?',
+//    }
+//}
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum LastOperation{
@@ -284,7 +279,7 @@ locations to generate candidates. For each, add a new candidate to cand_set
 fn add_candidates_from_positions(positions : Vec<usize>,
                                  cand_set : &mut HashSet<Candidate>, p_cns : &PatternConstants,
                                  s_cns : &SuffixConstants, a_match_len : usize,
-                                 b_match_len : usize, debug : &str, inclusion : bool){
+                                 b_match_len : usize, inclusion : bool){
     for mut position in positions {
         if !inclusion{
             //non-inclusions include the preceding dollar sign
@@ -367,14 +362,14 @@ fn add_candidates_from_positions(positions : Vec<usize>,
                 // b is too short to accommodate a suitable match length
                 continue;
             }
-            let mut new_debug = debug.to_owned();
-            new_debug.push_str(&format!(" incl {} blind {}", inclusion, s_cns.blind_a_chars));
+//            let mut new_debug = debug.to_owned();
+//            new_debug.push_str(&format!(" incl {} blind {}", inclusion, s_cns.blind_a_chars));
             let c = Candidate {
                 id_b: id_b,
                 overlap_a: a2,
                 overlap_b: b2,
                 overhang_left_a: a1 - b1,
-                debug_str : new_debug,
+//                debug_str : new_debug,
             };
 //            println!("{:#?}", &c);
             cand_set.insert(c);

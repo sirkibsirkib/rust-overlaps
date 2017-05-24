@@ -247,6 +247,56 @@ mod tests {
         panic_if_solutions_missing(results, should_contain);
     }
 
+    #[test]
+    fn edit_rev_incl() {
+        let config = Config{
+            input  :        "./test_input/edit_rev_incl.fasta".to_owned(),
+            output  :       "./test_output/edit_rev_incl.txt".to_owned(),
+            err_rate :      0.21,
+            thresh :        5,
+            worker_threads: 1,
+            reversals :         true,
+            inclusions :        true,
+            edit_distance :     true,
+            verbose :       false,
+            greedy_output:  false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:5, ohb:-5, ola:5, olb:6, err:1});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
+    #[test]
+    fn many_errors() {
+        let config = Config{
+            input  :        "./test_input/many_errors.fasta".to_owned(),
+            output  :       "./test_output/many_errors.txt".to_owned(),
+            err_rate :      0.4,
+            thresh :        8,
+            worker_threads: 1,
+            reversals :     false,
+            inclusions :    false,
+            edit_distance : false,
+            verbose :       false,
+            greedy_output:  false,
+            time:           false,
+            print:          false,
+            n_alphabet:     false,
+        };
+        let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
+        solve(&config, &maps);
+        let results = read_output(&config.output);
+        let mut should_contain : HashSet<GoodSolution> = HashSet::new();
+        should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:0, ohb:0, ola:10, olb:10, err:4});
+        panic_if_solutions_missing(results, should_contain);
+    }
+
     fn read_output(filename : &str) -> HashSet<GoodSolution>{
         let mut result : HashSet<GoodSolution> = HashSet::new();
         let f = File::open(filename).unwrap();
