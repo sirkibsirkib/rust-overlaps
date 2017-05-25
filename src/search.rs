@@ -17,6 +17,7 @@ use useful::*;
 use algorithm_modes::kucherov::get_block_lengths;
 use algorithm_modes::kucherov::candidate_condition;
 use algorithm_modes::kucherov::filter_func;
+
 pub static READ_ERR : u8 = b'N';
 
 /*
@@ -130,7 +131,8 @@ pub trait GeneratesCandidates : FMIndexable {
             None    => p_cns.patt_blocks - s_cns.first_block_id,
         };
         //look up how many errors are allowed from the filter module
-        let permitted_errors : i32 = min(p_cns.hard_error_cap, filter_func(completed_blocks, p_cns.patt_blocks));
+        let permitted_errors : i32 = min(p_cns.hard_error_cap,
+                                         filter_func(completed_blocks, p_cns.patt_blocks, s_cns.first_block_id));
 
         //Design decision: if the lengths of A and B differ, we are generous with the size for lookups
         let generous_match_len = std::cmp::max(a_match_len, b_match_len) + 1;
@@ -380,43 +382,26 @@ fn add_candidates_from_positions(positions : Vec<usize>,
 
 #[derive(Debug)]
 pub struct SuffixConstants{
-//    config : &'a Config,
-//    maps : &'a Maps,
-//
-//    block_id_lookup : &'a Vec<i32>,
-//    sa : &'a RawSuffixArray,
-//    pattern: &'a [u8],
-//    id_a : usize,
     blind_a_chars: usize,
-//    hard_error_cap : i32,
-
-//    max_b_len : usize,
-
     first_block_id : i32,
-//    patt_blocks : i32,
 }
 
 #[derive(Debug)]
 pub struct PatternConstants<'a>{
     config : &'a Config,
     maps : &'a Maps,
-
     block_id_lookup : &'a Vec<i32>,
     sa : &'a RawSuffixArray,
     pattern: &'a [u8],
     id_a : usize,
-//    blind_a_chars: usize,
     hard_error_cap : i32,
-
     max_b_len : usize,
-
-//    first_block_id : i32,
     patt_blocks : i32,
 }
 
 
 
-fn get_block_id_lookup(block_lengths : &[i32]) -> Vec<i32>{
+pub fn get_block_id_lookup(block_lengths : &[i32]) -> Vec<i32>{
     let mut lookup : Vec<i32> = Vec::new();
     for (id, block_length) in block_lengths.iter().enumerate() {
         for _ in 0..*block_length{

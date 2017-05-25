@@ -10,6 +10,8 @@ use bio::alphabets::Alphabet;
 #[macro_use]
 extern crate clap;
 
+extern crate num_cpus;
+
 extern crate cue;
 
 use std::fs::File;

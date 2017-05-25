@@ -6,6 +6,9 @@ use bio::alignment::distance::*;
 use structs::solutions::*;
 use structs::run_config::*;
 
+use search;
+use std;
+
 use useful::*;
 
 
@@ -55,12 +58,11 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     let a_len = maps.get_length(id_a);
     assert_eq!(c.a3(a_len), 0);
     //b3 is usize, so implicitly b3 >= 0
-
     let a_part : &[u8] = &maps.get_string(id_a)  [c.a1()..(c.a1()+c.a2())];
     let b_part : &[u8] = &maps.get_string(c.id_b)[c.b1()..(c.b1()+c.b2())];
 
     let errors : u32 = if config.edit_distance{
-        levenshtein(a_part, b_part)
+        modified_levenshtein(a_part, b_part)
     }else{
         assert!(a_part.len() == b_part.len());
         hamming(a_part, b_part) as u32
@@ -72,6 +74,49 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
         Some(solution_from_candidate(c, id_a, errors, maps, config))
     }else{
         None
+    }
+}
+
+/*
+A custom levenshtein distance where the first and last characters of each overlap are forced to be substitutions
+As such, if the incoming strings have lengths
+*/
+pub fn modified_levenshtein(a_part : &[u8], b_part : &[u8]) -> u32 {
+    if a_part.len() == b_part.len() && a_part.len() <= 2{
+        //case where strings are the same length, but are of length 0, 1 or 2 (no indels possible)
+        let mut errs = 0;
+        if a_part.len() >= 1 {
+            errs += error_at_pos_in_both(a_part, b_part, true);
+        }
+        if a_part.len() >= 2 {
+            errs += error_at_pos_in_both(a_part, b_part, false);
+        }
+        return errs;
+    }
+    if a_part.len() < 2 || b_part.len() < 2{
+        // undefined distance. return max possible value
+        return std::u32::MAX;
+    }
+    //below this line: a_overlap_end >= 2 && b_overlap_end >= 2
+    let first_char_err = error_at_pos_in_both(a_part, b_part, true);
+    let last_char_err = error_at_pos_in_both(a_part, b_part, false);
+    levenshtein(&a_part[1..a_part.len()-1], &b_part[1..b_part.len()-1])
+        + first_char_err + last_char_err
+}
+
+fn error_at_pos_in_both(a_part : &[u8], b_part : &[u8], first : bool) -> u32 {
+    assert!(a_part.len() >= 1);
+    assert!(b_part.len() >= 1);
+    let a_ind = if first {0} else {a_part.len()-1};
+    let b_ind = if first {0} else {b_part.len()-1};
+    if a_part[a_ind] != b_part[b_ind] {
+        1
+    } else {
+        if a_part[a_ind] == search::READ_ERR {
+            1
+        } else {
+            0
+        }
     }
 }
 

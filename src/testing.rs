@@ -34,7 +34,7 @@ mod tests {
             edit_distance : false,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -60,7 +60,7 @@ mod tests {
             edit_distance : false,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -85,7 +85,7 @@ mod tests {
             edit_distance :     true,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -110,7 +110,7 @@ mod tests {
             edit_distance : false,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -135,7 +135,7 @@ mod tests {
             edit_distance : false,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -160,7 +160,7 @@ mod tests {
             edit_distance : false,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:         false,
         };
@@ -185,7 +185,7 @@ mod tests {
             edit_distance : false,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -210,7 +210,7 @@ mod tests {
             edit_distance :     true,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -235,7 +235,7 @@ mod tests {
             edit_distance :     true,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -260,7 +260,7 @@ mod tests {
             edit_distance :     true,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
@@ -285,9 +285,10 @@ mod tests {
             edit_distance : false,
             verbose :       false,
             greedy_output:  false,
-            time:           false,
+            track_progress :false,
             print:          false,
             n_alphabet:     false,
+
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         solve(&config, &maps);
@@ -295,6 +296,72 @@ mod tests {
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:0, ohb:0, ola:10, olb:10, err:4});
         panic_if_solutions_missing(results, should_contain);
+    }
+
+    #[test]
+    fn modified_levenshtein() {
+        use verification::modified_levenshtein;
+
+        assert_eq!(modified_levenshtein(b"", b""), 0);
+        assert_eq!(modified_levenshtein(b"A", b"A"), 0);
+        assert_eq!(modified_levenshtein(b"N", b"N"), 1);
+        assert_eq!(modified_levenshtein(b"AA", b"AA"), 0);
+        assert_eq!(modified_levenshtein(b"AN", b"AN"), 1);
+        assert_eq!(modified_levenshtein(b"AA", b"ATA"), 1);
+        assert_eq!(modified_levenshtein(b"ATA", b"AA"), 1);
+        assert_eq!(modified_levenshtein(b"AAAAA", b"CAAAC"), 2);
+        assert_eq!(modified_levenshtein(b"TTTTA", b"TTTT"), 2);
+        assert_eq!(modified_levenshtein(b"G", b""), std::u32::MAX);
+        assert_eq!(modified_levenshtein(b"GG", b"G"), std::u32::MAX);
+    }
+
+    #[test]
+    fn filter_correct() {
+        panic!("VALIMAKI2 not working??try it out");
+
+        use algorithm_modes::kucherov::*;
+
+        let guaranteed_extra_blocks = get_guaranteed_extra_blocks();
+        for patt_len in 5..350 {
+            let err_iter = ErrIterator{next:0.5};
+            for err_rate in err_iter {
+                for thresh in 4..(patt_len as f32 * 0.5)as i32 {
+                    let blocks_lengths = get_block_lengths(patt_len, err_rate, thresh);
+                    assert!(!(blocks_lengths.contains(&0))); //no-char blocks would mess with the id lookup
+                    let mut block_id_lookup = search::get_block_id_lookup(&blocks_lengths);
+                    block_id_lookup.reverse();
+                    for pref_len in thresh..patt_len+1{
+                        let pref_blocks = block_id_lookup[(pref_len-1) as usize] + 1; //#blocks is block index + 1
+//                        let effective_pref_blocks = filter_func(pref_blocks-1, blocks_lengths.len() as i32);
+                        let max_allowed_err = (pref_len as f32 * err_rate).floor() as i32;
+
+//                        let filter_permits = filter_func(pref_in_blocks, blocks_lengths.len() as i32);
+                        if !(pref_blocks >= max_allowed_err + guaranteed_extra_blocks) { // must allow K+1 or more
+                            panic!("\nfilter not lenient enough for patt_len {} err_rate {} \
+                            thresh {} pref_len {}.\nBlock lens is {:?}. pref in {} blocks, permitted {} errors.\n",
+                            patt_len, err_rate, thresh, pref_len, &blocks_lengths, pref_blocks, max_allowed_err);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    struct ErrIterator{
+        next : f32,
+    }
+
+    impl Iterator for ErrIterator {
+        type Item = f32;
+        fn next(&mut self) -> Option<f32> {
+            if self.next < 0.1{
+                None
+            }else{
+                let old_next = self.next;
+                self.next *= 0.8;
+                Some(old_next)
+            }
+        }
     }
 
     fn read_output(filename : &str) -> HashSet<GoodSolution>{
