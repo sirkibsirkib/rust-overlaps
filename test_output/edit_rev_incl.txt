@@ -1,2 +1,0 @@
-idA	idB	O	OHA	OHB	OLA	OLB	K
-x	y	I	5	-5	5	6	1

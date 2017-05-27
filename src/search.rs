@@ -14,9 +14,8 @@ use structs::solutions::*;
 
 use useful::*;
 
-use algorithm_modes::kucherov::get_block_lengths;
-use algorithm_modes::kucherov::candidate_condition;
-use algorithm_modes::kucherov::filter_func;
+use modes::*;
+//use algorithm_modes::kucherov::*;
 
 pub static READ_ERR : u8 = b'N';
 
@@ -65,7 +64,12 @@ pub trait GeneratesCandidates : FMIndexable {
         // necessary data for the search which remains constant for the entire pattern
         let p_cns = PatternConstants{
             pattern: pattern,
-            hard_error_cap : (patt_len as f32 * config.err_rate).floor() as i32,
+            hard_error_cap : if config.edit_distance {
+                (patt_len as f32 * config.err_rate).floor() as i32
+            } else {
+                //need to consider that the string it matches WITH might be slightly longer
+                (patt_len as f32 / (1.0 - config.err_rate)).floor() as i32
+            },
             config : config,
             maps : maps,
             block_id_lookup : &block_id_lookup,

@@ -317,9 +317,10 @@ mod tests {
 
     #[test]
     fn filter_correct() {
-        panic!("VALIMAKI2 not working??try it out");
+//        panic!("VALIMAKI2 not working??try it out");
 
-        use algorithm_modes::kucherov::*;
+        use modes::*;
+//        use algorithm_modes::valimaki2::*;
 
         let guaranteed_extra_blocks = get_guaranteed_extra_blocks();
         for patt_len in 5..350 {

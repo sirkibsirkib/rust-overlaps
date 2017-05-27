@@ -29,7 +29,7 @@ mod prepare;
 mod search;
 mod verification;
 mod structs;
-mod algorithm_modes;
+mod modes;
 mod testing;
 mod useful;
 
@@ -49,9 +49,19 @@ calls solve() which does all the work
 
 static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
 
-fn main(){
+fn main() {
+
     let config = setup::parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
+
+    if config.verbose{
+        if cfg!(feature = "kucherov"){
+            println!("OK using Kucherov mode");
+        }
+        if cfg!(feature = "valimaki"){
+            println!("OK using Valimaki2 mode");
+        }
+    }
 
     let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
     if config.verbose {println!("OK read and mapped fasta input.")};
