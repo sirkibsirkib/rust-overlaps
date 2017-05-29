@@ -1,0 +1,6 @@
+idA	idB	O	OHA	OHB	OLA	OLB	K
+bob	sam	N	220	221	30	30	3
+dod	joe	N	-225	-226	24	24	2
+cam	ron	N	229	229	21	21	2
+stu	guy	N	226	228	23	23	1
+moe	edd	N	230	229	21	21	1

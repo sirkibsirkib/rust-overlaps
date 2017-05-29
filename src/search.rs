@@ -45,64 +45,69 @@ pub trait GeneratesCandidates : FMIndexable {
                            id_a : usize,
                            sa : &RawSuffixArray,
                             ) -> HashSet<Candidate> {
-//        println!("\nPATTERN {}", String::from_utf8_lossy(pattern));
         let patt_len = pattern.len();
-        let block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
+        let mut block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
+        assert_eq!(patt_len as i32, block_lengths.iter().sum());
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
         let block_id_lookup = get_block_id_lookup(&block_lengths);
         let full_interval = Interval {
             lower: 0,
             upper: self.bwt().len() - 1,
         };
-        let mut p_i : i32 = (patt_len-1) as i32;
+        let mut p_i : i32 = (patt_len-1) as i32; //first index that will be matched
         let patt_blocks : i32 = block_lengths.len() as i32;
 
-        // each of these represents a suffix filter to be treated as a pattern to query the index
-        //TODO split into PatternConstant and FilterConstant structs
-//        println!("{:?}", &block_lengths);
-
         // necessary data for the search which remains constant for the entire pattern
+        let max_b_len = if config.edit_distance {
+            (patt_len as f32 / (1.0-config.err_rate)).floor() as usize
+        } else {
+            //CORRECT
+            patt_len
+        };
         let p_cns = PatternConstants{
             pattern: pattern,
-            hard_error_cap : if config.edit_distance {
-                (patt_len as f32 * config.err_rate).floor() as i32
-            } else {
-                //need to consider that the string it matches WITH might be slightly longer
-                (patt_len as f32 / (1.0 - config.err_rate)).floor() as i32
-            },
+            hard_error_cap : (max_b_len as f32 * config.err_rate).floor() as i32,
             config : config,
             maps : maps,
             block_id_lookup : &block_id_lookup,
             sa : sa,
             id_a : id_a,
             patt_blocks : patt_blocks,
-            max_b_len : if config.edit_distance {(patt_len as f32 / (1.0-config.err_rate)).floor() as usize} else {patt_len},
+            max_b_len : max_b_len,
         };
 
-        for (block_id, block_len) in block_lengths.iter().enumerate() {
+        /*
+        each of these represents a suffix filter to be treated as a pattern to query the index
+        iterate over blocks FORWARDS, but remove blocks from p_i LEFTWARDS
+        ie:
+        [2][1][0]
+        [2][1]
+        [2]
+        */
+        for (first_block_id, block_len) in block_lengths.iter().enumerate() {
 //            println!("\nFILTER  {}", String::from_utf8_lossy(&pattern[..(p_i as usize + 1)]));
 
+            let suff_blocks = patt_blocks - first_block_id as i32; //first_block_id == blind_blocks
+            if suff_blocks < get_fewest_suff_blocks() {
+                break;
+            }
+
             let s_cns = SuffixConstants {
-                first_block_id : block_id as i32,
+                blind_blocks: first_block_id as i32,
                 blind_a_chars: patt_len - p_i as usize - 1,
+                generous_blind_chars : ((patt_len - p_i as usize - 1) as f32 / (1.0-config.err_rate)).floor() as usize,
             };
 
             //This begins the search and represents a single "query" for a single pattern filter
             self.recurse_candidates(
                 &mut candidate_set, &p_cns, &s_cns, 0, p_i,
                 LastOperation::Initial, 0, 0,
-                &full_interval);
+                &full_interval,
+            );
 
             // the filters begin as the entire pattern, and gradually get shorter.
             p_i -= *block_len;
         }
-//        if candidate_set.is_empty(){
-//            if config.verbose {println!("OK no candidates found for '{}', skipping verification.",
-//                                        maps.get_name_for(id_a))};
-//        } else {
-//            if config.verbose {println!("OK finished candidates for '{}'.",
-//                                        maps.get_name_for(id_a))};
-//        }
         candidate_set
     }
 
@@ -127,24 +132,27 @@ pub trait GeneratesCandidates : FMIndexable {
             // empty range -> prune branch
             return
         }
-
         let completed_blocks : i32 = match p_cns.block_id_lookup.get(p_i as usize){
             //p_i corresponds with the index of the NEXT matched character. Upon matching the entire pattern,
             //this value can become -1. Here this match statement takes care of this special case
-            Some(x) => x - s_cns.first_block_id,
-            None    => p_cns.patt_blocks - s_cns.first_block_id,
+            Some(x) => x - s_cns.blind_blocks,
+            None    => p_cns.patt_blocks - s_cns.blind_blocks,
         };
         //look up how many errors are allowed from the filter module
         let permitted_errors : i32 = min(p_cns.hard_error_cap,
-                                         filter_func(completed_blocks, p_cns.patt_blocks, s_cns.first_block_id));
+                                         filter_func(completed_blocks, p_cns.patt_blocks, s_cns.blind_blocks));
 
         //Design decision: if the lengths of A and B differ, we are generous with the size for lookups
-        let generous_match_len = std::cmp::max(a_match_len, b_match_len) + 1;
-        let cand_condition_satisfied =
-            candidate_condition(generous_match_len as i32, completed_blocks, p_cns.config.thresh, errors);
 
+        let generous_overlap_len = std::cmp::max(a_match_len, b_match_len) + s_cns.generous_blind_chars;
+        let cand_condition_satisfied =
+            candidate_condition(generous_overlap_len as i32, completed_blocks, p_cns.config.thresh, errors);
+//        if debug{
+//            println!("YE. match_len {} completed blocks {} COND? {}", a_match_len, completed_blocks, cand_condition_satisfied);
+//        }
         if cand_condition_satisfied && last_operation.allows_candidates(){
             // Add candidates to set for matched b strings preceded by '$'
+
             let a = b'$';
             let less = self.less(a);
             let dollar_interval = Interval {
@@ -152,7 +160,17 @@ pub trait GeneratesCandidates : FMIndexable {
                 upper : less + self.occ(match_interval.upper, a),
             }; //final interval must have exclusive end
             let positions = dollar_interval.occ(p_cns.sa);
-            add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, false);
+
+
+
+
+            if positions.len() > 0{
+
+//                if debug{
+//                    println!("POS has {}", positions.len());
+//                }
+                add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, false);
+            }
         }
 
         let pattern_finished = p_i <= -1;
@@ -165,7 +183,9 @@ pub trait GeneratesCandidates : FMIndexable {
                     upper : match_interval.upper + 1,
                 }; // final interval must have exclusive end
                 let positions = inclusion_interval.occ(p_cns.sa);
-                add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, true);
+                if positions.len() > 0{
+                    add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, true);
+                }
             }
             return;
             //nothing to do here.
@@ -304,6 +324,11 @@ fn add_candidates_from_positions(positions : Vec<usize>,
             continue;
         }
 
+//        if p_cns.id_a == 9 && id_b == 8{
+//            println!("potential");
+//
+//        }
+
         if p_cns.config.reversals && !inclusion{
             //don't need this candidate. A complementary candidate (that verifies to same solution)
             //will be found by a partner task for which id_a < id_b
@@ -317,13 +342,16 @@ fn add_candidates_from_positions(positions : Vec<usize>,
         let a_len = p_cns.pattern.len();
         let b_len = p_cns.maps.get_length(id_b);
 
-        if a_len == a_match_len && b_len == b_match_len && a_len == b_len && inclusion{
+        if p_cns.config.inclusions && inclusion &&
+            a_len == a_match_len && b_len == b_match_len && a_len == b_len {
             //perfect complete match. A very niche case where inclusions will be found twice
             //discards one of them
-            if p_cns.id_a > id_b {continue;}
+            if p_cns.id_a > id_b {
+                continue;
+            }
         }
 
-        // a: [e1 | a2 ]
+        // a: [a1 | a2 ]
         // b:     [ b2 | b3]  for suff-pref overlap
         //
         // a:     [ a2 ]
@@ -356,7 +384,7 @@ fn add_candidates_from_positions(positions : Vec<usize>,
         };
         let possible_b2s = (min_b2)..(max_b2 + 1);
 
-        // for edit distance, numerous instantiations of
+        // for edit distance, numerous instantiations of b2 possible
         for b2 in possible_b2s{
             if max(a2, b2) < p_cns.config.thresh as usize{
                 //TODO thresh should maybe be usize?
@@ -386,8 +414,11 @@ fn add_candidates_from_positions(positions : Vec<usize>,
 
 #[derive(Debug)]
 pub struct SuffixConstants{
+    blind_blocks: i32,
     blind_a_chars: usize,
-    first_block_id : i32,
+
+    //"generous X" == max(X_of_A, X_of_b)
+    generous_blind_chars : usize,
 }
 
 #[derive(Debug)]
@@ -412,7 +443,7 @@ pub fn get_block_id_lookup(block_lengths : &[i32]) -> Vec<i32>{
             lookup.push(id as i32);
         }
     }
-    lookup.reverse();
     lookup.shrink_to_fit();
+    lookup.reverse();
     lookup
 }

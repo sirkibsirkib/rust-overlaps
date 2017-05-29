@@ -5,12 +5,18 @@ pub fn get_guaranteed_extra_blocks() -> i32 {
     1
 }
 
+
+
+pub fn fewest_suff_blocks() -> i32{
+    1
+}
+
 #[inline]
 pub fn filter_func(completed_blocks : i32, patt_blocks : i32, blind_blocks : i32) -> i32{
     if blind_blocks == 0 {
-        completed_blocks + 1
+        completed_blocks + 1 + 1
     } else {
-        completed_blocks
+        completed_blocks + 1
     }
 }
 
@@ -39,12 +45,12 @@ pub fn get_block_lengths(patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i3
 
 #[inline]
 pub fn candidate_condition(
-    generous_match_len : i32,
+    generous_overlap_len : i32,
     completed_blocks : i32,
     thresh : i32,
     errors : i32
 ) -> bool{
-    let c1 = generous_match_len >= thresh;
+    let c1 = generous_overlap_len >= thresh;
     let c2 = completed_blocks > 0;
     c1 && c2
 }
