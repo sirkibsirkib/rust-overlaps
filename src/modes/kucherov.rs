@@ -1,6 +1,6 @@
 use std::cmp::{min, max};
-
-//pub const S_PARAM : i32 = 2;
+use modes::IsMode;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct KucherovMode {
@@ -13,7 +13,12 @@ impl KucherovMode {
     }
 }
 
-use modes::IsMode;
+
+impl fmt::Display for KucherovMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Kucherov S={}", self.s_param)
+    }
+}
 
 #[allow(unused_variables)]
 impl IsMode for KucherovMode {

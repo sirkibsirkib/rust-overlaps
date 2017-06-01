@@ -1,9 +1,10 @@
+use std::fmt::{Display, Debug};
+
 pub mod kucherov;
 pub mod valimaki2;
-
 pub type Mode = Box<IsMode>;
 
-pub trait IsMode: Sync {
+pub trait IsMode: Sync + Display + Debug {
     fn get_guaranteed_extra_blocks(&self) -> i32;
     fn get_fewest_suff_blocks(&self) -> i32;
     fn filter_func(&self, completed_blocks : i32, patt_blocks : i32, blind_blocks : i32) -> i32;

@@ -1,6 +1,8 @@
 use std::cmp::{min};
+use modes::IsMode;
+use std::fmt;
 
-
+#[derive(Debug)]
 pub struct Valimaki2Mode;
 
 impl Valimaki2Mode {
@@ -10,8 +12,12 @@ impl Valimaki2Mode {
 }
 
 
-use modes::IsMode;
 
+impl fmt::Display for Valimaki2Mode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Valimaki2")
+    }
+}
 
 #[allow(unused_variables)]
 impl IsMode for Valimaki2Mode{

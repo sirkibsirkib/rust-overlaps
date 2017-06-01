@@ -53,7 +53,10 @@ static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
 fn main() {
     let (mode, config) = setup::parse_run_args();
 
-    if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
+    if config.verbose {
+        println!("OK interpreted config args.\n{:#?}", &config);
+        println!("OK mode set to {}", &mode);
+    }
 
     if config.verbose{
         if cfg!(feature = "kucherov"){
@@ -150,13 +153,6 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
              aggregator,
         );
     } // borrow of solution now returned
-    let avg_s = avg(&s_durations);
-    let avg_v = avg(&v_durations);
-    println!("s_avg {} d_avg {}", avg_s, avg_v);
-    println!("{:.3}% search, {:.3}% verification",
-             100.0 * avg_s as f32 /(avg_s + avg_v) as f32,
-             100.0 * avg_v as f32 /(avg_s + avg_v) as f32
-             );
 
     if config.track_progress {
         ATOMIC_TASKS_DONE.store(num_tasks, Ordering::Relaxed);
@@ -177,7 +173,18 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
 
     //TODO replace elapsed time with something better
     println!("OK completed in {}.", approx_elapsed_string(&work_start));
-
+    let sum_s = sum(&s_durations);
+    let sum_v = sum(&v_durations);
+    let avg_s = avg(sum_s, s_durations.len());
+    let avg_v = avg(sum_v, v_durations.len());
+    println!("WORK NANOS:\n\
+\ttotal \t{}\n\
+\tsearch\t{}\t{:.2}%\n\
+\tverif \t{}\t{:.2}%",
+             sum_s + sum_v,
+             sum_s, 100.0 * avg_s as f32 /(avg_s + avg_v) as f32,
+             sum_v, 100.0 * avg_v as f32 /(avg_s + avg_v) as f32
+    );
 }
 
 
@@ -306,10 +313,13 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
 }
 
 #[inline]
-fn avg(v : &Vec<u64>) -> u64{
-    (v.iter().fold(0, |a, b| a+b) as f32
-        / (v.len() as f32))
-        as u64
+fn sum(v : &Vec<u64>) -> u64{
+    v.iter().fold(0, |a, b| a+b)
+}
+
+#[inline]
+fn avg(sum : u64, len : usize) -> u64{
+    (sum as f32  / (len as f32)) as u64
 }
 
 #[inline]

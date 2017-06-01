@@ -35,11 +35,8 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         None => num_cpus::get(),
     };
     let mode : Mode = match matches.value_of("mode") {
-        Some(s) => match s{
-            "valimaki2" => Box::new(modes::valimaki2::Valimaki2Mode::new()),
-            _ => Box::new(modes::kucherov::KucherovMode::new(2)),
-        },
-        a => Box::new(modes::kucherov::KucherovMode::new(2)),
+        Some(s) => get_mode(s),
+        _ => Box::new(modes::kucherov::KucherovMode::new(2)), //default
     };
 
     let config = Config{
@@ -65,4 +62,28 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         n_alphabet :        if matches.occurrences_of("no_n")             == 0 {true} else {false},
     };
     (mode, config)
+}
+
+
+fn get_mode(arg : &str) -> Mode {
+    let tokens : Vec<&str> = arg.split('_').collect();
+    if tokens.len() > 2 {
+        panic!("Too many mode tokens! Tokens are delimited by '_'. See -h for help.");
+    } else if tokens.len() == 2 {
+        let param : i32 = tokens[1].parse().expect("Couldn't interpret the mode argument as a number. See -h for help.");
+        if tokens[0] == "kucherov"{
+            assert!(param >= 1);
+            Box::new(modes::kucherov::KucherovMode::new(param))
+        }else{
+            panic!(format!("'{}' couldn't be interpreted as a mode. See -h for help.", arg))
+        }
+    } else if tokens.len() == 1 {
+        if tokens[0] == "valimaki2"{
+            Box::new(modes::valimaki2::Valimaki2Mode::new())
+        }else{
+            panic!(format!("'{}' couldn't be interpreted as a mode. See -h for help.", arg))
+        }
+    }else{
+        panic!("Mode argument expects a value! See -h for help.");
+    }
 }
