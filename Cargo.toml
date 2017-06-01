@@ -11,8 +11,3 @@ bidir-map = "0.3.2"
 csv = "0.15.0"
 cue = "0.1.0"
 num_cpus = "1.4.0"
-
-[features]
-default = []
-kucherov = []
-valimaki2 = []

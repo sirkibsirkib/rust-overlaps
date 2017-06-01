@@ -1,0 +1,1 @@
+move target\release\rust_overlaps.exe rust_overlaps.exe

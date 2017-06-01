@@ -1,5 +1,6 @@
-TODO:
-
+trait objects? for kucherov etc.
 are my structs (ie: PatternConstant, Config) too large?
-is my program setup sensible?
-should I care about these types?
+cost of casting?
+inline compiler directive
+collection X known, given y, find largest X <= y
+//rust vec binary search returns enum ()

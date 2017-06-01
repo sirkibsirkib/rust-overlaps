@@ -1,10 +1,12 @@
 use num_cpus;
 use structs::run_config::Config;
+use modes::{IsMode, Mode};
+use modes;
 
 /*
 Using Clap, builds a config struct that contains all the user's input
 */
-pub fn parse_run_args() -> Config{
+pub fn parse_run_args() -> (Box<IsMode>, Config) {
     let matches = clap_app!(ASPOPsolver =>
         (version: "1.0")
         (author: "Christopher Esterhuyse <christopher.esterhuyse@gmail.com>")
@@ -16,10 +18,11 @@ pub fn parse_run_args() -> Config{
         (@arg THRESH: +required +takes_value "Shortest allowed length of an overlap")
 
         (@arg worker_threads: -w --worker_threads +takes_value "Number of worker threads used. Defaults to number of logical cpu cores")
+        (@arg mode: -m --mode +takes_value "Uses the filtering scheme mode given options {valimaki2, kucherov[1,2,3,4...]} (Default : kucherov2")
 
         (@arg reversals: -r --reversals "Enables reversals of input strings")
         (@arg inclusions: -i --inclusions "Enables finding of inclusion overlaps (one string within another)")
-        (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming /  distance")
+        (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming distance")
         (@arg verbose: -v --verbose "Prints completed steps of the run process")
         (@arg greedy_output: -g --greedy_output "Threads print solutions to output greedily instead of storing them. Limited duplication may arise")
         (@arg print: -p --print "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes)")
@@ -31,8 +34,15 @@ pub fn parse_run_args() -> Config{
         Some(s) => s.parse().unwrap(),
         None => num_cpus::get(),
     };
+    let mode : Mode = match matches.value_of("mode") {
+        Some(s) => match s{
+            "valimaki2" => Box::new(modes::valimaki2::Valimaki2Mode::new()),
+            _ => Box::new(modes::kucherov::KucherovMode::new(2)),
+        },
+        a => Box::new(modes::kucherov::KucherovMode::new(2)),
+    };
 
-    Config{
+    let config = Config{
         //required
         input  :            matches.value_of("IN_PATH").unwrap().to_owned(),
         output :            matches.value_of("OUT_PATH").unwrap().to_owned(),
@@ -53,5 +63,6 @@ pub fn parse_run_args() -> Config{
 
         //opt-out
         n_alphabet :        if matches.occurrences_of("no_n")             == 0 {true} else {false},
-    }
+    };
+    (mode, config)
 }

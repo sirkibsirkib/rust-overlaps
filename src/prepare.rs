@@ -6,7 +6,7 @@ use std::fs::File;
 
 /////////////////////////////
 
-use structs::run_config::*;
+use structs::run_config::{Config, Maps};
 
 /*
 builds the maps data structure from a fasta file + config
@@ -62,19 +62,24 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
 
 
     if n_symbols_removed > 0 {
-        println!("    WARNING\n\tOmitted {} N symbols found in input data.\n\tRun without flag --no_n to use these N strings intact.", n_symbols_removed);
+        println!("    WARNING\n\tOmitted {} N symbols found in input data.\n\t\
+        Run without flag --no_n to use these N strings intact.", n_symbols_removed);
     }
 
     text.push('#' as u8);
     text.shrink_to_fit();
     id2name_vec.shrink_to_fit();
-    let num_ids = id2name_vec.len();
+
+    let mut indexes : Vec<usize> = id2index_bdmap.second_col().map(|x| *x).collect();
+    indexes.sort();
+    indexes.shrink_to_fit();
+
 
     let maps = Maps{
         text : text,
         id2name_vec : id2name_vec,
         id2index_bdmap : id2index_bdmap,
-        num_ids : num_ids,
+        indexes : indexes,
     };
     Ok(maps)
 }

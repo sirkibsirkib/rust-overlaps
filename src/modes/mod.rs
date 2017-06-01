@@ -1,68 +1,13 @@
-mod kucherov;
-mod valimaki2;
+pub mod kucherov;
+pub mod valimaki2;
 
-/////////////// KUCHEROV ///////////////
-#[inline]
-#[cfg(feature="kucherov")]
-pub fn get_guaranteed_extra_blocks() -> i32 {
-    kucherov::get_guaranteed_extra_blocks()
+pub type Mode = Box<IsMode>;
+
+pub trait IsMode: Sync {
+    fn get_guaranteed_extra_blocks(&self) -> i32;
+    fn get_fewest_suff_blocks(&self) -> i32;
+    fn filter_func(&self, completed_blocks : i32, patt_blocks : i32, blind_blocks : i32) -> i32;
+    fn get_block_lengths(&self, patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i32>;
+    fn candidate_condition(&self,generous_overlap_len : i32, completed_blocks : i32, thresh : i32, errors : i32 ) -> bool;
 }
 
-
-#[inline]
-#[cfg(feature="kucherov")]
-pub fn get_fewest_suff_blocks() -> i32{
-    kucherov::fewest_suff_blocks()
-}
-
-#[inline]
-#[cfg(feature="kucherov")]
-pub fn filter_func(completed_blocks : i32, patt_blocks : i32, blind_blocks : i32) -> i32{
-    kucherov::filter_func(completed_blocks, patt_blocks, blind_blocks)
-}
-
-#[inline]
-#[cfg(feature="kucherov")]
-pub fn get_block_lengths(patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i32>{
-    kucherov::get_block_lengths(patt_len, err_rate, thresh)
-}
-
-#[inline]
-#[cfg(feature="kucherov")]
-pub fn candidate_condition(generous_overlap_len : i32, completed_blocks : i32, thresh : i32, errors : i32 ) -> bool{
-    kucherov::candidate_condition(generous_overlap_len, completed_blocks, thresh, errors)
-}
-
-/////////////// VALIMAKI ///////////////
-
-#[inline]
-#[cfg(feature="valimaki2")]
-pub fn get_guaranteed_extra_blocks() -> i32 {
-    valimaki2::get_guaranteed_extra_blocks()
-}
-
-
-#[inline]
-#[cfg(feature="valimaki2")]
-pub fn get_fewest_suff_blocks() -> i32{
-    valimaki2::fewest_suff_blocks()
-}
-
-#[inline]
-#[cfg(feature="valimaki2")]
-pub fn filter_func(completed_blocks : i32, patt_blocks : i32, blind_blocks : i32) -> i32{
-    valimaki2::filter_func(completed_blocks, patt_blocks, blind_blocks)
-}
-
-
-#[inline]
-#[cfg(feature="valimaki2")]
-pub fn get_block_lengths(patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i32>{
-    valimaki2::get_block_lengths(patt_len, err_rate, thresh)
-}
-
-#[inline]
-#[cfg(feature="valimaki2")]
-pub fn candidate_condition(generous_overlap_len : i32, completed_blocks : i32, thresh : i32, errors : i32 ) -> bool{
-    valimaki2::candidate_condition(generous_overlap_len, completed_blocks, thresh, errors)
-}

@@ -1,15 +1,15 @@
 use std::cmp::max;
 use std::collections::HashSet;
 
-use bio::alignment::distance::*;
+use bio::alignment::distance::{hamming, levenshtein};
 
-use structs::solutions::*;
-use structs::run_config::*;
+use structs::solutions::{Candidate, Solution};
+use structs::run_config::{Config, Maps};
 
 use search;
 use std;
 
-use useful::*;
+use useful::{relative_orientation, companion_id, for_reversed_string};
 
 
 /*

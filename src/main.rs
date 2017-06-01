@@ -17,7 +17,7 @@ extern crate cue;
 use std::fs::File;
 use std::io::{Write, BufWriter};
 use std::collections::HashSet;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 use std::fmt;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::{thread, time};
@@ -33,9 +33,10 @@ mod modes;
 mod testing;
 mod useful;
 
-use structs::solutions::*;
-use structs::run_config::*;
+use structs::solutions::Solution;
+use structs::run_config::{Config, Maps};
 use search::GeneratesCandidates;
+use modes::Mode;
 
 // this u8 character represents an ERROR read. Its matching always incurs an error.
 pub static READ_ERR : u8 = b'N';
@@ -50,8 +51,8 @@ calls solve() which does all the work
 static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
 
 fn main() {
+    let (mode, config) = setup::parse_run_args();
 
-    let config = setup::parse_run_args();
     if config.verbose {println!("OK interpreted config args.\n{:#?}", &config)};
 
     if config.verbose{
@@ -69,7 +70,8 @@ fn main() {
     if !config.n_alphabet{
         if config.verbose {println!("OK cleaned 'N' from input strings.")};
     }
-    solve(&config, &maps);
+
+    solve(&config, &maps, mode);
 }
 
 /*
@@ -79,7 +81,8 @@ fn main() {
 4. spawn workers in a threadpool to solve tasks
 5. write to output either after verification asynchronously? //TODO is this reall how it works?
 */
-fn solve(config : &Config, maps : &Maps){
+fn solve(config : &Config, maps : &Maps, mode : Mode){
+
     let alphabet = Alphabet::new(config.alphabet());
     if config.verbose{
         println!("OK index alphabet set to '{}'",
@@ -99,11 +102,11 @@ fn solve(config : &Config, maps : &Maps){
         .expect("couldn't write header line to output");
     if config.verbose{println!("OK output writer ready.");}
 
-    let id_iterator = 0..maps.num_ids;
+    let id_iterator = 0..maps.num_ids();
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
 
     let config_task_completion_clone = config.track_progress;
-    let num_tasks = maps.num_ids;
+    let num_tasks = maps.num_ids();
     let progress_tracker = thread::spawn(move || {
         track_progress(config_task_completion_clone, num_tasks);
     });
@@ -114,11 +117,17 @@ fn solve(config : &Config, maps : &Maps){
     }
     if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
 
+    //rust profiler?
+    let mut s_durations : Vec<u64> = Vec::with_capacity(num_tasks);
+    let mut v_durations : Vec<u64> = Vec::with_capacity(num_tasks);
+
     println!("OK working.");
     let work_start = Instant::now();
     {
-        let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm);
-        let aggregator = |solutions| {               // aggregation to apply to work results
+        let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm, &mode);
+        let aggregator = |(s_dur, v_dur, solutions)| {               // aggregation to apply to work results
+            s_durations.push(s_dur);
+            v_durations.push(v_dur);
             if config.greedy_output {
                 //workers ==> out
                 for sol in solutions {write_solution(&mut wrt_buf, &sol, maps, config);}
@@ -141,6 +150,14 @@ fn solve(config : &Config, maps : &Maps){
              aggregator,
         );
     } // borrow of solution now returned
+    let avg_s = avg(&s_durations);
+    let avg_v = avg(&v_durations);
+    println!("s_avg {} d_avg {}", avg_s, avg_v);
+    println!("{:.3}% search, {:.3}% verification",
+             100.0 * avg_s as f32 /(avg_s + avg_v) as f32,
+             100.0 * avg_v as f32 /(avg_s + avg_v) as f32
+             );
+
     if config.track_progress {
         ATOMIC_TASKS_DONE.store(num_tasks, Ordering::Relaxed);
         progress_tracker.join().is_ok();
@@ -160,6 +177,7 @@ fn solve(config : &Config, maps : &Maps){
 
     //TODO replace elapsed time with something better
     println!("OK completed in {}.", approx_elapsed_string(&work_start));
+
 }
 
 
@@ -238,10 +256,16 @@ into a set of solutions involved with that ID.
 */
 #[inline]
 fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone>
-        (config : &Config, maps : &Maps, id_a : usize, sa : &RawSuffixArray, fm : &FMIndex<DBWT, DLess, DOcc>)
-                -> HashSet<Solution>{
-    let candidates = fm.generate_candidates(maps.get_string(id_a), config, maps, id_a, sa);
-    verification::verify_all(id_a, candidates, config, maps)
+        (config : &Config, maps : &Maps, id_a : usize, sa : &RawSuffixArray,
+         fm : &FMIndex<DBWT, DLess, DOcc>, mode : &Mode)
+                -> (u64, u64, HashSet<Solution>){
+
+    let t0 = Instant::now();
+    let candidates = fm.generate_candidates(maps.get_string(id_a), config, maps, id_a, sa, mode);
+    let t1 = Instant::now();
+    let solutions = verification::verify_all(id_a, candidates, config, maps);
+    let t2 = Instant::now();
+    (nanos(t1-t0), nanos(t2-t1), solutions)
 }
 
 /*
@@ -281,3 +305,15 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
     //empty
 }
 
+#[inline]
+fn avg(v : &Vec<u64>) -> u64{
+    (v.iter().fold(0, |a, b| a+b) as f32
+        / (v.len() as f32))
+        as u64
+}
+
+#[inline]
+fn nanos(dur : Duration) -> u64 {
+    let nanos = dur.subsec_nanos() as u64;
+    (1000*1000*1000 * dur.as_secs() + nanos)
+}

@@ -1,5 +1,5 @@
 
-use bio::data_structures::fmindex::*;
+use bio::data_structures::fmindex::Interval;
 use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::data_structures::fmindex::FMIndexable;
 
@@ -9,13 +9,12 @@ use std::cmp::{min,max};
 
 ////////////////////////////////
 
-use structs::run_config::*;
-use structs::solutions::*;
+use structs::run_config::{Config, Maps};
+use structs::solutions::{Candidate};
 
-use useful::*;
+use useful::companion_id;
 
-use modes::*;
-//use algorithm_modes::kucherov::*;
+use modes::Mode;
 
 pub static READ_ERR : u8 = b'N';
 
@@ -44,11 +43,14 @@ pub trait GeneratesCandidates : FMIndexable {
                            maps : &Maps,
                            id_a : usize,
                            sa : &RawSuffixArray,
+                           mode : &Mode,
                             ) -> HashSet<Candidate> {
-        let patt_len = pattern.len();
-        let mut block_lengths = get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
-        assert_eq!(patt_len as i32, block_lengths.iter().sum());
+
+
         let mut candidate_set: HashSet<Candidate> = HashSet::new();
+        let patt_len = pattern.len();
+        let block_lengths = mode.get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
+        assert_eq!(patt_len as i32, block_lengths.iter().sum());
         let block_id_lookup = get_block_id_lookup(&block_lengths);
         let full_interval = Interval {
             lower: 0,
@@ -64,6 +66,12 @@ pub trait GeneratesCandidates : FMIndexable {
             //CORRECT
             patt_len
         };
+
+
+        if max_b_len < config.thresh as usize{
+            //pattern too short
+            return candidate_set;
+        }
         let p_cns = PatternConstants{
             pattern: pattern,
             hard_error_cap : (max_b_len as f32 * config.err_rate).floor() as i32,
@@ -73,7 +81,8 @@ pub trait GeneratesCandidates : FMIndexable {
             sa : sa,
             id_a : id_a,
             patt_blocks : patt_blocks,
-            max_b_len : max_b_len,
+//            max_b_len : max_b_len,
+            mode : mode,
         };
 
         /*
@@ -88,7 +97,7 @@ pub trait GeneratesCandidates : FMIndexable {
 //            println!("\nFILTER  {}", String::from_utf8_lossy(&pattern[..(p_i as usize + 1)]));
 
             let suff_blocks = patt_blocks - first_block_id as i32; //first_block_id == blind_blocks
-            if suff_blocks < get_fewest_suff_blocks() {
+            if suff_blocks < p_cns.mode.get_fewest_suff_blocks() {
                 break;
             }
 
@@ -140,13 +149,13 @@ pub trait GeneratesCandidates : FMIndexable {
         };
         //look up how many errors are allowed from the filter module
         let permitted_errors : i32 = min(p_cns.hard_error_cap,
-                                         filter_func(completed_blocks, p_cns.patt_blocks, s_cns.blind_blocks));
+                                         p_cns.mode.filter_func(completed_blocks, p_cns.patt_blocks, s_cns.blind_blocks));
 
         //Design decision: if the lengths of A and B differ, we are generous with the size for lookups
 
         let generous_overlap_len = std::cmp::max(a_match_len, b_match_len) + s_cns.generous_blind_chars;
         let cand_condition_satisfied =
-            candidate_condition(generous_overlap_len as i32, completed_blocks, p_cns.config.thresh, errors);
+            p_cns.mode.candidate_condition(generous_overlap_len as i32, completed_blocks, p_cns.config.thresh, errors);
 //        if debug{
 //            println!("YE. match_len {} completed blocks {} COND? {}", a_match_len, completed_blocks, cand_condition_satisfied);
 //        }
@@ -160,15 +169,7 @@ pub trait GeneratesCandidates : FMIndexable {
                 upper : less + self.occ(match_interval.upper, a),
             }; //final interval must have exclusive end
             let positions = dollar_interval.occ(p_cns.sa);
-
-
-
-
             if positions.len() > 0{
-
-//                if debug{
-//                    println!("POS has {}", positions.len());
-//                }
                 add_candidates_from_positions(positions, cand_set, p_cns, s_cns, a_match_len, b_match_len, false);
             }
         }
@@ -302,6 +303,7 @@ impl LastOperation{
 given positions in the text (and various other data) determine which of these are suitable
 locations to generate candidates. For each, add a new candidate to cand_set
 */
+#[inline]
 fn add_candidates_from_positions(positions : Vec<usize>,
                                  cand_set : &mut HashSet<Candidate>, p_cns : &PatternConstants,
                                  s_cns : &SuffixConstants, a_match_len : usize,
@@ -323,11 +325,6 @@ fn add_candidates_from_positions(positions : Vec<usize>,
             // matching self or partner. not interested in these solutions.
             continue;
         }
-
-//        if p_cns.id_a == 9 && id_b == 8{
-//            println!("potential");
-//
-//        }
 
         if p_cns.config.reversals && !inclusion{
             //don't need this candidate. A complementary candidate (that verifies to same solution)
@@ -421,7 +418,6 @@ pub struct SuffixConstants{
     generous_blind_chars : usize,
 }
 
-#[derive(Debug)]
 pub struct PatternConstants<'a>{
     config : &'a Config,
     maps : &'a Maps,
@@ -430,8 +426,9 @@ pub struct PatternConstants<'a>{
     pattern: &'a [u8],
     id_a : usize,
     hard_error_cap : i32,
-    max_b_len : usize,
+//    max_b_len : usize,
     patt_blocks : i32,
+    mode : &'a Mode,
 }
 
 

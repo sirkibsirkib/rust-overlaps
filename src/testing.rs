@@ -4,9 +4,7 @@ the right solutions, using some predetermined inputs in th text_input directory.
 */
 #[cfg(test)]
 mod tests {
-    use super::super::*;
     use useful::Orientation;
-    use useful::Orientation::*;
     use std::io::{BufReader, BufRead};
 
     #[derive (Eq, PartialEq, Hash, Debug)]
@@ -317,17 +315,14 @@ mod tests {
 
     #[test]
     fn filter_correct() {
-//        panic!("VALIMAKI2 not working??try it out");
+        let mode = new_kucherov(2);
 
-        use modes::*;
-//        use algorithm_modes::valimaki2::*;
-
-        let guaranteed_extra_blocks = get_guaranteed_extra_blocks();
+        let guaranteed_extra_blocks = mode.get_guaranteed_extra_blocks();
         for patt_len in 5..350 {
             let err_iter = ErrIterator{next:0.5};
             for err_rate in err_iter {
                 for thresh in 4..(patt_len as f32 * 0.5)as i32 {
-                    let blocks_lengths = get_block_lengths(patt_len, err_rate, thresh);
+                    let blocks_lengths = mode.get_block_lengths(patt_len, err_rate, thresh);
                     assert!(!(blocks_lengths.contains(&0))); //no-char blocks would mess with the id lookup
                     let mut block_id_lookup = search::get_block_id_lookup(&blocks_lengths);
                     block_id_lookup.reverse();

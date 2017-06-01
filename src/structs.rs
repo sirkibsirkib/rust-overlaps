@@ -8,7 +8,7 @@ pub mod solutions{
     use std::cmp::Ordering;
     use std::cmp::max;
     use std::mem::swap;
-    use super::useful::*;
+    use super::useful::{companion_id, Orientation};
 
     //NOT oriented
     #[derive(Hash,PartialEq, Eq, Debug)]
@@ -148,23 +148,28 @@ pub mod run_config{
         pub text : Vec<u8>,
         pub id2name_vec : Vec<String>,
         pub id2index_bdmap : BidirMap<usize, usize>,
-        pub num_ids : usize,
+        pub indexes : Vec<usize>,
     }
 
     impl Maps{
+
+        pub fn num_ids(&self) -> usize {
+            self.id2index_bdmap.len()
+        }
+
         pub fn get_string(&self, id : usize) -> &[u8]{
-            assert!(id < self.num_ids);
+            assert!(id < self.num_ids());
             &self.text[*self.id2index_bdmap.get_by_first(&id).expect("GAH")..self.get_end_index(id)]
         }
 
         pub fn get_length(&self, id : usize) -> usize{
-            assert!(id < self.num_ids);
+            assert!(id < self.num_ids());
             self.get_end_index(id) - self.id2index_bdmap.get_by_first(&id).expect("WOO")
         }
 
         fn get_end_index(&self, id : usize) -> usize{
-            assert!(id < self.num_ids);
-            if id == self.num_ids-1{
+            assert!(id < self.num_ids());
+            if id == self.num_ids()-1{
                 self.text.len() - 1 //$s in front. one # at the end
             }else{
                 self.id2index_bdmap.get_by_first(&(id + 1)).expect("WAHEY") - 1
@@ -172,63 +177,44 @@ pub mod run_config{
         }
 
         //returns (id, index)
+        #[inline]
         pub fn find_occurrence_containing(&self, index : usize) -> (usize, usize){
-            let mut best = (0, 1);
-            for &(id, ind) in self.id2index_bdmap.iter(){
-                if ind <= index && ind > best.1{
-                    best = (id, ind);
-                }
+            match self.indexes.binary_search(&index){
+                Ok(found_id) => (found_id, index),
+                Err(insert_id) => (insert_id-1, self.index_for(insert_id-1)),
             }
-            best
         }
 
         pub fn get_name_for(&self, id : usize) -> &str {
             self.id2name_vec.get(id).expect("get name")
         }
 
-//        pub fn print_text_debug(&self){
-//            println!("{}", String::from_utf8_lossy(&self.text));
-//        }
-
-//        pub fn formatted(&self, id : usize) -> String{
-//            format!("{}",String::from_utf8_lossy(self.get_string(id)))
-//        }
-
-//        pub fn push_string(&self, print : &str, push_str : &str, pushes : usize) -> String{
-//            let mut s = String::new();
-//            for _ in 0..pushes{
-//                s.push_str(push_str);
-//            }
-//            s.push_str(print);
-//            s
-//        }
-
         #[inline]
         pub fn id_for(&self, id : usize) -> usize{
             *(self.id2index_bdmap.get_by_second(&id)
                 .expect(&format!("no index for ID {}. input has IDs from 0 --> {}",
-                                id, self.num_ids)))
+                                id, self.num_ids())))
         }
 
-//        #[inline]
-//        pub fn index_for(&self, index : usize) -> usize{
-//            *(self.id2index_bdmap.get_by_first(&index)
-//                .expect(&format!("no id at index {}", index)))
-//        }
+        #[inline]
+        pub fn index_for(&self, index : usize) -> usize{
+            *(self.id2index_bdmap.get_by_first(&index)
+                .expect(&format!("no id at index {}", index)))
+        }
     }
 
     pub static N_ALPH : &'static [u8] = b"ACGNT";
     pub static ALPH : &'static [u8] = b"ACGT";
+
+
     #[derive(Debug)]
     pub struct Config{
-        //TODO benchmark argument
 
         //required
         pub input : String,
         pub output : String,
         pub err_rate : f32,
         pub thresh : i32,
-        pub worker_threads: usize,
 
         //optional
         pub greedy_output: bool,
@@ -236,10 +222,10 @@ pub mod run_config{
         pub inclusions : bool,
         pub edit_distance : bool,
         pub verbose : bool,
-//        pub time: bool,
         pub print: bool,
         pub n_alphabet: bool,
         pub track_progress: bool,
+        pub worker_threads: usize,
     }
 
     impl Config{
