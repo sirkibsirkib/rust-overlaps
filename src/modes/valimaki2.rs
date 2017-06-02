@@ -43,7 +43,10 @@ impl IsMode for Valimaki2Mode{
     #[inline]
     fn get_block_lengths(&self, patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i32>{
         let mut ps : Vec<i32> = Vec::new();
-        assert!(thresh <= patt_len);
+        if patt_len < thresh{
+            ps.push(patt_len);
+            return ps;
+        }
         for l in thresh..patt_len+1{
             let one_p = (
                 (l as f32)

@@ -4,6 +4,16 @@ the right solutions, using some predetermined inputs in th text_input directory.
 */
 #[cfg(test)]
 mod tests {
+    use std;
+    use setup;
+    use search;
+    use std::fs::File;
+    use useful::Orientation::{Normal, Reversed};
+    use modes;
+    use solve;
+    use std::collections::HashSet;
+    use prepare;
+    use structs::run_config::{Config, Maps};
     use useful::Orientation;
     use std::io::{BufReader, BufRead};
 
@@ -30,14 +40,14 @@ mod tests {
             reversals :     false,
             inclusions :    false,
             edit_distance : false,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        assert_eq!(2, maps.num_ids);
+        assert_eq!(2, maps.num_ids());
         assert_eq!(maps.text.len(), 5+6+1+1+1);
         assert_eq!(maps.id2name_vec[0], "x");
         assert_eq!(maps.id2name_vec[1], "y");
@@ -56,14 +66,15 @@ mod tests {
             reversals :     false,
             inclusions :    false,
             edit_distance : false,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:5, ohb:10, ola:5, olb:5, err:0});
@@ -81,14 +92,15 @@ mod tests {
             reversals :     false,
             inclusions :    false,
             edit_distance :     true,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:7, ohb:7, ola:6, olb:7, err:1});
@@ -106,14 +118,15 @@ mod tests {
             reversals :         true,
             inclusions :    false,
             edit_distance : false,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:8, ohb:8, ola:8, olb:8, err:0});
@@ -131,14 +144,15 @@ mod tests {
             reversals :     false,
             inclusions :        true,
             edit_distance : false,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:4, ohb:-4, ola:8, olb:8, err:0});
@@ -156,14 +170,15 @@ mod tests {
             reversals :     false,
             inclusions :    false,
             edit_distance : false,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:         false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:6, ohb:9, ola:6, olb:6, err:0});
@@ -181,14 +196,15 @@ mod tests {
             reversals :         true,
             inclusions :        true,
             edit_distance : false,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:5, ohb:-5, ola:5, olb:5, err:0});
@@ -206,14 +222,15 @@ mod tests {
             reversals :         true,
             inclusions :    false,
             edit_distance :     true,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:4, ohb:8, ola:7, olb:6, err:1});
@@ -226,19 +243,20 @@ mod tests {
             input  :        "./test_input/edit_incl.fasta".to_owned(),
             output  :       "./test_output/edit_incl.txt".to_owned(),
             err_rate :      0.17,
-            thresh :        7,
+            thresh :        6,
             worker_threads: 1,
             reversals :     false,
             inclusions :        true,
             edit_distance :     true,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:4, ohb:-8, ola:7, olb:6, err:1});
@@ -256,14 +274,15 @@ mod tests {
             reversals :         true,
             inclusions :        true,
             edit_distance :     true,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
             n_alphabet:     false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Reversed, oha:5, ohb:-5, ola:5, olb:6, err:1});
@@ -281,7 +300,7 @@ mod tests {
             reversals :     false,
             inclusions :    false,
             edit_distance : false,
-            verbose :       false,
+            verbosity :     0,
             greedy_output:  false,
             track_progress :false,
             print:          false,
@@ -289,7 +308,8 @@ mod tests {
 
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        solve(&config, &maps);
+        let mode = setup::default_mode();
+        solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
         should_contain.insert(GoodSolution{a_nm:"x".to_owned(), b_nm:"y".to_owned(), or:Normal, oha:0, ohb:0, ola:10, olb:10, err:4});
@@ -315,7 +335,7 @@ mod tests {
 
     #[test]
     fn filter_correct() {
-        let mode = new_kucherov(2);
+        let mode = setup::default_mode();
 
         let guaranteed_extra_blocks = mode.get_guaranteed_extra_blocks();
         for patt_len in 5..350 {

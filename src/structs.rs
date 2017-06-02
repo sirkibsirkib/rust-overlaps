@@ -221,7 +221,7 @@ pub mod run_config{
         pub reversals : bool,
         pub inclusions : bool,
         pub edit_distance : bool,
-        pub verbose : bool,
+        pub verbosity: u8,
         pub print: bool,
         pub n_alphabet: bool,
         pub track_progress: bool,

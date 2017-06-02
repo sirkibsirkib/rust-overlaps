@@ -36,7 +36,7 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
     };
     let mode : Mode = match matches.value_of("mode") {
         Some(s) => get_mode(s),
-        _ => Box::new(modes::kucherov::KucherovMode::new(2)), //default
+        _ => default_mode(),
     };
 
     let config = Config{
@@ -48,12 +48,12 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
 
         //options
         worker_threads :    worker_threads,
+        verbosity:          matches.occurrences_of("verbose") as u8,
 
         //opt-in
         reversals :         if matches.occurrences_of("reversals")        >= 1 {true} else {false},
         inclusions :        if matches.occurrences_of("inclusions")       >= 1 {true} else {false},
         edit_distance :     if matches.occurrences_of("edit_distance")    >= 1 {true} else {false},
-        verbose :           if matches.occurrences_of("verbose")          >= 1 {true} else {false},
         greedy_output:      if matches.occurrences_of("greedy_output")    >= 1 {true} else {false},
         print:              if matches.occurrences_of("print")            >= 1 {true} else {false},
         track_progress:     if matches.occurrences_of("track_progress")   >= 1 {true} else {false},
@@ -64,6 +64,9 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
     (mode, config)
 }
 
+pub fn default_mode() -> Mode {
+    Box::new(modes::kucherov::KucherovMode::new(2))
+}
 
 fn get_mode(arg : &str) -> Mode {
     let tokens : Vec<&str> = arg.split('_').collect();

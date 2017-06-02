@@ -53,12 +53,12 @@ static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
 fn main() {
     let (mode, config) = setup::parse_run_args();
 
-    if config.verbose {
+    if config.verbosity >= 2 {
         println!("OK interpreted config args.\n{:#?}", &config);
         println!("OK mode set to {}", &mode);
     }
 
-    if config.verbose{
+    if config.verbosity >= 2 {
         if cfg!(feature = "kucherov"){
             println!("OK using Kucherov mode");
         }
@@ -68,10 +68,10 @@ fn main() {
     }
 
     let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-    if config.verbose {println!("OK read and mapped fasta input.")};
+    if config.verbosity >= 2 {println!("OK read and mapped fasta input.")};
 
     if !config.n_alphabet{
-        if config.verbose {println!("OK cleaned 'N' from input strings.")};
+        if config.verbosity >= 2 {println!("OK cleaned 'N' from input strings.")};
     }
 
     solve(&config, &maps, mode);
@@ -87,7 +87,7 @@ fn main() {
 fn solve(config : &Config, maps : &Maps, mode : Mode){
 
     let alphabet = Alphabet::new(config.alphabet());
-    if config.verbose{
+    if config.verbosity >= 2 {
         println!("OK index alphabet set to '{}'",
                  String::from_utf8_lossy(config.alphabet()));
     }
@@ -96,14 +96,14 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
     let less = less(&bwt, &alphabet);
     let occ = Occ::new(&bwt, 3, &alphabet);
     let fm = FMIndex::new(&bwt, &less, &occ);
-    if config.verbose{println!("OK index ready.");};
+    if config.verbosity >= 2 {println!("OK index ready.");};
 
     let f = File::create(&config.output)
         .expect("Couldn't open output file.");
     let mut wrt_buf = BufWriter::new(f);
     wrt_buf.write_all("idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\n".as_bytes())
         .expect("couldn't write header line to output");
-    if config.verbose{println!("OK output writer ready.");}
+    if config.verbosity >= 2 {println!("OK output writer ready.");}
 
     let id_iterator = 0..maps.num_ids();
     let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
@@ -114,17 +114,19 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
         track_progress(config_task_completion_clone, num_tasks);
     });
     if config.track_progress {
-        if config.verbose{println!("OK spawning progress tracker thread.");}
+        if config.verbosity >= 2 {println!("OK spawning progress tracker thread.");}
     }else{
-        if config.verbose{println!("OK suppressing progress tracker thread.");}
+        if config.verbosity >= 2 {println!("OK suppressing progress tracker thread.");}
     }
-    if config.verbose{println!("OK spawning {} worker threads.", config.worker_threads);}
+    if config.verbosity >= 2 {println!("OK spawning {} worker threads.", config.worker_threads);}
 
     //rust profiler?
     let mut s_durations : Vec<u64> = Vec::with_capacity(num_tasks);
     let mut v_durations : Vec<u64> = Vec::with_capacity(num_tasks);
 
-    println!("OK working.");
+    if config.verbosity >= 1{
+        println!("OK working.");
+    }
     let work_start = Instant::now();
     {
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm, &mode);
@@ -160,31 +162,36 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
     }
     if !config.greedy_output {
         complete_solution_list.sort();
-        if config.verbose{println!("OK output list sorted.");}
+        if config.verbosity >= 2 {println!("OK output list sorted.");}
         complete_solution_list.dedup();
-        if config.verbose{println!("OK output list deduplicated.");}
+        if config.verbosity >= 2 {println!("OK output list deduplicated.");}
 //        println!("{:#?}", &complete_solution_list);
         for sol in complete_solution_list.iter(){
             write_solution(&mut wrt_buf, sol, maps, config);
         }
-        println!("OK wrote {} solutions.", complete_solution_list.len());
+        if config.verbosity >= 1{
+            println!("OK wrote {} solutions.", complete_solution_list.len());
+        }
     }
-    if config.verbose{println!("OK output file {} written.", config.output);};
+    if config.verbosity >= 2 {println!("OK output file {} written.", config.output);};
 
-    //TODO replace elapsed time with something better
-    println!("OK completed in {}.", approx_elapsed_string(&work_start));
-    let sum_s = sum(&s_durations);
-    let sum_v = sum(&v_durations);
-    let avg_s = avg(sum_s, s_durations.len());
-    let avg_v = avg(sum_v, v_durations.len());
-    println!("WORK NANOS:\n\
-\ttotal \t{}\n\
-\tsearch\t{}\t{:.2}%\n\
-\tverif \t{}\t{:.2}%",
-             sum_s + sum_v,
-             sum_s, 100.0 * avg_s as f32 /(avg_s + avg_v) as f32,
-             sum_v, 100.0 * avg_v as f32 /(avg_s + avg_v) as f32
-    );
+    if config.verbosity >= 1{
+        println!("OK completed in {}.", approx_elapsed_string(&work_start));
+    }
+
+
+//    let sum_s = sum(&s_durations);
+//    let sum_v = sum(&v_durations);
+//    let avg_s = avg(sum_s, s_durations.len());
+//    let avg_v = avg(sum_v, v_durations.len());
+//    println!("WORK NANOS:\n\
+//\ttotal \t{}\n\
+//\tsearch\t{}\t{:.2}%\n\
+//\tverif \t{}\t{:.2}%",
+//             sum_s + sum_v,
+//             sum_s, 100.0 * avg_s as f32 /(avg_s + avg_v) as f32,
+//             sum_v, 100.0 * avg_v as f32 /(avg_s + avg_v) as f32
+//    );
 }
 
 

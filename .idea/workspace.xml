@@ -2,12 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/out.out" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modes/kucherov.rs" afterPath="$PROJECT_DIR$/src/modes/kucherov.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modes/mod.rs" afterPath="$PROJECT_DIR$/src/modes/mod.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modes/valimaki2.rs" afterPath="$PROJECT_DIR$/src/modes/valimaki2.rs" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/setup.rs" afterPath="$PROJECT_DIR$/src/setup.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/structs.rs" afterPath="$PROJECT_DIR$/src/structs.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/testing.rs" afterPath="$PROJECT_DIR$/src/testing.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/verification.rs" afterPath="$PROJECT_DIR$/src/verification.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_output/edit_incl.txt" afterPath="$PROJECT_DIR$/test_output/edit_incl.txt" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -24,11 +29,31 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-      <file leaf-file-name="main.rs" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="103" column="57" lean-forward="true" selection-start-line="103" selection-start-column="23" selection-end-line="103" selection-end-column="57" />
+            <state relative-caret-position="3003">
+              <caret line="181" column="0" lean-forward="false" selection-start-line="181" selection-start-column="0" selection-end-line="181" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="prepare.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/prepare.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="918">
+              <caret line="40" column="25" lean-forward="false" selection-start-line="40" selection-start-column="25" selection-end-line="40" selection-end-column="25" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="search.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/search.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="280">
+              <caret line="25" column="35" lean-forward="false" selection-start-line="25" selection-start-column="35" selection-end-line="25" selection-end-column="35" />
               <folding />
             </state>
           </provider>
@@ -37,18 +62,28 @@
       <file leaf-file-name="structs.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/structs.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5100">
-              <caret line="216" column="25" lean-forward="false" selection-start-line="216" selection-start-column="25" selection-end-line="216" selection-end-column="25" />
+            <state relative-caret-position="280">
+              <caret line="223" column="25" lean-forward="false" selection-start-line="223" selection-start-column="25" selection-end-line="223" selection-end-column="25" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mod.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/modes/mod.rs">
+      <file leaf-file-name="useful.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/useful.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="29" lean-forward="false" selection-start-line="0" selection-start-column="29" selection-end-line="0" selection-end-column="29" />
+            <state relative-caret-position="280">
+              <caret line="26" column="26" lean-forward="false" selection-start-line="26" selection-start-column="26" selection-end-line="26" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="verification.rs" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/verification.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="293">
+              <caret line="33" column="5" lean-forward="false" selection-start-line="33" selection-start-column="5" selection-end-line="33" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -57,23 +92,12 @@
       <file leaf-file-name="setup.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/setup.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1150">
-              <caret line="46" column="81" lean-forward="false" selection-start-line="46" selection-start-column="81" selection-end-line="46" selection-end-column="81" />
+            <state relative-caret-position="329">
+              <caret line="38" column="28" lean-forward="false" selection-start-line="38" selection-start-column="28" selection-end-line="38" selection-end-column="28" />
               <folding>
-                <marker date="1496311729528" expanded="true" signature="2157:2310" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="kucherov.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/modes/kucherov.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="3" column="0" lean-forward="false" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-              <folding>
-                <element signature="e#182#183#0" expanded="true" />
-                <element signature="e#229#230#0" expanded="true" />
+                <element signature="e#3562#3563#0" expanded="true" />
+                <element signature="e#3616#3617#0" expanded="true" />
+                <marker date="1496417717700" expanded="true" signature="2157:2267" ph="..." />
               </folding>
             </state>
           </provider>
@@ -82,14 +106,29 @@
       <file leaf-file-name="valimaki2.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/modes/valimaki2.rs">
           <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="975">
+              <caret line="47" column="20" lean-forward="false" selection-start-line="47" selection-start-column="20" selection-end-line="47" selection-end-column="20" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="testing.rs" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/testing.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="4941">
+              <caret line="302" column="28" lean-forward="false" selection-start-line="302" selection-start-column="28" selection-end-line="302" selection-end-column="28" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="edit_incl.fasta" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test_input/edit_incl.fasta">
+          <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="75">
-              <caret line="3" column="0" lean-forward="false" selection-start-line="3" selection-start-column="0" selection-end-line="4" selection-end-column="16" />
-              <folding>
-                <element signature="e#144#145#0" expanded="true" />
-                <element signature="e#172#173#0" expanded="true" />
-                <element signature="e#274#275#0" expanded="true" />
-                <element signature="e#311#312#0" expanded="true" />
-              </folding>
+              <caret line="3" column="6" lean-forward="true" selection-start-line="3" selection-start-column="6" selection-end-line="3" selection-end-column="6" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -105,8 +144,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>println!</find>
-      <find>compan</find>
       <find>ID</find>
       <find>ID -</find>
       <find>verifica</find>
@@ -135,6 +172,8 @@
       <find>max_b_len</find>
       <find>use</find>
       <find>::*</find>
+      <find>verbos</find>
+      <find>verb</find>
     </findStrings>
     <replaceStrings>
       <replace>b_match_len</replace>
@@ -204,14 +243,14 @@
         <option value="$PROJECT_DIR$/Cargo.toml" />
         <option value="$PROJECT_DIR$/src/prepare.rs" />
         <option value="$PROJECT_DIR$/src/search.rs" />
-        <option value="$PROJECT_DIR$/src/testing.rs" />
-        <option value="$PROJECT_DIR$/src/verification.rs" />
-        <option value="$PROJECT_DIR$/src/modes/kucherov.rs" />
         <option value="$PROJECT_DIR$/src/modes/mod.rs" />
+        <option value="$PROJECT_DIR$/src/modes/kucherov.rs" />
         <option value="$PROJECT_DIR$/src/modes/valimaki2.rs" />
-        <option value="$PROJECT_DIR$/src/setup.rs" />
-        <option value="$PROJECT_DIR$/src/structs.rs" />
+        <option value="$PROJECT_DIR$/src/verification.rs" />
         <option value="$PROJECT_DIR$/src/main.rs" />
+        <option value="$PROJECT_DIR$/src/structs.rs" />
+        <option value="$PROJECT_DIR$/src/setup.rs" />
+        <option value="$PROJECT_DIR$/src/testing.rs" />
       </list>
     </option>
   </component>
@@ -236,9 +275,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="Scope" />
       <pane id="Scratches" />
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -771,13 +810,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test_input/edit_incl.fasta">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="3" column="6" lean-forward="false" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test_input/ham_rev_incl.fasta">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -843,44 +875,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/prepare.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="9" column="0" lean-forward="true" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/verification.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-800">
-          <caret line="7" column="0" lean-forward="false" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/useful.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="280">
-          <caret line="26" column="21" lean-forward="false" selection-start-line="26" selection-start-column="21" selection-end-line="26" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/testing.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1485">
-          <caret line="316" column="25" lean-forward="false" selection-start-line="316" selection-start-column="25" selection-end-line="316" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/search.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="400">
-          <caret line="16" column="16" lean-forward="false" selection-start-line="16" selection-start-column="16" selection-end-line="16" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/modes/mod.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -889,52 +883,94 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/modes/valimaki2.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="3" column="0" lean-forward="false" selection-start-line="3" selection-start-column="0" selection-end-line="4" selection-end-column="16" />
-          <folding>
-            <element signature="e#144#145#0" expanded="true" />
-            <element signature="e#172#173#0" expanded="true" />
-            <element signature="e#274#275#0" expanded="true" />
-            <element signature="e#311#312#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/modes/kucherov.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="3" column="0" lean-forward="false" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-          <folding>
-            <element signature="e#182#183#0" expanded="true" />
-            <element signature="e#229#230#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="325">
+          <caret line="43" column="22" lean-forward="false" selection-start-line="43" selection-start-column="22" selection-end-line="43" selection-end-column="22" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/setup.rs">
+    <entry file="file://$PROJECT_DIR$/src/modes/valimaki2.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1150">
-          <caret line="46" column="81" lean-forward="false" selection-start-line="46" selection-start-column="81" selection-end-line="46" selection-end-column="81" />
-          <folding>
-            <marker date="1496311729528" expanded="true" signature="2157:2310" ph="..." />
-          </folding>
+        <state relative-caret-position="975">
+          <caret line="47" column="20" lean-forward="false" selection-start-line="47" selection-start-column="20" selection-end-line="47" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/useful.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="26" column="26" lean-forward="false" selection-start-line="26" selection-start-column="26" selection-end-line="26" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/verification.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="293">
+          <caret line="33" column="5" lean-forward="false" selection-start-line="33" selection-start-column="5" selection-end-line="33" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/prepare.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="918">
+          <caret line="40" column="25" lean-forward="false" selection-start-line="40" selection-start-column="25" selection-end-line="40" selection-end-column="25" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/structs.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5100">
-          <caret line="216" column="25" lean-forward="false" selection-start-line="216" selection-start-column="25" selection-end-line="216" selection-end-column="25" />
+        <state relative-caret-position="280">
+          <caret line="223" column="25" lean-forward="false" selection-start-line="223" selection-start-column="25" selection-end-line="223" selection-end-column="25" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/setup.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="38" column="28" lean-forward="false" selection-start-line="38" selection-start-column="28" selection-end-line="38" selection-end-column="28" />
+          <folding>
+            <element signature="e#3562#3563#0" expanded="true" />
+            <element signature="e#3616#3617#0" expanded="true" />
+            <marker date="1496417717700" expanded="true" signature="2157:2267" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="103" column="57" lean-forward="true" selection-start-line="103" selection-start-column="23" selection-end-line="103" selection-end-column="57" />
+        <state relative-caret-position="3003">
+          <caret line="181" column="0" lean-forward="false" selection-start-line="181" selection-start-column="0" selection-end-line="181" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test_input/edit_incl.fasta">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="3" column="6" lean-forward="true" selection-start-line="3" selection-start-column="6" selection-end-line="3" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/search.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="25" column="35" lean-forward="false" selection-start-line="25" selection-start-column="35" selection-end-line="25" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/testing.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4941">
+          <caret line="302" column="28" lean-forward="false" selection-start-line="302" selection-start-column="28" selection-end-line="302" selection-end-column="28" />
           <folding />
         </state>
       </provider>

@@ -38,10 +38,11 @@ impl IsMode for KucherovMode {
     }
 
     fn get_block_lengths(&self, patt_len : i32, err_rate : f32, thresh : i32) -> Vec<i32>{
-        if patt_len < thresh{
-            panic!("TODO kucherov pattlen < thresh");
-        }
         let mut ls : Vec<i32> = Vec::new();
+        if patt_len < thresh{
+            ls.push(patt_len);
+            return ls;
+        }
         for l in thresh..patt_len+1{
             let f_len = l as f32;
             if (err_rate*(f_len-1.0)).ceil()

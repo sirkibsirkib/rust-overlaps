@@ -32,9 +32,6 @@ pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Confi
             solution_set.insert(solution);
         }
     }
-//    if config.verbose {println!("OK finished solutions for  '{}'. Verified {}/{}\t({:.2}%).",
-//                                maps.get_name_for(id_a), solution_set.len(), num_cands,
-//                                (solution_set.len() as f32) / (num_cands as f32) * 100.0)};
     solution_set
 }
 
