@@ -319,15 +319,15 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
     //empty
 }
 
-#[inline]
-fn sum(v : &Vec<u64>) -> u64{
-    v.iter().fold(0, |a, b| a+b)
-}
-
-#[inline]
-fn avg(sum : u64, len : usize) -> u64{
-    (sum as f32  / (len as f32)) as u64
-}
+//#[inline]
+//fn sum(v : &Vec<u64>) -> u64{
+//    v.iter().fold(0, |a, b| a+b)
+//}
+//
+//#[inline]
+//fn avg(sum : u64, len : usize) -> u64{
+//    (sum as f32  / (len as f32)) as u64
+//}
 
 #[inline]
 fn nanos(dur : Duration) -> u64 {

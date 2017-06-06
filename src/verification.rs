@@ -66,7 +66,7 @@ fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option
     };
 //    let mut cigar = String::new();
 //    cigar.push_str(&format!("ids: {}->{}", id_a, c.id_b));
-    let k_limit = (config.err_rate*(max(c.overlap_a, c.overlap_b) as f32)) as u32;
+    let k_limit = (config.err_rate*(max(c.overlap_a, c.overlap_b) as f32)).floor() as u32;
     if errors <= k_limit{
         Some(solution_from_candidate(c, id_a, errors, maps, config))
     }else{

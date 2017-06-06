@@ -2,6 +2,7 @@ use num_cpus;
 use structs::run_config::Config;
 use modes::{IsMode, Mode};
 use modes;
+use std::cmp::min;
 
 /*
 Using Clap, builds a config struct that contains all the user's input
@@ -23,7 +24,7 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         (@arg reversals: -r --reversals "Enables reversals of input strings")
         (@arg inclusions: -i --inclusions "Enables finding of inclusion overlaps (one string within another)")
         (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming distance")
-        (@arg verbose: -v --verbose "Prints completed steps of the run process")
+        (@arg verbose: -v --verbose +multiple "Prints completed steps of the run process")
         (@arg greedy_output: -g --greedy_output "Threads print solutions to output greedily instead of storing them. Limited duplication may arise")
         (@arg print: -p --print "For each solution printed to file, also prints a rough visualization to stdout (mostly for debugging purposes)")
         (@arg no_n: -n --no_n "Omits N symbol from alphabet saving time. Will remove N symbols from input file (with a warning)")
@@ -48,7 +49,7 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
 
         //options
         worker_threads :    worker_threads,
-        verbosity:          matches.occurrences_of("verbose") as u8,
+        verbosity:          min(matches.occurrences_of("verbose") as u8, 2),
 
         //opt-in
         reversals :         if matches.occurrences_of("reversals")        >= 1 {true} else {false},

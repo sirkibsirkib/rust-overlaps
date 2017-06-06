@@ -51,7 +51,9 @@ impl IsMode for KucherovMode {
             }
         }
         ls.push(patt_len+1);
-        let k = (err_rate*(ls[0] as f32)).ceil() as i32 + self.s_param - 1;
+        let k =
+            max(1, (err_rate*(ls[0] as f32)).ceil() as i32) //when err_rate is 0 there is no block to start with. avoid this niche case
+            + self.s_param - 1;
         let big_l : i32 = max(
             (((ls[0]-1) as f32)/(k as f32)).ceil() as i32,
             ls[0] - thresh,
