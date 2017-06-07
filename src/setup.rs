@@ -65,7 +65,7 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
 
     assert!(config.thresh > 0);
     assert!(config.err_rate >= 0.0);
-    assrrt!(config.err_rate < 1.0);
+    assert!(config.err_rate < 1.0);
     (mode, config)
 }
 

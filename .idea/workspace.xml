@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rust_overlaps.exe" afterPath="$PROJECT_DIR$/rust_overlaps.exe" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/setup.rs" afterPath="$PROJECT_DIR$/src/setup.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
@@ -96,9 +93,9 @@
         <entry file="file://$PROJECT_DIR$/src/setup.rs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="400">
-              <caret line="67" column="35" lean-forward="false" selection-start-line="67" selection-start-column="35" selection-end-line="67" selection-end-column="35" />
+              <caret line="67" column="8" lean-forward="false" selection-start-line="67" selection-start-column="8" selection-end-line="67" selection-end-column="8" />
               <folding>
-                <marker date="1496846934674" expanded="true" signature="2186:2296" ph="..." />
+                <marker date="1496849827715" expanded="true" signature="2186:2296" ph="..." />
               </folding>
             </state>
           </provider>
@@ -956,9 +953,9 @@
     <entry file="file://$PROJECT_DIR$/src/setup.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="400">
-          <caret line="67" column="35" lean-forward="false" selection-start-line="67" selection-start-column="35" selection-end-line="67" selection-end-column="35" />
+          <caret line="67" column="8" lean-forward="false" selection-start-line="67" selection-start-column="8" selection-end-line="67" selection-end-column="8" />
           <folding>
-            <marker date="1496846934674" expanded="true" signature="2186:2296" ph="..." />
+            <marker date="1496849827715" expanded="true" signature="2186:2296" ph="..." />
           </folding>
         </state>
       </provider>
