@@ -11,7 +11,7 @@ pub mod solutions{
     use super::useful::{companion_id, Orientation};
 
     //NOT oriented
-    #[derive(Hash,PartialEq, Eq, Debug)]
+    #[derive(Hash,PartialEq, Eq, Debug, Clone)]
     pub struct Candidate{
         pub id_b : usize,
         pub overlap_a : usize,
@@ -59,7 +59,7 @@ pub mod solutions{
     }
 
     //oriented
-    #[derive(Debug)]
+    #[derive(Debug,Clone)]
     pub struct Solution{
         pub id_a : usize,
         pub id_b : usize,
@@ -84,11 +84,11 @@ pub mod solutions{
         pub fn h_flip(&mut self, reversals : bool){
             self.id_a = companion_id(self.id_a, reversals);
             self.id_b = companion_id(self.id_b, reversals);
-            self.un_reverse();
+            self.mirror_horizontally();
         }
 
         //strictly reverses orientation to compensate for index being backwards
-        pub fn un_reverse(&mut self){
+        pub fn mirror_horizontally(&mut self){
             swap(&mut self.overhang_left_a, &mut self.overhang_right_b);
             self.overhang_left_a *= -1;
             self.overhang_right_b *= -1;

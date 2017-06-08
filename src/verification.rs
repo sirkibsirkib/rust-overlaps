@@ -12,13 +12,15 @@ use std;
 use useful::{relative_orientation, companion_id, for_reversed_string};
 
 
+
+
 /*
 Another major step in the program, the candidate verification step. (AKA the filter step)
 This function returns a set of solutions, each of which corresponds to a candidate in the input set.
 Only candidates that are found (somewhat naively) to have small enough error distances (as defined in config)
 correspond with an output solution. Other candidates are "filtered" out.
 */
-pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Config, maps : &Maps) -> HashSet<Solution>{
+pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Config, maps : &Maps) -> HashSet<Solution> {
     let num_cands = candidates.len();
     let mut solution_set : HashSet<Solution> = HashSet::new();
     if num_cands == 0{
@@ -51,7 +53,7 @@ b: [b1|b2|b3]
 where a1,a2...b3 correspond with the LENGTHS of chunks of the pattern and match strings respectively,
 a2 and b2 are the overlapping sections, and a1,a3,b1,b3 are the lengths of parts before and after.
 */
-fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
+pub fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Option<Solution>{
     let a_len = maps.get_length(id_a);
     assert_eq!(c.a3(a_len), 0);
     //b3 is usize, so implicitly b3 >= 0
@@ -168,6 +170,6 @@ fn translate_solution_to_external(sol : &mut Solution, config : &Config){
         assert!(!for_reversed_string(sol.id_a));
     }
 
-    sol.un_reverse(); //finally, compensate for the index being entirely backwards
+    sol.mirror_horizontally(); //finally, compensate for the index being entirely backwards
     assert!(!config.reversals || sol.id_a % 2 == 0);
 }

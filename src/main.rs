@@ -33,6 +33,9 @@ mod modes;
 mod testing;
 mod useful;
 
+///DEBUG DEBUG
+mod measuring;
+
 use structs::solutions::Solution;
 use structs::run_config::{Config, Maps};
 use search::GeneratesCandidates;
@@ -74,7 +77,11 @@ fn main() {
         if config.verbosity >= 2 {println!("OK cleaned 'N' from input strings.")};
     }
 
-    solve(&config, &maps, mode);
+    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
+//    solve(&config, &maps, mode);
+
+    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
+    measuring::measure_solve(&config, &maps, mode);
 }
 
 /*
@@ -232,14 +239,14 @@ fn track_progress(enabled : bool, num_tasks : usize) {
             let elapsed = Instant::elapsed(&my_start_time).as_secs();
             let eta = elapsed as f32 * ((num_tasks-tasks_done) as f32) / (tasks_done as f32 + 0.2);
             let eta_str = time_display(eta as u64);
-            print!("\r[{}{}] {}/{} tasks done. ETA {}             ",
+            print!("\r[{}{}] {}/{} tasks done. ETA {}                     ",
                    &complete, &incomplete, tasks_done, num_tasks, eta_str);
             stdout().flush().is_ok();
             redraw = false;
             tick_modulo = 0;
         }
         if tasks_done >= num_tasks{
-            println!("\r[{}{}] {}/{} tasks done.                    ",
+            println!("\r[{}{}] {}/{} tasks done.                            ",
                      &complete, &incomplete, tasks_done, num_tasks);
             stdout().flush().is_ok();
             break;
@@ -282,6 +289,7 @@ fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc 
     (nanos(t1-t0), nanos(t2-t1), solutions)
 }
 
+
 /*
 writes a single solution to file.
 the written string won't be broken up
@@ -318,16 +326,6 @@ impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> G
                     for FMIndex<DBWT, DLess, DOcc> {
     //empty
 }
-
-//#[inline]
-//fn sum(v : &Vec<u64>) -> u64{
-//    v.iter().fold(0, |a, b| a+b)
-//}
-//
-//#[inline]
-//fn avg(sum : u64, len : usize) -> u64{
-//    (sum as f32  / (len as f32)) as u64
-//}
 
 #[inline]
 fn nanos(dur : Duration) -> u64 {

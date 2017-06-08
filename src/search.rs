@@ -36,7 +36,130 @@ Relative to the actual strings inside the text, and conceptually, the search is 
 These two equally-correct perspectives cannot be resolved in all cases, so when possible I use
 terms that are general in both directions. ie: FILTER instead of SUFFIX FILTER
 */
+
+
+use measuring::Measurement;
+use verification::{verify_all};
+use std::time::{Instant, Duration};
+use verification::verify;
+use nanos;
+use measuring::wheat_from_chaff;
+
 pub trait GeneratesCandidates : FMIndexable {
+
+
+    fn measures(&self,
+                pattern : &[u8],
+                config : &Config,
+                maps : &Maps,
+                id_a : usize,
+                sa : &RawSuffixArray,
+                mode : &Mode,
+    ) -> Vec<Measurement> {
+
+        let mut measurements : Vec<Measurement> = Vec::new();
+
+        let patt_len = pattern.len();
+        let block_lengths = mode.get_block_lengths(patt_len as i32, config.err_rate, config.thresh);
+        assert_eq!(patt_len as i32, block_lengths.iter().sum());
+        let block_id_lookup = get_block_id_lookup(&block_lengths);
+        let full_interval = Interval {
+            lower: 0,
+            upper: self.bwt().len() - 1,
+        };
+        let mut p_i : i32 = (patt_len-1) as i32; //first index that will be matched
+        let patt_blocks : i32 = block_lengths.len() as i32;
+
+        // necessary data for the search which remains constant for the entire pattern
+        let max_b_len = if config.edit_distance {
+            (patt_len as f32 / (1.0-config.err_rate)).floor() as usize
+        } else {
+            //CORRECT
+            patt_len
+        };
+
+
+        if max_b_len < config.thresh as usize{
+            //pattern too short
+            return measurements;
+        }
+        let p_cns = PatternConstants{
+            pattern: pattern,
+            hard_error_cap : (max_b_len as f32 * config.err_rate).floor() as i32,
+            config : config,
+            maps : maps,
+            block_id_lookup : &block_id_lookup,
+            sa : sa,
+            id_a : id_a,
+            patt_blocks : patt_blocks,
+            //            max_b_len : max_b_len,
+            mode : mode,
+        };
+
+        /*
+        each of these represents a suffix filter to be treated as a pattern to query the index
+        iterate over blocks FORWARDS, but remove blocks from p_i LEFTWARDS
+        ie:
+        [2][1][0]
+        [2][1]
+        [2]
+        */
+        for (first_block_id, block_len) in block_lengths.iter().enumerate() {
+            //            println!("\nFILTER  {}", String::from_utf8_lossy(&pattern[..(p_i as usize + 1)]));
+
+            let suff_blocks = patt_blocks - first_block_id as i32; //first_block_id == blind_blocks
+            if suff_blocks < p_cns.mode.get_fewest_suff_blocks() {
+                break;
+            }
+
+            let s_cns = SuffixConstants {
+                blind_blocks: first_block_id as i32,
+                blind_a_chars: patt_len - p_i as usize - 1,
+                generous_blind_chars : ((patt_len - p_i as usize - 1) as f32 / (1.0-config.err_rate)).floor() as usize,
+            };
+
+            //This begins the search and represents a single "query" for a single pattern filter
+
+            let mut candidate_set: HashSet<Candidate> = HashSet::new();
+
+            let t0 = Instant::now();
+
+            self.recurse_candidates(
+                &mut candidate_set, &p_cns, &s_cns, 0, p_i,
+                LastOperation::Initial, 0, 0,
+                &full_interval,
+            );
+
+            let t1 = Instant::now();
+            let (wheat, chaff) = wheat_from_chaff(id_a, candidate_set, config, maps);
+            let (wheat_len, chaff_len) = (wheat.len() as u64, chaff.len() as u64);
+
+            let t2 = Instant::now();
+            verify_all(id_a, wheat, config, maps);
+            let t3 = Instant::now();
+            verify_all(id_a, chaff, config, maps);
+            let t4 = Instant::now();
+
+
+            let m  = Measurement{
+                // times
+                search_nanos : nanos(t1-t0),
+                veri_true_nanos : nanos(t3-t2),
+                veri_false_nanos : nanos(t4-t3),
+
+                //counts
+                sol_true_count : wheat_len,
+                sol_false_count : chaff_len,
+            };
+
+            measurements.insert(0, m);
+
+            // the filters begin as the entire pattern, and gradually get shorter.
+            p_i -= *block_len;
+        }
+        measurements
+    }
+
     fn generate_candidates(&self,
                            pattern : &[u8],
                            config : &Config,

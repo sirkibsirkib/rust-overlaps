@@ -32,7 +32,7 @@ pub fn relative_orientation(id_a : usize, id_b : usize, reversals : bool) -> Ori
 
 // Normal refers to a solution where both strings are NOT reversed
 // Reversed refers to a solution where A is normal and B is reversed
-#[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord)]
+#[derive(Hash,PartialEq, Eq, Debug, PartialOrd, Ord, Clone)]
 pub enum Orientation{
     Normal,
     Reversed,
