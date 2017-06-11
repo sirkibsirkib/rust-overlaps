@@ -6,6 +6,7 @@ use super::*;
 use nanos;
 use verification::{verify_all};
 use std::time::{Instant, Duration};
+use std::collections::HashMap;
 use verification::verify;
 use structs::run_config::{Config, Maps};
 use structs::solutions::{Candidate, Solution};
@@ -106,6 +107,9 @@ use std::ops::{Add,Div};
 //for one filter
 ///DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
 pub struct Measurement{
+
+    pub suff_blocks : u64,
+
     // times
     pub search_nanos : u64,
     pub veri_true_nanos : u64,
@@ -120,7 +124,9 @@ pub struct Measurement{
 impl Add for Measurement{
     type Output = Self;
     fn add(self, other: Self) -> Self {
+        assert_eq!(self.suff_blocks, other.suff_blocks);
         Measurement {
+            suff_blocks : self.suff_blocks,
             search_nanos : self.search_nanos + other.search_nanos,
             veri_true_nanos :  self.veri_true_nanos + other.veri_true_nanos,
             veri_false_nanos :  self.veri_false_nanos + other.veri_false_nanos,
@@ -134,6 +140,7 @@ impl Add for Measurement{
 impl Measurement{
     fn divz(self, rhs : u64) -> Measurement{
         Measurement{
+            suff_blocks : self.suff_blocks,
             search_nanos : self.search_nanos / rhs,
             veri_true_nanos: self.veri_true_nanos / rhs,
             veri_false_nanos: self.veri_false_nanos / rhs,
@@ -142,8 +149,9 @@ impl Measurement{
         }
     }
 
-    fn null() -> Measurement{
+    fn null(suff_blocks : u64) -> Measurement{
         Measurement{
+            suff_blocks : suff_blocks,
             search_nanos : 0,
             veri_true_nanos: 0,
             veri_false_nanos: 0,
@@ -156,50 +164,44 @@ impl Measurement{
 
 
 ///DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
-fn measure_agglutinate(pattern_measurements : Vec<Vec<Measurement>>) -> Vec<Measurement>{
-    let mut agglutinated_measurements : Vec<Vec<Measurement>> = Vec::new();
+fn measure_agglutinate(pattern_measurements : Vec<Vec<Measurement>>) -> HashMap<u64, Measurement>{
+    let mut sums : HashMap<u64, Measurement> = HashMap::new();
     for pat in pattern_measurements {
-        for (i, filter_measurements) in pat.into_iter().enumerate(){
-            while agglutinated_measurements.len() <= i{
-                let a : Vec<Measurement> = Vec::new();
-                agglutinated_measurements.push(a)
+        for fil in pat.into_iter() {
+            let suff_blocks = fil.suff_blocks;
+            if !sums.contains_key(&suff_blocks) {
+                sums.insert(suff_blocks, Measurement::null(suff_blocks));
             }
-            agglutinated_measurements[i].push(filter_measurements)
+            let old = sums.remove(&suff_blocks).unwrap();
+            sums.insert(suff_blocks, fil + old);
         }
     }
-    //now filter measurements contains measurements clumped by length
-    let mut averages : Vec<Measurement> = Vec::new();
-    for filter_measurements in agglutinated_measurements{
-        let f_len = filter_measurements.len() as u64;
-        let mut sums = Measurement{
-            search_nanos : 0,
-            veri_true_nanos: 0,
-            veri_false_nanos: 0,
-            sol_true_count: 0,
-            sol_false_count: 0,
-        };
-        for m in filter_measurements{
-            sums = sums + m;
-        }
-        averages.push(sums);
-        //        averages.push(sums.divz(f_len))
-    }
-    averages
+    sums
 }
 
 ///DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
-fn write_measurements(buf : &mut BufWriter<File>, averages : Vec<Measurement>, min_suff_len : i32){
+fn write_measurements(buf : &mut BufWriter<File>, sum_measurements : HashMap<u64, Measurement>, min_suff_len : i32){
 
-    buf.write_all("SUFFLEN\tsrchNanos\tvTNanos\tvFNanos\tcndCount\tsTCount\tsFCount\n".as_bytes())
+    buf.write_all("search_blocks\tseach_nanos\tveri=true_nanos\tveri=false_nanos\tsol=true_count\tsol=false_count\t(veri_time)\t(veri=true_nano_ratio)\t(total_nanos)\t(search_nanos_ratio)\t(sol=true_count_ratio)\n".as_bytes())
         .expect("couldn't write header line to output");
-    for (i, m) in averages.iter().enumerate(){
-        let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\n",
-                                i as i32 + min_suff_len,
+
+    let mut key_vec : Vec<&u64> = sum_measurements.keys().collect();
+    key_vec.sort();
+    for k in key_vec {
+        let m : &Measurement = sum_measurements.get(k).unwrap();
+        let formatted = format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                                m.suff_blocks,
                                 m.search_nanos,
                                 m.veri_true_nanos,
                                 m.veri_false_nanos,
                                 m.sol_true_count,
                                 m.sol_false_count,
+            
+                                (m.veri_true_nanos + m.veri_false_nanos),
+                                (m.veri_true_nanos as f32 / (m.veri_true_nanos + m.veri_false_nanos) as f32),
+                                (m.suff_blocks + m.search_nanos + m.veri_true_nanos),
+                                m.search_nanos as f32 / (m.suff_blocks + m.search_nanos + m.veri_true_nanos) as f32,
+                                (m.sol_true_count as f32 / (m.sol_true_count + m.sol_false_count) as f32),
         );
         buf.write(formatted.as_bytes()).is_ok();
     }

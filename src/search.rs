@@ -142,6 +142,8 @@ pub trait GeneratesCandidates : FMIndexable {
 
 
             let m  = Measurement{
+                suff_blocks : suff_blocks as u64,
+
                 // times
                 search_nanos : nanos(t1-t0),
                 veri_true_nanos : nanos(t3-t2),
@@ -152,7 +154,7 @@ pub trait GeneratesCandidates : FMIndexable {
                 sol_false_count : chaff_len,
             };
 
-            measurements.insert(0, m);
+            measurements.push(m);
 
             // the filters begin as the entire pattern, and gradually get shorter.
             p_i -= *block_len;

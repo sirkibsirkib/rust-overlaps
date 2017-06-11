@@ -2,7 +2,7 @@ use num_cpus;
 use structs::run_config::Config;
 use modes::{IsMode, Mode};
 use modes;
-use std::cmp::min;
+use std::cmp::{min, max};
 
 /*
 Using Clap, builds a config struct that contains all the user's input
@@ -33,7 +33,7 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
 
     let worker_threads = match matches.value_of("worker_threads") {
         Some(s) => s.parse().unwrap(),
-        None => num_cpus::get(),
+        None => max(1, num_cpus::get()-1),
     };
     let mode : Mode = match matches.value_of("mode") {
         Some(s) => get_mode(s),
