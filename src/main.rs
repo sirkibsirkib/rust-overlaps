@@ -78,10 +78,10 @@ fn main() {
     }
 
     //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
-//    solve(&config, &maps, mode);
+    solve(&config, &maps, mode);
 
     //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
-    measuring::measure_solve(&config, &maps, mode);
+//    measuring::measure_solve(&config, &maps, mode);
 }
 
 /*
@@ -127,19 +127,13 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
     }
     if config.verbosity >= 2 {println!("OK spawning {} worker threads.", config.worker_threads);}
 
-    //rust profiler?
-    let mut s_durations : Vec<u64> = Vec::with_capacity(num_tasks);
-    let mut v_durations : Vec<u64> = Vec::with_capacity(num_tasks);
-
     if config.verbosity >= 1{
         println!("OK working.");
     }
     let work_start = Instant::now();
     {
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm, &mode);
-        let aggregator = |(s_dur, v_dur, solutions)| {               // aggregation to apply to work results
-            s_durations.push(s_dur);
-            v_durations.push(v_dur);
+        let aggregator = |solutions| {               // aggregation to apply to work results
             if config.greedy_output {
                 //workers ==> out
                 for sol in solutions {write_solution(&mut wrt_buf, &sol, maps, config);}
@@ -185,20 +179,6 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
     if config.verbosity >= 1{
         println!("OK completed in {}.", approx_elapsed_string(&work_start));
     }
-
-
-//    let sum_s = sum(&s_durations);
-//    let sum_v = sum(&v_durations);
-//    let avg_s = avg(sum_s, s_durations.len());
-//    let avg_v = avg(sum_v, v_durations.len());
-//    println!("WORK NANOS:\n\
-//\ttotal \t{}\n\
-//\tsearch\t{}\t{:.2}%\n\
-//\tverif \t{}\t{:.2}%",
-//             sum_s + sum_v,
-//             sum_s, 100.0 * avg_s as f32 /(avg_s + avg_v) as f32,
-//             sum_v, 100.0 * avg_v as f32 /(avg_s + avg_v) as f32
-//    );
 }
 
 
@@ -279,14 +259,10 @@ into a set of solutions involved with that ID.
 fn solve_an_id<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone>
         (config : &Config, maps : &Maps, id_a : usize, sa : &RawSuffixArray,
          fm : &FMIndex<DBWT, DLess, DOcc>, mode : &Mode)
-                -> (u64, u64, HashSet<Solution>){
-
-    let t0 = Instant::now();
+                -> HashSet<Solution>{
     let candidates = fm.generate_candidates(maps.get_string(id_a), config, maps, id_a, sa, mode);
-    let t1 = Instant::now();
     let solutions = verification::verify_all(id_a, candidates, config, maps);
-    let t2 = Instant::now();
-    (nanos(t1-t0), nanos(t2-t1), solutions)
+    solutions
 }
 
 

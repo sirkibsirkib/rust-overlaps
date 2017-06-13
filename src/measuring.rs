@@ -196,7 +196,7 @@ fn write_measurements(buf : &mut BufWriter<File>, sum_measurements : HashMap<u64
                                 m.veri_false_nanos,
                                 m.sol_true_count,
                                 m.sol_false_count,
-            
+
                                 (m.veri_true_nanos + m.veri_false_nanos),
                                 (m.veri_true_nanos as f32 / (m.veri_true_nanos + m.veri_false_nanos) as f32),
                                 (m.suff_blocks + m.search_nanos + m.veri_true_nanos),
