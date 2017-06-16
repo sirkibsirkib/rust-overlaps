@@ -1,4 +1,5 @@
 
+
 use bio::data_structures::fmindex::Interval;
 use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::data_structures::fmindex::FMIndexable;
@@ -525,10 +526,11 @@ fn add_candidates_from_positions(positions : Vec<usize>,
                 overlap_a: a2,
                 overlap_b: b2,
                 overhang_left_a: a1 - b1,
-//                debug_str : new_debug,
             };
 //            println!("{:#?}", &c);
-            cand_set.insert(c);
+            if !cand_set.contains(&c){
+                cand_set.insert(c);
+            }
         }
     }
 }

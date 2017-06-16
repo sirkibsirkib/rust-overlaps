@@ -1,17 +1,14 @@
+use bio::alignment::distance::{hamming, levenshtein};
+
+
+use std;
 use std::cmp::max;
 use std::collections::HashSet;
 
-use bio::alignment::distance::{hamming, levenshtein};
-
 use structs::solutions::{Candidate, Solution};
 use structs::run_config::{Config, Maps};
-
 use search;
-use std;
-
 use useful::{relative_orientation, companion_id, for_reversed_string};
-
-
 
 
 /*
@@ -23,14 +20,11 @@ correspond with an output solution. Other candidates are "filtered" out.
 pub fn verify_all(id_a : usize, candidates : HashSet<Candidate>, config : &Config, maps : &Maps) -> HashSet<Solution> {
     let num_cands = candidates.len();
     let mut solution_set : HashSet<Solution> = HashSet::new();
-    if num_cands == 0{
+    if num_cands == 0 {
         return solution_set;
     }
     for c in candidates {
-//        let format = format!("{:#?}", &c);
         if let Some(solution) = verify(id_a, c, config, maps){
-//            println!("SOL {:#?}",&solution);
-//            println!("{:?}\n{:#?}\n\n", format, &solution);
             solution_set.insert(solution);
         }
     }
@@ -59,6 +53,7 @@ pub fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Op
     //b3 is usize, so implicitly b3 >= 0
     let a_part : &[u8] = &maps.get_string(id_a)  [c.a1()..(c.a1()+c.a2())];
     let b_part : &[u8] = &maps.get_string(c.id_b)[c.b1()..(c.b1()+c.b2())];
+    let k_limit = (config.err_rate*(max(c.overlap_a, c.overlap_b) as f32)).floor() as u32;
 
     let errors : u32 = if config.edit_distance{
         modified_levenshtein(a_part, b_part)
@@ -66,15 +61,13 @@ pub fn verify(id_a : usize, c : Candidate, config : &Config, maps : &Maps) -> Op
         assert!(a_part.len() == b_part.len());
         hamming(a_part, b_part) as u32
     };
-//    let mut cigar = String::new();
-//    cigar.push_str(&format!("ids: {}->{}", id_a, c.id_b));
-    let k_limit = (config.err_rate*(max(c.overlap_a, c.overlap_b) as f32)).floor() as u32;
     if errors <= k_limit{
         Some(solution_from_candidate(c, id_a, errors, maps, config))
     }else{
         None
     }
 }
+
 
 /*
 A custom levenshtein distance where the first and last characters of each overlap are forced to be substitutions
@@ -103,6 +96,7 @@ pub fn modified_levenshtein(a_part : &[u8], b_part : &[u8]) -> u32 {
         + first_char_err + last_char_err
 }
 
+#[inline]
 fn error_at_pos_in_both(a_part : &[u8], b_part : &[u8], first : bool) -> u32 {
     assert!(a_part.len() >= 1);
     assert!(b_part.len() >= 1);
@@ -111,11 +105,7 @@ fn error_at_pos_in_both(a_part : &[u8], b_part : &[u8], first : bool) -> u32 {
     if a_part[a_ind] != b_part[b_ind] {
         1
     } else {
-        if a_part[a_ind] == search::READ_ERR {
-            1
-        } else {
-            0
-        }
+        if a_part[a_ind] == search::READ_ERR { 1 } else { 0 }
     }
 }
 
@@ -144,22 +134,28 @@ fn solution_from_candidate(c : Candidate, id_a : usize, errors : u32,
         overhang_left_a : c.overhang_left_a,
         overhang_right_b : (c.b3(b_len) as i32) - (c.a3(a_len) as i32),
         errors : errors,
-//        cigar : cigar,
     };
-    translate_solution_to_external(&mut sol, config);
+    translate_solution_to_external(&mut sol, config, maps);
     sol
 }
 
-fn translate_solution_to_external(sol : &mut Solution, config : &Config){
+#[inline]
+fn id_order_ok(sol : &Solution, maps : &Maps) -> bool {
+    maps.get_name_for(sol.id_a).
+        cmp(maps.get_name_for(sol.id_b))
+        != std::cmp::Ordering::Greater
+}
+
+fn translate_solution_to_external(sol : &mut Solution, config : &Config, maps : &Maps){
     assert!(sol.id_a != sol.id_b);
     if config.reversals {
         assert!(sol.id_a != companion_id(sol.id_b, config.reversals));
     }
 
-    if sol.id_a > sol.id_b {
+    if !(id_order_ok(sol, maps)) {
         sol.v_flip();
     }
-    assert!(sol.id_a <= sol.id_b);
+    assert!(id_order_ok(sol, maps));
 
     //TODO reversals allow for things to be skipped.
 

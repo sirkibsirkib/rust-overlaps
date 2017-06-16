@@ -41,18 +41,14 @@ use structs::run_config::{Config, Maps};
 use search::GeneratesCandidates;
 use modes::Mode;
 
-// this u8 character represents an ERROR read. Its matching always incurs an error.
 pub static READ_ERR : u8 = b'N';
+static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
 
 
-//TODO make a diagram that shows the structure of the program
 /*
 Gets the config and writes all the necessary data into the map struct.
 calls solve() which does all the work
 */
-
-static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
-
 fn main() {
     let (mode, config) = setup::parse_run_args();
 
@@ -61,26 +57,19 @@ fn main() {
         println!("OK mode set to {}", &mode);
     }
 
+    let maps = prepare::read_and_prepare(&config.input, &config)
+        .expect("Couldn't interpret data.");
     if config.verbosity >= 2 {
-        if cfg!(feature = "kucherov"){
-            println!("OK using Kucherov mode");
+        println!("OK read and mapped fasta input.");
+        if !config.n_alphabet{
+            println!("OK cleaned 'N' from input strings.");
         }
-        if cfg!(feature = "valimaki"){
-            println!("OK using Valimaki2 mode");
-        }
-    }
+    };
 
-    let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-    if config.verbosity >= 2 {println!("OK read and mapped fasta input.")};
-
-    if !config.n_alphabet{
-        if config.verbosity >= 2 {println!("OK cleaned 'N' from input strings.")};
-    }
-
-    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
+    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO TAB THIS IN WHEN SOLVING FOR SOLUTIONS
     solve(&config, &maps, mode);
 
-    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO
+    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO TAB THIS IN WHEN WRITING MEASUREMENTS FILE
 //    measuring::measure_solve(&config, &maps, mode);
 }
 
@@ -113,13 +102,13 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
     if config.verbosity >= 2 {println!("OK output writer ready.");}
 
     let id_iterator = 0..maps.num_ids();
-    let mut complete_solution_list : Vec<Solution> = Vec::new(); //only used in event output sorting is desired
+    let mut complete_solution_list : Vec<Solution> = Vec::new(); // used when -g is not used
 
     let config_task_completion_clone = config.track_progress;
     let num_tasks = maps.num_ids();
     let progress_tracker = thread::spawn(move || {
         track_progress(config_task_completion_clone, num_tasks);
-    });
+    }); // spawn progress-tracker thread
     if config.track_progress {
         if config.verbosity >= 2 {println!("OK spawning progress tracker thread.");}
     }else{
@@ -162,10 +151,12 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
         progress_tracker.join().is_ok();
     }
     if !config.greedy_output {
-        complete_solution_list.sort();
+        complete_solution_list.sort_by(|a, b| solution_comparator(a, b, maps));
         if config.verbosity >= 2 {println!("OK output list sorted.");}
-        complete_solution_list.dedup();
+
+        complete_solution_list.dedup_by(|x, y| solution_comparator(x, y, maps) == std::cmp::Ordering::Equal);
         if config.verbosity >= 2 {println!("OK output list deduplicated.");}
+
 //        println!("{:#?}", &complete_solution_list);
         for sol in complete_solution_list.iter(){
             write_solution(&mut wrt_buf, sol, maps, config);
@@ -181,6 +172,12 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
     }
 }
 
+
+pub fn solution_comparator(x : &Solution, y : &Solution, maps : &Maps) -> std::cmp::Ordering{
+    (maps.get_name_for(x.id_a), maps.get_name_for(x.id_b), &x.orientation, x.overhang_left_a, x.overhang_right_b, x.overlap_a, x.overlap_b)
+        .cmp(&(maps.get_name_for(y.id_a), maps.get_name_for(y.id_b), &y.orientation, y.overhang_left_a, y.overhang_right_b, y.overlap_a, y.overlap_b))
+
+}
 
 
 fn approx_elapsed_string(start_time : &Instant) -> String{
