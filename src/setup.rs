@@ -66,6 +66,9 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
     assert!(config.thresh > 0);
     assert!(config.err_rate >= 0.0);
     assert!(config.err_rate < 1.0);
+    if !config.reversals{
+        println!("WARNING! Reversals are NOT enabled by default. Run with -r flag to enable reversals.");
+    }
     (mode, config)
 }
 
