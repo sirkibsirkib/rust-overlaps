@@ -22,7 +22,7 @@ For example, this is a typical-looking command.
 rust_overlaps ./data/viral_data.fasta ./outputs/viral_overlap_solutions.tsv 0.012 80 -r -vv -t -w=10
 ```
 Lets talk about these arguments, as for 90% of executions, just these above will give you everything you need to know
-* `./data/viral_data.fasta` is the input path, which expects a .fasta file.
+* `./data/viral_data.fasta` is the input path, which expects file in FASTA format.
 * `./outputs/viral_overlap_solutions.tsv` is the output path. This file will be created and written by the solver.
 * `0.012` this is the _error rate limit_ parameter. Overlap solutions with overlaps containing no more than 0.012 errors per overlapping symbol will be in the output solution set.
 * `80` This is the _overlap threshold length_ parameter. No overlaps with both of the two overlap lengths shorter than 80 will be in the output solution set.
@@ -36,4 +36,14 @@ The output file will be formatted as a TSV, with one line for the header, which 
 ```
 idA	idB	O	OHA	OHB	OLA	OLB	K
 ```
-* 
+Each subsequent line will contain a single overlap solution. If the program is not run with the _greedy output_ flag `-g`, the solutions will be unique and sorted in a lexicographic ordering of the columns from left to right. For sorting, the values in columns `idA` and `idB` are considered _strings_.
+* `idA` The ID of the first 'A' string involved in the overlap as represented in the input FASTA file.
+* `idB` Same as above, but for the other 'B' string.
+* `O` Orientation of the overlap. This field will always be `N` for 'normal' if the solver is executed without flag `-r`; Otherwise, an 'I' for 'inverted' in this field suggests that the string corresponding to `idB` was reversed in this overlap.
+* `OHA` Overhang of the A string on the left. The size of the _prefix_ of the A string not involved in the overlap if positive, and _suffix_ otherwise.
+* `OHA` Overhang of the B string on the right. The size of the _suffix_ of the B string not involved in the overlap if positive, and _prefix_ otherwise.
+* `OLA` Overlap of A; The length of the substring of A involved in the overlap.
+* `OLA` Overlap of B; The length of the substring of B involved in the overlap.
+* `K` The _error distance_ between strings A and B. If flag `-e` is used, this is defined as _edit distance_ and _Hamming distance_ otherwise.
+
+The output solutions always guarantee that for each solution, `idA` < `idB` when the IDs are ordered as _strings_. Also, the A string of an overlap is never of _reversed_ orientation.
