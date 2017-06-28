@@ -59,8 +59,6 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
             }
         }
     }
-
-
     if n_symbols_removed > 0 {
         println!("    WARNING\n\tOmitted {} N symbols found in input data.\n\t\
         Run without flag --no_n to use these N strings intact.", n_symbols_removed);
@@ -73,7 +71,6 @@ pub fn read_and_prepare(filename : &str, config : &Config) -> Result<(Maps), io:
     let mut indexes : Vec<usize> = id2index_bdmap.second_col().map(|x| *x).collect();
     indexes.sort();
     indexes.shrink_to_fit();
-
 
     let maps = Maps{
         text : text,

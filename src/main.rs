@@ -9,20 +9,19 @@ use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::alphabets::Alphabet;
 #[macro_use]
 extern crate clap;
-
 extern crate num_cpus;
-
 extern crate cue;
 
 use std::fs::File;
 use std::io::{Write, BufWriter};
 use std::collections::HashSet;
-use std::time::{Instant, Duration};
+use std::time::Instant;
 use std::fmt;
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::{thread, time};
 use std::io::stdout;
-/////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////
 
 mod setup;
 mod prepare;
@@ -33,9 +32,6 @@ mod modes;
 mod testing;
 mod useful;
 
-///DEBUG DEBUG
-mod measuring;
-
 use structs::solutions::Solution;
 use structs::run_config::{Config, Maps};
 use search::GeneratesCandidates;
@@ -44,19 +40,16 @@ use modes::Mode;
 pub static READ_ERR : u8 = b'N';
 static ATOMIC_TASKS_DONE: AtomicUsize = ATOMIC_USIZE_INIT;
 
-
 /*
 Gets the config and writes all the necessary data into the map struct.
 calls solve() which does all the work
 */
 fn main() {
     let (mode, config) = setup::parse_run_args();
-
     if config.verbosity >= 2 {
         println!("OK interpreted config args.\n{:#?}", &config);
         println!("OK mode set to {}", &mode);
     }
-
     let maps = prepare::read_and_prepare(&config.input, &config)
         .expect("Couldn't interpret data.");
     if config.verbosity >= 2 {
@@ -65,12 +58,7 @@ fn main() {
             println!("OK cleaned 'N' from input strings.");
         }
     };
-
-    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO TAB THIS IN WHEN SOLVING FOR SOLUTIONS
     solve(&config, &maps, mode);
-
-    //DEBUG DEBUG DEBUG WEEOO WEEOO WEEOO TAB THIS IN WHEN WRITING MEASUREMENTS FILE
-//    measuring::measure_solve(&config, &maps, mode);
 }
 
 /*
@@ -81,7 +69,6 @@ fn main() {
 5. write to output either after verification asynchronously? //TODO is this reall how it works?
 */
 fn solve(config : &Config, maps : &Maps, mode : Mode){
-
     let alphabet = Alphabet::new(config.alphabet());
     if config.verbosity >= 2 {
         println!("OK index alphabet set to '{}'",
@@ -103,9 +90,9 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
 
     let id_iterator = 0..maps.num_ids();
     let mut complete_solution_list : Vec<Solution> = Vec::new(); // used when -g is not used
-
     let config_task_completion_clone = config.track_progress;
     let num_tasks = maps.num_ids();
+
     let progress_tracker = thread::spawn(move || {
         track_progress(config_task_completion_clone, num_tasks);
     }); // spawn progress-tracker thread
@@ -120,7 +107,7 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
         println!("OK working.");
     }
     let work_start = Instant::now();
-    {
+    { //borrow block for solution set
         let computation = |id_a|  solve_an_id(config, maps, id_a, &sa, &fm, &mode);
         let aggregator = |solutions| {               // aggregation to apply to work results
             if config.greedy_output {
@@ -133,10 +120,6 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
             }
             if config.track_progress { ATOMIC_TASKS_DONE.fetch_add(1, Ordering::SeqCst);}
         };
-        // SINGLE-THREADED mode
-//        for id_a in id_iterator{
-//            aggregator(computation(id_a));
-//        }
         cue::pipeline(
             "overlap_pipeline",          // name of the pipeline for logging
              config.worker_threads,      // number of worker threads
@@ -150,14 +133,12 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
         ATOMIC_TASKS_DONE.store(num_tasks, Ordering::Relaxed);
         progress_tracker.join().is_ok();
     }
+
     if !config.greedy_output {
         complete_solution_list.sort_by(|a, b| solution_comparator(a, b, maps));
         if config.verbosity >= 2 {println!("OK output list sorted.");}
-
         complete_solution_list.dedup_by(|x, y| solution_comparator(x, y, maps) == std::cmp::Ordering::Equal);
         if config.verbosity >= 2 {println!("OK output list deduplicated.");}
-
-//        println!("{:#?}", &complete_solution_list);
         for sol in complete_solution_list.iter(){
             write_solution(&mut wrt_buf, sol, maps, config);
         }
@@ -166,7 +147,6 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
         }
     }
     if config.verbosity >= 2 {println!("OK output file {} written.", config.output);};
-
     if config.verbosity >= 1{
         println!("OK completed in {}.", approx_elapsed_string(&work_start));
     }
@@ -298,10 +278,4 @@ fn write_solution(buf : &mut BufWriter<File>, s : &Solution, maps : &Maps, confi
 impl<DBWT: DerefBWT + Clone, DLess: DerefLess + Clone, DOcc: DerefOcc + Clone> GeneratesCandidates
                     for FMIndex<DBWT, DLess, DOcc> {
     //empty
-}
-
-#[inline]
-fn nanos(dur : Duration) -> u64 {
-    let nanos = dur.subsec_nanos() as u64;
-    (1000*1000*1000 * dur.as_secs() + nanos)
 }

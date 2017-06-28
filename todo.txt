@@ -1,6 +1,0 @@
-trait objects? for kucherov etc.
-are my structs (ie: PatternConstant, Config) too large?
-cost of casting?
-inline compiler directive
-collection X known, given y, find largest X <= y
-//rust vec binary search returns enum ()

@@ -69,7 +69,6 @@ pub mod solutions{
         pub overlap_a : usize,
         pub overlap_b : usize,
         pub errors : u32,
-//        pub cigar : String,
     }
 
     impl Solution{
@@ -78,7 +77,6 @@ pub mod solutions{
             self.overhang_right_b *= -1;
             swap(&mut self.id_a, &mut self.id_b);
             swap(&mut self.overlap_a, &mut self.overlap_b);
-            //TODO V-FLIP CIGAR
         }
 
         pub fn h_flip(&mut self, reversals : bool){
@@ -92,7 +90,6 @@ pub mod solutions{
             swap(&mut self.overhang_left_a, &mut self.overhang_right_b);
             self.overhang_left_a *= -1;
             self.overhang_right_b *= -1;
-            //TODO H-FLIP CIGAR
         }
     }
 
@@ -127,7 +124,6 @@ pub mod solutions{
             self.overlap_b.hash(state);
             self.overhang_left_a.hash(state);
             self.overhang_right_b.hash(state);
-            // ERRORS and CIGAR not need to contribute to uniqueness
         }
     }
 }

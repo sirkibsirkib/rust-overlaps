@@ -157,8 +157,6 @@ fn translate_solution_to_external(sol : &mut Solution, config : &Config, maps : 
     }
     assert!(id_order_ok(sol, maps));
 
-    //TODO reversals allow for things to be skipped.
-
     if config.reversals {
         if for_reversed_string(sol.id_a){
             sol.h_flip(config.reversals);

@@ -63,9 +63,8 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         n_alphabet :        if matches.occurrences_of("no_n")             == 0 {true} else {false},
     };
 
-    assert!(config.thresh > 0);
-    assert!(config.err_rate >= 0.0);
-    assert!(config.err_rate < 1.0);
+    assert!(config.thresh > 0, "ERROR! Threshold value must be strictly larger than 0.");
+    assert!(config.err_rate >= 0.0 && config.err_rate < 1.0, "ERROR! Error rate limit must be non-negative and smaller than 1. 0 <= e < 1.");
     if !config.reversals{
         println!("WARNING! Reversals are NOT enabled by default. Run with -r flag to enable reversals.");
     }
