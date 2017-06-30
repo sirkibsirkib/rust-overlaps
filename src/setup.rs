@@ -19,8 +19,9 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         (@arg THRESH: +required +takes_value "Shortest allowed length of an overlap")
 
         (@arg worker_threads: -w --worker_threads +takes_value "Number of worker threads used. Defaults to number of logical cpu cores")
-        (@arg mode: -m --mode +takes_value "Uses the filtering scheme mode given options {valimaki2, kucherov[1,2,3,4...]} (Default : kucherov2")
+        (@arg mode: -m --mode +takes_value "Uses the filtering scheme mode given options {valimaki, kucherov}. Modes can also be supplied string arguments i.e. 'kucherov_2'. (Default : kucherov_2")
 
+        (@arg format_line: -f --format_line "The first line of the output file will contain a TSV header line.")
         (@arg reversals: -r --reversals "Enables reversals of input strings")
         (@arg inclusions: -i --inclusions "Enables finding of inclusion overlaps (one string within another)")
         (@arg edit_distance: -e --edit_distance "Uses Levenshtein / edit distance instead of Hamming distance")
@@ -58,6 +59,7 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         greedy_output:      if matches.occurrences_of("greedy_output")    >= 1 {true} else {false},
         print:              if matches.occurrences_of("print")            >= 1 {true} else {false},
         track_progress:     if matches.occurrences_of("track_progress")   >= 1 {true} else {false},
+        format_line:        if matches.occurrences_of("format_line")      >= 1 {true} else {false},
 
         //opt-out
         n_alphabet :        if matches.occurrences_of("no_n")             == 0 {true} else {false},
@@ -72,28 +74,32 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
 }
 
 pub fn default_mode() -> Mode {
-    Box::new(modes::kucherov::KucherovMode::new(2))
+    Box::new(modes::kucherov::KucherovMode::new(&vec!["2"]))
 }
 
 fn get_mode(arg : &str) -> Mode {
     let tokens : Vec<&str> = arg.split('_').collect();
-    if tokens.len() > 2 {
-        panic!("Too many mode tokens! Tokens are delimited by '_'. See -h for help.");
-    } else if tokens.len() == 2 {
-        let param : i32 = tokens[1].parse().expect("Couldn't interpret the mode argument as a number. See -h for help.");
-        if tokens[0] == "kucherov"{
-            assert!(param >= 1);
-            Box::new(modes::kucherov::KucherovMode::new(param))
-        }else{
-            panic!(format!("'{}' couldn't be interpreted as a mode. See -h for help.", arg))
-        }
-    } else if tokens.len() == 1 {
-        if tokens[0] == "valimaki2"{
-            Box::new(modes::valimaki2::Valimaki2Mode::new())
-        }else{
-            panic!(format!("'{}' couldn't be interpreted as a mode. See -h for help.", arg))
-        }
-    }else{
-        panic!("Mode argument expects a value! See -h for help.");
+    if tokens.len() == 0 {
+        panic!("")
+    }
+    let mode_args = &tokens[1..];
+    match tokens[0] {
+        "valimaki" => Box::new(modes::valimaki::ValimakiMode::new()),
+        "kucherov" => Box::new(modes::kucherov::KucherovMode::new(mode_args)),
+		/*
+        NEW MODE OPTIONS GO IN THIS BLOCK
+        CATCH the name you want it to be associated with, whatever you like.
+        return a box contining your IsMode-implementing struct. "IsMode" is defined in modes/mod.rs like this:
+            modes::your_mod_rs_file::YourStruct::new(mode_args)
+        You can also leave out the mode_args if your new() is defined as requiring no parameter.
+        */
+		
+		
+		
+		
+		
+		
+		// YOUR MODES GO HERE ^^^^
+        _ => panic!("No mode with the given name found!"),
     }
 }

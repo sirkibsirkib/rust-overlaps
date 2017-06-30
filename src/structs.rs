@@ -155,12 +155,12 @@ pub mod run_config{
 
         pub fn get_string(&self, id : usize) -> &[u8]{
             assert!(id < self.num_ids());
-            &self.text[*self.id2index_bdmap.get_by_first(&id).expect("GAH")..self.get_end_index(id)]
+            &self.text[*self.id2index_bdmap.get_by_first(&id).unwrap()..self.get_end_index(id)]
         }
 
         pub fn get_length(&self, id : usize) -> usize{
             assert!(id < self.num_ids());
-            self.get_end_index(id) - self.id2index_bdmap.get_by_first(&id).expect("WOO")
+            self.get_end_index(id) - self.id2index_bdmap.get_by_first(&id).unwrap()
         }
 
         fn get_end_index(&self, id : usize) -> usize{
@@ -168,7 +168,7 @@ pub mod run_config{
             if id == self.num_ids()-1{
                 self.text.len() - 1 //$s in front. one # at the end
             }else{
-                self.id2index_bdmap.get_by_first(&(id + 1)).expect("WAHEY") - 1
+                self.id2index_bdmap.get_by_first(&(id + 1)).unwrap() - 1
             }
         }
 
@@ -213,6 +213,7 @@ pub mod run_config{
         pub thresh : i32,
 
         //optional
+        pub format_line: bool,
         pub greedy_output: bool,
         pub reversals : bool,
         pub inclusions : bool,

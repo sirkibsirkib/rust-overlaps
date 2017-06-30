@@ -66,7 +66,7 @@ fn main() {
 2. prepare output file
 3. generate tasks for each FORWARD string in the text (ie: patterns)
 4. spawn workers in a threadpool to solve tasks
-5. write to output either after verification asynchronously? //TODO is this reall how it works?
+5. write to output either after verification
 */
 fn solve(config : &Config, maps : &Maps, mode : Mode){
     let alphabet = Alphabet::new(config.alphabet());
@@ -84,8 +84,11 @@ fn solve(config : &Config, maps : &Maps, mode : Mode){
     let f = File::create(&config.output)
         .expect("Couldn't open output file.");
     let mut wrt_buf = BufWriter::new(f);
-    wrt_buf.write_all("idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\n".as_bytes())
-        .expect("couldn't write header line to output");
+    if config.format_line{
+        wrt_buf.write_all("idA\tidB\tO\tOHA\tOHB\tOLA\tOLB\tK\n".as_bytes())
+            .expect("couldn't write header line to output");
+        if config.verbosity >= 2 {println!("OK wrote header line to output file.");}
+    }
     if config.verbosity >= 2 {println!("OK output writer ready.");}
 
     let id_iterator = 0..maps.num_ids();

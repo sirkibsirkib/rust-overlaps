@@ -45,6 +45,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         assert_eq!(2, maps.num_ids());
@@ -71,6 +72,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -97,6 +99,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -123,6 +126,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -149,6 +153,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -174,7 +179,8 @@ mod tests {
             greedy_output:  false,
             track_progress :false,
             print:          false,
-            n_alphabet:         false,
+            n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -201,6 +207,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -227,6 +234,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -253,6 +261,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -279,6 +288,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
         let mode = setup::default_mode();
@@ -305,6 +315,7 @@ mod tests {
             track_progress :false,
             print:          false,
             n_alphabet:     false,
+            format_line:    false,
 
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");

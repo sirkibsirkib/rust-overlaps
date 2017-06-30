@@ -1,4 +1,6 @@
-# Rust implementation for Kucherov's algorithm of an ASPOP solver
+# ASPOP Solver (Rust Implementation)
+This git repo contains everything you'll need to use our Rust ASPOP solver, which is ready to go.
+It comes with the suffix-filter algorithms and associated schemes according to Välimäki's and Kucherov's papers from 2012 and 2014 respectively. See the section below for extending the solver with your own custom schemes.
 
 ## Rust and Cargo
 
@@ -12,7 +14,7 @@ cargo build --release
 
 This may take a minute, as it has to fetch and compile all of the dependencies. Once it's finished, there will be a new `./target/release/` directory containing the binary you are after: `rust_overlaps` (or `rust_overlaps.exe` on Windows).
 
-## Using the solver
+## Using the Solver
 
 To get acquainted with the use of the solver, simply run the compiled `rust_overlaps` binary in your terminal with just the argument `--help` (or `-h` for short). This will print some useful information to your console, showing you just about everything you need to know about the arguments you will need and the flags you may want.
 
@@ -31,7 +33,7 @@ Lets talk about these arguments, as for 90% of executions, just these above will
 * `-t` this flag enables task progress, and will print to terminal how many of the total tasks are completed and an ETA.
 * `-w=10` this `-w` flag expects a numeric argument for the desired number of _worker threads_ for the execution, which defaults to `max(1, number_of_logical_cores()-1)` if not specified.
 
-## Output format
+## Output Format
 The output file will be formatted as a TSV, with one line for the header, which looks like this:
 ```
 idA	idB	O	OHA	OHB	OLA	OLB	K
@@ -47,3 +49,20 @@ Each subsequent line will contain a single overlap solution. If the program is n
 * `K` The _error distance_ between strings A and B. If flag `-e` is used, this is defined as _edit distance_ and _Hamming distance_ otherwise.
 
 The output solutions always guarantee that for each solution, `idA` < `idB` when the IDs are ordered as _strings_. Also, the A string of an overlap is never of _reversed_ orientation.
+
+## Custom Filtering and Partitioning Schemes
+This solver comes with 2 existing schemes, and defaults to that of Kucherov et al (2014).
+However, it was also specifically designed so that adding new schemes would be as easy as possbible. To do this, simply follow these steps:
+1. Create your own `struct`. I suggest making a new .rs file in `src/modes/` in the fashion of the existing files such as `src/modes/kucherov.rs`. I suggest using this existing mode as a starting point in general.
+2. Have your struct use and implement the `IsMode` trait defined in `src/modes/mod.rs`. This requires your struct implementing the relevant functions.
+  * `filter_func` This function defines the behaviour of your 'filtering scheme'. It will be called repeatedly during text index query searches to check whether nodes in the search tree are permitted to introduce symbol errors. As such, this function is called and expected to return an integer, represeting the CAP for how many errors a search node with the given properties (defined by the parameters) are permitted to have.
+  * `get_block_lengths` This function defines the behaviour of the 'partition scheme'. For a pattern of given length, it expects a sequence of _lengths_. These will be interpreted as the lenths of partition blocks (left to right) to split the pattern string into. As such, the lengths returned here should all sum to arg `patt_len`.
+  * `candidate_condition` This function allows you to optionally inhibit candidate generation for a search node conditionally. i.e. if your function is defined simply as `true` then every node of the search tree will generate candidates for all match locations.
+  * `get_guaranteed_extra_blocks` This function is only requried for `testing.rs` and the `cargo test` that run the code within. It is intended to represent how many 0-error blocks your partition scheme gaurantees for valid pattern prefixes. If you have no intention of using the given tests, feel free to define this function as returning a dummy value.
+  * `get_fewest_suff_blocks` This func	tion defines which queries NOT to initiate. The pattern will only create query searches for pattern-block-sequence suffixes of this length or more. 
+3. In `src/setup.rs`, go to approximately line 100, with the `YOUR MODES GO HERE ^^^^` comment. Above you will find more detailed instructions. The purpose of this step is to get the solver to use your Mode struct when the program is started with `-m` and an appropriate parameter. Note that your struct can optionally accept user's input delimited by underscores. For example: `-m=kucherov_2` will use the kucherov mode and pass it one parameter, "2" which the struct's constructed will interpret accordingly.
+4. Build your edited rust source code as described in the section above, called "Rust and Cargo". 
+5. Whenever you use the compiled solver, be sure to pass flag `-m=???` where "???" is the name of your solver. Don't forget the optional arguments if you need them!
+
+
+## Integrating the Solver Directly into your Rust Program

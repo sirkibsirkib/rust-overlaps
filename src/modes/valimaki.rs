@@ -3,22 +3,25 @@ use modes::IsMode;
 use std::fmt;
 
 #[derive(Debug)]
-pub struct Valimaki2Mode;
+pub struct ValimakiMode;
 
-impl Valimaki2Mode {
+impl ValimakiMode {
     pub fn new() -> Self{
-        Valimaki2Mode
+        ValimakiMode
     }
 }
 
-impl fmt::Display for Valimaki2Mode {
+/*
+According to the Valimaki algorithm in the 2012 paper
+*/
+impl fmt::Display for ValimakiMode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Valimaki2")
+        write!(f, "Valimaki")
     }
 }
 
 #[allow(unused_variables)]
-impl IsMode for Valimaki2Mode{
+impl IsMode for ValimakiMode {
 
     #[inline]
     fn get_guaranteed_extra_blocks(&self) -> i32 {

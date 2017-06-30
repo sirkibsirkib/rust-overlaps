@@ -8,7 +8,13 @@ pub struct KucherovMode {
 }
 
 impl KucherovMode {
-    pub fn new(s_param : i32) -> Self{
+    pub fn new(args : &[&str]) -> Self{
+        if args.len() != 1{
+            panic!("Expecting one numeric argument as Kucherov's S parameter!");
+        }
+        let s_param : i32 = args[0].parse()
+            .expect("Couldn't interpret the argument as a number!");
+        assert!(s_param >= 1, "Kucherov's S parameter needs to be >= 1");
         KucherovMode {s_param : s_param}
     }
 }
