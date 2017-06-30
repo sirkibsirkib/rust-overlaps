@@ -1,18 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/modes/valimaki2.rs" afterPath="$PROJECT_DIR$/src/modes/valimaki.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" afterPath="$PROJECT_DIR$/.idea/libraries/Cargo__rust_overlaps_.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main.rs" afterPath="$PROJECT_DIR$/src/main.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modes/kucherov.rs" afterPath="$PROJECT_DIR$/src/modes/kucherov.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modes/mod.rs" afterPath="$PROJECT_DIR$/src/modes/mod.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/setup.rs" afterPath="$PROJECT_DIR$/src/setup.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/structs.rs" afterPath="$PROJECT_DIR$/src/structs.rs" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/testing.rs" afterPath="$PROJECT_DIR$/src/testing.rs" />
-    </list>
+    <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -96,6 +85,8 @@
               <folding>
                 <element signature="e#4252#4253#0" expanded="true" />
                 <element signature="e#4315#4316#0" expanded="true" />
+                <marker date="1498826625745" expanded="true" signature="4350:5184" ph="{...}" />
+                <marker date="1498826625745" expanded="true" signature="4513:4664" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -889,6 +880,8 @@
           <folding>
             <element signature="e#4252#4253#0" expanded="true" />
             <element signature="e#4315#4316#0" expanded="true" />
+            <marker date="1498826625745" expanded="true" signature="4350:5184" ph="{...}" />
+            <marker date="1498826625745" expanded="true" signature="4513:4664" ph="{...}" />
           </folding>
         </state>
       </provider>
