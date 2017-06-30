@@ -63,6 +63,3 @@ However, it was also specifically designed so that adding new schemes would be a
 3. In `src/setup.rs`, go to approximately line 100, with the `YOUR MODES GO HERE ^^^^` comment. Above you will find more detailed instructions. The purpose of this step is to get the solver to use your Mode struct when the program is started with `-m` and an appropriate parameter. Note that your struct can optionally accept user's input delimited by underscores. For example: `-m=kucherov_2` will use the kucherov mode and pass it one parameter, "2" which the struct's constructed will interpret accordingly.
 4. Build your edited rust source code as described in the section above, called "Rust and Cargo". 
 5. Whenever you use the compiled solver, be sure to pass flag `-m=???` where "???" is the name of your solver. Don't forget the optional arguments if you need them!
-
-
-## Integrating the Solver Directly into your Rust Program
