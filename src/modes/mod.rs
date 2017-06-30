@@ -11,13 +11,6 @@ pub type Mode = Box<IsMode>;
 */
 pub trait IsMode: Sync + Display + Debug {
 
-    // Used by testing.rs for the cargo testing
-    fn get_guaranteed_extra_blocks(&self) -> i32;
-
-    // The pattern will only create query searches for pattern-block-sequence suffixes of this length or more
-    fn get_fewest_suff_blocks(&self) -> i32;
-
-
     /*
     filtering scheme. Return the number of permitted errors for a query search node with given properties
     "completed_blocks" : number of fully-matched blocks so far in THIS query search
@@ -31,5 +24,11 @@ pub trait IsMode: Sync + Display + Debug {
 
     // return true IFF a node with the properties represented by the args should generate candidates
     fn candidate_condition(&self,generous_overlap_len : i32, completed_blocks : i32, thresh : i32, errors : i32 ) -> bool;
+    
+    // The pattern will only create query searches for pattern-block-sequence suffixes of this length or more
+    fn get_fewest_suff_blocks(&self) -> i32;
+
+    // Used by testing.rs for the cargo testing
+    fn get_guaranteed_extra_blocks(&self) -> i32;
 }
 
