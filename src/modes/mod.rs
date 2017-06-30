@@ -24,11 +24,45 @@ pub trait IsMode: Sync + Display + Debug {
 
     // return true IFF a node with the properties represented by the args should generate candidates
     fn candidate_condition(&self,generous_overlap_len : i32, completed_blocks : i32, thresh : i32, errors : i32 ) -> bool;
-    
+
     // The pattern will only create query searches for pattern-block-sequence suffixes of this length or more
     fn get_fewest_suff_blocks(&self) -> i32;
 
     // Used by testing.rs for the cargo testing
     fn get_guaranteed_extra_blocks(&self) -> i32;
 }
+/*
+Add your custom modes in this switch statement so that
+they will be used when the solver is run with the appropriate -m flag arg.
+*/
+pub fn get_mode(arg : &str) -> Mode {
+    let tokens : Vec<&str> = arg.split('_').collect();
+    if tokens.len() == 0 {
+        panic!("")
+    }
+    let mode_args = &tokens[1..];
+    match tokens[0] {
+        "valimaki" => Box::new(valimaki::ValimakiMode::new()),
+        "kucherov" => Box::new(kucherov::KucherovMode::new(mode_args)),
+        /*
+        NEW MODE OPTIONS GO IN THIS BLOCK
+        CATCH the name you want it to be associated with, whatever you like.
+        return a box contining your IsMode-implementing struct. "IsMode" is defined in modes/mod.rs like this:
+            your_mod_rs_file::YourStruct::new(mode_args)
+        You can also leave out the mode_args if your new() is defined as requiring no parameter.
+        */
 
+
+
+
+
+
+        // YOUR MODES GO HERE ^^^^
+        _ => panic!("No mode with the given name found!"),
+    }
+}
+
+
+pub fn default_mode() -> Mode {
+    Box::new(kucherov::KucherovMode::new(&vec!["2"]))
+}

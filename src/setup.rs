@@ -37,8 +37,8 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         None => max(1, num_cpus::get()-1),
     };
     let mode : Mode = match matches.value_of("mode") {
-        Some(s) => get_mode(s),
-        _ => default_mode(),
+        Some(s) => modes::get_mode(s),
+        _ => modes::default_mode(),
     };
 
     let config = Config{
@@ -71,35 +71,4 @@ pub fn parse_run_args() -> (Box<IsMode>, Config) {
         println!("WARNING! Reversals are NOT enabled by default. Run with -r flag to enable reversals.");
     }
     (mode, config)
-}
-
-pub fn default_mode() -> Mode {
-    Box::new(modes::kucherov::KucherovMode::new(&vec!["2"]))
-}
-
-fn get_mode(arg : &str) -> Mode {
-    let tokens : Vec<&str> = arg.split('_').collect();
-    if tokens.len() == 0 {
-        panic!("")
-    }
-    let mode_args = &tokens[1..];
-    match tokens[0] {
-        "valimaki" => Box::new(modes::valimaki::ValimakiMode::new()),
-        "kucherov" => Box::new(modes::kucherov::KucherovMode::new(mode_args)),
-		/*
-        NEW MODE OPTIONS GO IN THIS BLOCK
-        CATCH the name you want it to be associated with, whatever you like.
-        return a box contining your IsMode-implementing struct. "IsMode" is defined in modes/mod.rs like this:
-            modes::your_mod_rs_file::YourStruct::new(mode_args)
-        You can also leave out the mode_args if your new() is defined as requiring no parameter.
-        */
-		
-		
-		
-		
-		
-		
-		// YOUR MODES GO HERE ^^^^
-        _ => panic!("No mode with the given name found!"),
-    }
 }

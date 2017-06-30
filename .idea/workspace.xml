@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="f480539e-dd97-4eaf-8b2c-b6208a81ee66" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/modes/mod.rs" afterPath="$PROJECT_DIR$/src/modes/mod.rs" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/setup.rs" afterPath="$PROJECT_DIR$/src/setup.rs" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -24,16 +26,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="468">
               <caret line="89" column="79" lean-forward="false" selection-start-line="89" selection-start-column="79" selection-end-line="89" selection-end-column="79" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="structs.rs" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/structs.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="485">
-              <caret line="215" column="23" lean-forward="false" selection-start-line="215" selection-start-column="23" selection-end-line="215" selection-end-column="23" />
               <folding />
             </state>
           </provider>
@@ -82,14 +74,9 @@
       <file leaf-file-name="setup.rs" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/setup.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="235">
-              <caret line="61" column="74" lean-forward="false" selection-start-line="61" selection-start-column="74" selection-end-line="61" selection-end-column="74" />
-              <folding>
-                <element signature="e#4252#4253#0" expanded="true" />
-                <element signature="e#4315#4316#0" expanded="true" />
-                <marker date="1498826625745" expanded="true" signature="4350:5184" ph="{...}" />
-                <marker date="1498826625745" expanded="true" signature="4513:4664" ph="{...}" />
-              </folding>
+            <state relative-caret-position="635">
+              <caret line="41" column="6" lean-forward="true" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -117,9 +104,12 @@
       <file leaf-file-name="mod.rs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/modes/mod.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="628">
-              <caret line="26" column="4" lean-forward="false" selection-start-line="26" selection-start-column="4" selection-end-line="26" selection-end-column="4" />
-              <folding />
+            <state relative-caret-position="303">
+              <caret line="50" column="12" lean-forward="false" selection-start-line="50" selection-start-column="12" selection-end-line="50" selection-end-column="12" />
+              <folding>
+                <element signature="e#2561#2562#0" expanded="true" />
+                <element signature="e#2617#2618#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -239,8 +229,8 @@
         <option value="$PROJECT_DIR$/src/modes/valimaki.rs" />
         <option value="$PROJECT_DIR$/src/structs.rs" />
         <option value="$PROJECT_DIR$/src/main.rs" />
-        <option value="$PROJECT_DIR$/src/setup.rs" />
         <option value="$PROJECT_DIR$/src/testing.rs" />
+        <option value="$PROJECT_DIR$/src/setup.rs" />
         <option value="$PROJECT_DIR$/src/modes/mod.rs" />
       </list>
     </option>
@@ -851,6 +841,14 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/testing.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-8947">
+          <caret line="47" column="34" lean-forward="false" selection-start-line="47" selection-start-column="34" selection-end-line="47" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/modes/valimaki.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="300">
@@ -861,7 +859,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/structs.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="485">
+        <state relative-caret-position="1100">
           <caret line="215" column="23" lean-forward="false" selection-start-line="215" selection-start-column="23" selection-end-line="215" selection-end-column="23" />
           <folding />
         </state>
@@ -877,21 +875,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/setup.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="235">
-          <caret line="61" column="74" lean-forward="false" selection-start-line="61" selection-start-column="74" selection-end-line="61" selection-end-column="74" />
-          <folding>
-            <element signature="e#4252#4253#0" expanded="true" />
-            <element signature="e#4315#4316#0" expanded="true" />
-            <marker date="1498826625745" expanded="true" signature="4350:5184" ph="{...}" />
-            <marker date="1498826625745" expanded="true" signature="4513:4664" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/testing.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-8947">
-          <caret line="47" column="34" lean-forward="false" selection-start-line="47" selection-start-column="34" selection-end-line="47" selection-end-column="34" />
+        <state relative-caret-position="635">
+          <caret line="41" column="6" lean-forward="true" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
           <folding />
         </state>
       </provider>
@@ -906,9 +891,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/modes/mod.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="628">
-          <caret line="26" column="4" lean-forward="false" selection-start-line="26" selection-start-column="4" selection-end-line="26" selection-end-column="4" />
-          <folding />
+        <state relative-caret-position="303">
+          <caret line="50" column="12" lean-forward="false" selection-start-line="50" selection-start-column="12" selection-end-line="50" selection-end-column="12" />
+          <folding>
+            <element signature="e#2561#2562#0" expanded="true" />
+            <element signature="e#2617#2618#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
