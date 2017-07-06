@@ -47,8 +47,9 @@ pub fn get_mode(arg : &str) -> Mode {
         /*
         NEW MODE OPTIONS GO IN THIS BLOCK
         CATCH the name you want it to be associated with, whatever you like.
-        return a box contining your IsMode-implementing struct. "IsMode" is defined in modes/mod.rs like this:
+        return a box contining your IsMode-implementing struct like this:
             your_mod_rs_file::YourStruct::new(mode_args)
+        ("IsMode" trait is defined above)
         You can also leave out the mode_args if your new() is defined as requiring no parameter.
         */
 
