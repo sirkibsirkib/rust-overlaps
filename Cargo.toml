@@ -1,6 +1,6 @@
 [package]
-name = "rust_overlaps"
-version = "0.1.0"
+name = "rust-overlaps"
+version = "0.1.1"
 authors = ["sirkibsirkib <christopher.esterhuyse@gmail.com>"]
 
 [dependencies]
