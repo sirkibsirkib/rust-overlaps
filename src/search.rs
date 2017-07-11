@@ -2,6 +2,8 @@ use bio::data_structures::fmindex::Interval;
 use bio::data_structures::suffix_array::RawSuffixArray;
 use bio::data_structures::fmindex::FMIndexable;
 
+extern crate stacker; // for avoiding stackoverflow
+
 use std;
 use std::collections::HashSet;
 use std::cmp::{min,max};
@@ -109,6 +111,7 @@ pub trait GeneratesCandidates : FMIndexable {
 
             // the filters begin as the entire pattern, and gradually get shorter.
             p_i -= *block_len;
+
         }
         candidate_set
     }
@@ -193,32 +196,36 @@ pub trait GeneratesCandidates : FMIndexable {
             let recurse_errors =  if p_char == a && a != READ_ERR {errors} else {errors + 1};
             if recurse_errors <= permitted_errors {
                 // recursively explore SUBSTITUTION cases (both hamming and levenshtein)
-                self.recurse_candidates(cand_set,
-                                        p_cns,
-                                        s_cns,
-                                        recurse_errors,
-                                        p_i-1,  //step left
-                                        LastOperation::Substitution,
-                                        a_match_len + 1,
-                                        b_match_len + 1,
-                                        &next_interval,
-                                        );
-
-
+                stacker::maybe_grow(32 * 1024, 1024 * 1024, || {
+                    // guaranteed to have at least 32K of stack
+                    self.recurse_candidates(cand_set,
+                                            p_cns,
+                                            s_cns,
+                                            recurse_errors,
+                                            p_i-1,  //step left
+                                            LastOperation::Substitution,
+                                            a_match_len + 1,
+                                            b_match_len + 1,
+                                            &next_interval,
+                                            );
+                });
             }
             if (errors < permitted_errors) && p_cns.config.edit_distance && last_operation.allows_insertion() {
                 if p_char != a{
                     // recursively explore INSERTION cases (if levenshtein)
-                    self.recurse_candidates(cand_set,
-                                            p_cns,
-                                            s_cns,
-                                            errors + 1, //always induces an error
-                                            p_i,        //don't step left
-                                            LastOperation::Insertion,
-                                            a_match_len,//the pattern string doesn't grow
-                                            b_match_len + 1,
-                                            &next_interval,
-                                            );
+                    stacker::maybe_grow(32 * 1024, 1024 * 1024, || {
+                        // guaranteed to have at least 32K of stack
+                        self.recurse_candidates(cand_set,
+                                                p_cns,
+                                                s_cns,
+                                                errors + 1, //always induces an error
+                                                p_i,        //don't step left
+                                                LastOperation::Insertion,
+                                                a_match_len,//the pattern string doesn't grow
+                                                b_match_len + 1,
+                                                &next_interval,
+                                                );
+                    });
                 }
             }
         }
@@ -228,16 +235,20 @@ pub trait GeneratesCandidates : FMIndexable {
             if last_operation.allows_deletion(){
 
 //              let next_debug = format!("{}{}", '_', debug);
-                self.recurse_candidates(cand_set,
-                                        p_cns,
-                                        s_cns,
-                                        errors + 1,
-                                        p_i - 1,         //one step without matching
-                                        LastOperation::Deletion,
-                                        a_match_len + 1,
-                                        b_match_len,     //the matched string doesn't grow
-                                        &match_interval, //stays unchanged
-                                        );
+
+                stacker::maybe_grow(32 * 1024, 1024 * 1024, || {
+                    // guaranteed to have at least 32K of stack
+                    self.recurse_candidates(cand_set,
+                                            p_cns,
+                                            s_cns,
+                                            errors + 1,
+                                            p_i - 1,         //one step without matching
+                                            LastOperation::Deletion,
+                                            a_match_len + 1,
+                                            b_match_len,     //the matched string doesn't grow
+                                            &match_interval, //stays unchanged
+                                            );
+                });
             }
         }
     }
