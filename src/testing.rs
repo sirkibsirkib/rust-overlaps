@@ -75,7 +75,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -102,7 +102,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -129,7 +129,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -156,7 +156,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -183,7 +183,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -210,7 +210,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -237,7 +237,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -264,7 +264,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -291,7 +291,7 @@ mod tests {
             format_line:    false,
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -319,7 +319,7 @@ mod tests {
 
         };
         let maps = prepare::read_and_prepare(&config.input, &config).expect("Couldn't interpret data.");
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
         solve(&config, &maps, mode);
         let results = read_output(&config.output);
         let mut should_contain : HashSet<GoodSolution> = HashSet::new();
@@ -346,7 +346,7 @@ mod tests {
 
     #[test]
     fn filter_correct() {
-        let mode = setup::default_mode();
+        let mode = modes::default_mode();
 
         let guaranteed_extra_blocks = mode.get_guaranteed_extra_blocks();
         for patt_len in 5..350 {
@@ -395,7 +395,7 @@ mod tests {
         let mut result : HashSet<GoodSolution> = HashSet::new();
         let f = File::open(filename).unwrap();
         let file = BufReader::new(&f);
-        for line in file.lines().skip(1) {
+        for line in file.lines() {
             match line{
                 Ok(l) =>  {
                     let parts = l.split("\t").collect::<Vec<_>>();
